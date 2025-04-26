@@ -5,11 +5,27 @@ let db;
 const mongoUrl = process.env.MONGO_URL;
 const dbName = 'login';
 
+// Validate required environment variables
+const validateRequiredEnvVars = () => {
+  const requiredVars = [
+    'COLLECTION_FILES',
+    'COLLECTION_THUMBNAILS',
+    'COLLECTION_METADATA',
+    'COLLECTION_USERS'
+  ];
+  
+  const missingVars = requiredVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}.`);
+  }
+};
+
 const COLLECTIONS = {
-  files: '1-alciobanu-hms-files',
-  thumbnails: '1-alciobanu-hms-thumbnails',
-  metadata: '1-alciobanu-hms-metadata',
-  users: '1-alciobanu-hms-users'
+  files: process.env.COLLECTION_FILES,
+  thumbnails: process.env.COLLECTION_THUMBNAILS,
+  metadata: process.env.COLLECTION_METADATA,
+  users: process.env.COLLECTION_USERS
 };
 
 // Get a collection from the database
@@ -29,6 +45,9 @@ const getCollection = (db, collectionName) => {
 // Connect to MongoDB
 const connectToMongo = async () => {
   try {
+    // Validate environment variables before connecting
+    validateRequiredEnvVars();
+    
     console.log('Attempting to connect to MongoDB at:', mongoUrl);
     const client = new MongoClient(mongoUrl);
     await client.connect();

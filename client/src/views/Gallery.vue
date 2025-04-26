@@ -1,22 +1,5 @@
 <template>
   <div class="gallery" ref="galleryContainer">
-    <div class="gallery-header">
-      <div class="title-container">
-        <img :src="baseUrl + 'img/logo.svg'" alt="Media Gallery Logo" class="logo" />
-        <h1>Media Gallery</h1>
-      </div>
-      <div class="actions">
-        <theme-toggle />
-        <button v-if="!selectMode" @click="openUploadModal" class="upload-btn">Upload</button>
-        <button v-if="!selectMode" @click="toggleSelectMode" class="select-btn">Select</button>
-        <template v-else>
-          <div class="selection-counter">{{ selectedItems.length }} selected</div>
-          <button @click="deleteSelected" class="delete-btn">Delete Selected</button>
-          <button @click="toggleSelectMode" class="cancel-btn">Cancel</button>
-        </template>
-      </div>
-    </div>
-
     <div v-if="loading && !media.length" class="loading">
       Loading...
     </div>
@@ -65,7 +48,6 @@ import { format } from 'date-fns';
 import MediaItem from '../components/MediaItem.vue';
 import UploadModal from '../components/UploadModal.vue';
 import ConfirmationDialog from '../components/ConfirmationDialog.vue';
-import ThemeToggle from '../components/ThemeToggle.vue';
 import '../styles/Gallery.css';
 import '../styles/theme.css';
 
@@ -74,8 +56,18 @@ export default {
   components: {
     MediaItem,
     UploadModal,
-    ConfirmationDialog,
-    ThemeToggle
+    ConfirmationDialog
+  },
+  provide() {
+    return {
+      galleryControls: {
+        selectMode: () => this.selectMode,
+        toggleSelectMode: this.toggleSelectMode,
+        selectedCount: () => this.selectedItems.length,
+        openUploadModal: this.openUploadModal,
+        deleteSelected: this.deleteSelected
+      }
+    };
   },
   data() {
     return {
@@ -117,6 +109,15 @@ export default {
   mounted() {
     // Initialize the intersection observer for infinite scrolling
     this.setupInfiniteScroll();
+    
+    // Emit event to notify App.vue that Gallery is mounted
+    this.$emit('gallery-mounted', {
+      selectMode: this.selectMode,
+      selectedCount: this.selectedItems.length
+    });
+    
+    // Set document title
+    document.title = 'Media Gallery';
   },
   created() {
     this.fetchMedia();
@@ -229,6 +230,14 @@ export default {
       if (!this.selectMode) {
         this.selectedItems = [];
       }
+      
+      // Dispatch selection update event for GalleryControls
+      window.dispatchEvent(new CustomEvent('gallery-selection-update', {
+        detail: {
+          isSelecting: this.selectMode,
+          selectedCount: this.selectedItems.length
+        }
+      }));
     },
     toggleSelect(item) {
       console.log('toggleSelect called with:', item);
@@ -246,6 +255,14 @@ export default {
         this.selectedItems.splice(index, 1);
         console.log('selectedItems is now:', this.selectedItems);
       }
+      
+      // Dispatch selection update event for GalleryControls
+      window.dispatchEvent(new CustomEvent('gallery-selection-update', {
+        detail: {
+          isSelecting: this.selectMode,
+          selectedCount: this.selectedItems.length
+        }
+      }));
     },
     deleteItem(item) {
       this.itemToDelete = item;
