@@ -5,7 +5,7 @@
   "scripts": {
     "install:all": "npm install && cd client && npm install && cd ../server && npm install",
     "client": "cd client && npm run serve",
-    "server": "export $(cat .env) && cd server && npm run dev",
+    "server": "export $(cat config.ini) && cd server && npm run dev",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "cd client && npm run build"
   },

@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const { ObjectId } = require('mongodb');
-const { getDb } = require('../utils/db');
+const { getDb, getCollection } = require('../utils/db');
 const {
   uploadDir,
   extractMetadata,
@@ -77,7 +77,8 @@ const uploadFileHandler = async (request, reply) => {
     await generateThumbnail(finalPath, fileType, fileId);
     
     // Store file info in database
-    await db.collection('files').insertOne({
+    const filesCollection = getCollection(db, 'files');
+    await filesCollection.insertOne({
       _id: fileId,
       originalName: data.filename,
       filename: savedFilename,
@@ -89,13 +90,15 @@ const uploadFileHandler = async (request, reply) => {
     });
     
     // Store metadata
-    await db.collection('metadata').insertOne({
+    const metadataCollection = getCollection(db, 'metadata');
+    await metadataCollection.insertOne({
       file_id: fileId,
       ...metadata
     });
     
     // Store thumbnail info
-    await db.collection('thumbnails').insertOne({
+    const thumbnailsCollection = getCollection(db, 'thumbnails');
+    await thumbnailsCollection.insertOne({
       file_id: fileId,
       filename: `${fileId}.jpg`,
       createdAt: new Date()

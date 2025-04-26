@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const { ObjectId } = require('mongodb');
-const { getDb } = require('../utils/db');
+const { getDb, getCollection } = require('../utils/db');
 const { uploadDir, thumbnailsDir } = require('../utils/fileHelpers');
 
 /**
@@ -16,7 +16,8 @@ const deleteFileHandler = async (request, reply) => {
     const fileId = new ObjectId(file_id);
     
     // Get file information
-    const file = await db.collection('files').findOne({ _id: fileId });
+    const filesCollection = getCollection(db, 'files');
+    const file = await filesCollection.findOne({ _id: fileId });
     
     if (!file) {
       return reply.code(404).send({ error: 'File not found' });
@@ -31,9 +32,13 @@ const deleteFileHandler = async (request, reply) => {
     await fs.remove(thumbnailPath);
     
     // Delete from database
-    await db.collection('files').deleteOne({ _id: fileId });
-    await db.collection('thumbnails').deleteOne({ file_id: fileId });
-    await db.collection('metadata').deleteOne({ file_id: fileId });
+    await filesCollection.deleteOne({ _id: fileId });
+    
+    const thumbnailsCollection = getCollection(db, 'thumbnails');
+    await thumbnailsCollection.deleteOne({ file_id: fileId });
+    
+    const metadataCollection = getCollection(db, 'metadata');
+    await metadataCollection.deleteOne({ file_id: fileId });
     
     return { success: true };
   } catch (err) {

@@ -41,10 +41,11 @@ fastify.register(require('./routes'));
 
 // Start the server
 const start = async () => {
+  const port = process.env.SERVER_PORT;
   try {
     await connectToMongo();
-    await fastify.listen({ port: 3000, host: '0.0.0.0' });
-    console.log('Server is running on http://localhost:3000');
+    await fastify.listen({ port, host: '0.0.0.0' });
+    console.log('Server is running on http://localhost:' + port);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

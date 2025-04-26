@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const { getDb } = require('../utils/db');
+const { getDb, getCollection } = require('../utils/db');
 
 /**
  * Route handler for getting a specific media item by ID
@@ -13,7 +13,8 @@ const getMediaItemHandler = async (request, reply) => {
     console.log('Fetching specific media with ID:', id);
     const objectId = new ObjectId(id);
     
-    const file = await db.collection('files').findOne({ _id: objectId });
+    const filesCollection = getCollection(db, 'files');
+    const file = await filesCollection.findOne({ _id: objectId });
     
     if (!file) {
       return reply.code(404).send({ error: 'Media not found' });

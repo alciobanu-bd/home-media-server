@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const { getDb } = require('../utils/db');
+const { getDb, getCollection } = require('../utils/db');
 
 /**
  * Route handler for getting metadata for a file
@@ -10,7 +10,8 @@ const getMetadataHandler = async (request, reply) => {
   const db = getDb();
   
   try {
-    const metadata = await db.collection('metadata')
+    const metadataCollection = getCollection(db, 'metadata');
+    const metadata = await metadataCollection
       .findOne({ file_id: new ObjectId(file_id) });
     
     if (!metadata) {

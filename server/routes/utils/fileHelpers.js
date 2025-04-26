@@ -4,7 +4,7 @@ const sharp = require('sharp');
 const exifParser = require('exif-parser');
 const CryptoJS = require('crypto-js');
 const { ObjectId } = require('mongodb');
-const { getDb } = require('./db');
+const { getDb, getCollection } = require('./db');
 
 // Define paths for uploads and thumbnails
 const uploadDir = path.join(__dirname, '../../uploads');
@@ -91,7 +91,8 @@ const calculateMD5 = async (filePath) => {
 const findDuplicateFile = async (md5Hash) => {
   try {
     const db = getDb();
-    const duplicateFile = await db.collection('files').findOne({ md5Hash });
+    const filesCollection = getCollection(db, 'files');
+    const duplicateFile = await filesCollection.findOne({ md5Hash });
     return duplicateFile;
   } catch (err) {
     console.error('Error checking for duplicates:', err);

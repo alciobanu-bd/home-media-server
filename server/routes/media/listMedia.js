@@ -1,5 +1,5 @@
 const { ObjectId } = require('mongodb');
-const { getDb } = require('../utils/db');
+const { getDb, getCollection } = require('../utils/db');
 
 /**
  * Route handler for getting paginated media list
@@ -17,7 +17,8 @@ const listMediaHandler = async (request, reply) => {
       const objectId = new ObjectId(id);
       
       // Get all items for navigation
-      const allFiles = await db.collection('files')
+      const filesCollection = getCollection(db, 'files');
+      const allFiles = await filesCollection
         .find({})
         .sort({ createdAt: -1 })
         .toArray();
@@ -32,8 +33,9 @@ const listMediaHandler = async (request, reply) => {
       }
 
       // Get metadata for all files
+      const metadataCollection = getCollection(db, 'metadata');
       const filesWithMetadata = await Promise.all(allFiles.map(async (file) => {
-        const metadata = await db.collection('metadata')
+        const metadata = await metadataCollection
           .findOne({ file_id: file._id });
         return { ...file, metadata };
       }));
@@ -51,15 +53,17 @@ const listMediaHandler = async (request, reply) => {
     query._id = { $lt: new ObjectId(lastId) };
   }
   
-  const files = await db.collection('files')
+  const filesCollection = getCollection(db, 'files');
+  const files = await filesCollection
     .find(query)
     .sort({ createdAt: -1 })
     .limit(parseInt(limit, 10))
     .toArray();
 
   // Get metadata for paginated files
+  const metadataCollection = getCollection(db, 'metadata');
   const filesWithMetadata = await Promise.all(files.map(async (file) => {
-    const metadata = await db.collection('metadata')
+    const metadata = await metadataCollection
       .findOne({ file_id: file._id });
     return { ...file, metadata };
   }));
