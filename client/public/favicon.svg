@@ -15,7 +15,7 @@
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
-  
+
   <!-- Background -->
   <circle cx="50" cy="50" r="50" fill="#F7F9FC" />
   

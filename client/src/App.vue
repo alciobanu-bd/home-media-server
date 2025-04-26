@@ -15,8 +15,6 @@
             </span>
           </div>
         </div>
-      </div>
-      <div class="header-center">
         <nav class="main-nav">
           <router-link to="/" class="nav-link">Gallery</router-link>
           <!-- Additional menu items can be added here -->
@@ -176,8 +174,8 @@ export default {
   --border-radius: 6px; /* Adjusted from 4px */
   --border-radius-lg: 10px; /* Adjusted from 8px */
   --spacing-unit: 8px;
-  --header-height: 64px;
-  --header-height-mobile: 56px;
+  --header-height: 80px; /* Increased from 64px */
+  --header-height-mobile: 68px; /* Increased from 56px */
   --transition-speed: 0.25s; /* Slightly slower for smoother feel */
   
   /* RGB versions of colors */
@@ -226,6 +224,7 @@ body {
   flex: 1;
   display: flex;
   align-items: center;
+  gap: 24px;
 }
 
 .title-container {
@@ -240,8 +239,8 @@ body {
 }
 
 .logo {
-  width: 44px;
-  height: 44px;
+  width: 60px !important;
+  height: 60px !important;
   object-fit: contain;
   transition: transform var(--transition-speed) ease;
 }
@@ -361,8 +360,8 @@ body {
   }
   
   .logo {
-    width: 36px;
-    height: 36px;
+    width: 60px !important;
+    height: 60px !important;
   }
   
   .header-divider {

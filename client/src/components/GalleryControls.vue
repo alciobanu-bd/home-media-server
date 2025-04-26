@@ -100,147 +100,113 @@ export default {
 .gallery-controls {
   display: flex;
   align-items: center;
-  gap: 12px; /* Consistent gap */
+  gap: 10px; /* Slightly smaller gap */
 }
 
-/* Base button style - applying globally for consistency */
-.button {
-  display: inline-flex; /* Use inline-flex for alignment */
+.action-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px; /* Gap between icon and text */
-  padding: 8px 14px; /* Adjusted padding */
-  border: 1px solid transparent;
-  border-radius: var(--border-radius);
+  gap: 10px; /* Increased gap for better text/icon separation */
+  padding: 9px 18px; /* Slightly more padding */
+  border-radius: 12px; /* More rounded corners */
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600; /* Slightly bolder text */
   cursor: pointer;
-  transition: var(--base-transition);
-  white-space: nowrap; /* Prevent wrapping */
-  line-height: 1.5; /* Ensure consistent height */
+  transition: all 0.2s ease;
+  border: none; /* Remove border */
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow */
 }
 
-.button svg {
-  width: 18px; /* Control icon size */
-  height: 18px;
-  fill: currentColor; /* Make SVG color inherit */
+.action-btn:hover {
+  transform: translateY(-1px); /* Slight lift on hover */
 }
 
-/* Primary button style */
-.button.primary {
-  background-color: var(--color-primary);
-  color: var(--color-button-text, white);
-  border-color: var(--color-primary);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+.action-btn:active {
+  transform: scale(0.97) translateY(0);
+  box-shadow: none; /* Remove shadow on press */
 }
 
-.button.primary:hover {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
-}
-
-.button.primary:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-/* Secondary button style */
-.button.secondary {
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-secondary);
-  border-color: var(--color-border);
-}
-
-.button.secondary:hover {
-  background-color: var(--color-hover);
-  border-color: var(--color-border);
-  color: var(--color-text-primary);
-}
-
-/* Danger button style */
-.button.danger {
-  background-color: var(--color-error);
-  color: white;
-  border-color: var(--color-error);
-}
-
-.button.danger:hover {
-  background-color: var(--color-error-dark);
-  border-color: var(--color-error-dark);
-  transform: translateY(-1px);
-}
-
-/* Disabled state */
-.button:disabled {
-  background-color: var(--color-button-disabled);
-  border-color: var(--color-button-disabled);
-  color: var(--color-text-secondary);
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: translateY(0);
-  box-shadow: none;
-}
-
-/* Specific adjustments for controls */
-.upload-button {
-  /* Uses .button.primary styles */
-}
-
-.selection-actions {
+.btn-content {
   display: flex;
   align-items: center;
-  gap: 8px; /* Inner gap for selection buttons */
+  gap: 8px;
 }
 
-.select-button,
-.cancel-button,
-.delete-button {
-   /* Uses .button.secondary styles */
+.btn-content img {
+  width: 18px;
+  height: 18px;
 }
 
-.delete-button {
-  /* Uses .button.danger styles */
-  margin-left: 4px; /* Add slight space before delete */
+.btn-text {
+  line-height: 1.2; /* Ensure text aligns well */
 }
 
-.selected-count {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-  margin-left: 8px; /* Space before count */
-  background-color: var(--color-hover);
-  padding: 4px 8px;
-  border-radius: var(--border-radius);
+/* --- Upload Button --- */
+.upload-btn {
+  background-color: #4b96f3; /* Slightly brighter blue */
+  color: white;
 }
 
-/* Remove default browser styles for file input */
-input[type="file"] {
-  display: none;
+.upload-btn:hover {
+  background-color: #5aa2ff; /* Even brighter on hover */
+  box-shadow: 0 3px 6px rgba(75, 150, 243, 0.25); /* Colored shadow */
+}
+
+/* --- Select Button --- */
+.select-btn {
+  background-color: #5a6474; /* Slightly lighter gray */
+  color: white; /* Full white text for better contrast */
+}
+
+.select-btn:hover {
+  background-color: #6b7585; /* Lighter on hover */
+  box-shadow: 0 3px 6px rgba(107, 117, 133, 0.25); /* Colored shadow */
+}
+
+/* --- Delete Button --- */
+.delete-btn {
+  /* Keeping gradient but maybe less bright */
+  background: linear-gradient(145deg, #ef4444, #b91c1c); /* Red 500 to Red 700 */
+  color: white;
+  border-color: transparent;
+}
+
+.delete-btn:hover {
+  background: linear-gradient(145deg, #dc2626, #991b1b); /* Red 600 to Red 800 */
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+/* --- Cancel Button (Similar to Select) --- */
+.cancel-btn {
+  background-color: #4B5563; /* Tailwind Gray 600 */
+  color: #D1D5DB; /* Tailwind Gray 300 */
+  border-color: #4B5563; /* Match background */
+}
+
+.cancel-btn:hover {
+  background-color: #6B7280; /* Tailwind Gray 500 */
+  border-color: #6B7280;
+  color: #F9FAFB; /* Tailwind Gray 50 */
+  box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
 }
 
 @media (max-width: 768px) {
   .gallery-controls {
-    gap: 8px; /* Reduced gap */
+    gap: 8px;
   }
 
-  .button {
-    padding: 6px 10px; /* Smaller padding */
+  .action-btn {
+    padding: 7px 14px; /* Slightly adjusted mobile padding */
     font-size: 13px;
   }
-
-  .button svg {
+  
+  .btn-content img {
     width: 16px;
     height: 16px;
-  }
-  
-  .selection-actions {
-    gap: 6px;
-  }
-
-  .selected-count {
-     display: none; /* Hide count on small screens maybe? Or adjust styling */
   }
 }
 </style> 
