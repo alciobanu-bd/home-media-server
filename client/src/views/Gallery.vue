@@ -108,7 +108,7 @@ export default {
     });
     
     // Set document title
-    document.title = 'Media Gallery';
+    document.title = 'Lumia';
   },
   created() {
     this.fetchMedia();

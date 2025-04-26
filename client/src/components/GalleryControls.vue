@@ -99,148 +99,148 @@ export default {
 <style scoped>
 .gallery-controls {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 12px; /* Consistent gap */
 }
 
-.action-btn {
-  display: inline-flex;
+/* Base button style - applying globally for consistency */
+.button {
+  display: inline-flex; /* Use inline-flex for alignment */
   align-items: center;
   justify-content: center;
-  border: none;
+  gap: 6px; /* Gap between icon and text */
+  padding: 8px 14px; /* Adjusted padding */
+  border: 1px solid transparent;
   border-radius: var(--border-radius);
-  padding: 6px 16px;
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--transition-speed) ease;
-  color: var(--color-text-primary);
-  background-color: var(--color-hover, #f1f5f9);
-  height: 36px;
+  transition: var(--base-transition);
+  white-space: nowrap; /* Prevent wrapping */
+  line-height: 1.5; /* Ensure consistent height */
+}
+
+.button svg {
+  width: 18px; /* Control icon size */
+  height: 18px;
+  fill: currentColor; /* Make SVG color inherit */
+}
+
+/* Primary button style */
+.button.primary {
+  background-color: var(--color-primary);
+  color: var(--color-button-text, white);
+  border-color: var(--color-primary);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-  min-width: 100px;
-  white-space: nowrap;
 }
 
-.action-btn:hover {
+.button.primary:hover {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
-.action-btn:active {
+.button.primary:active {
   transform: translateY(0);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.btn-content {
+/* Secondary button style */
+.button.secondary {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+}
+
+.button.secondary:hover {
+  background-color: var(--color-hover);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+/* Danger button style */
+.button.danger {
+  background-color: var(--color-error);
+  color: white;
+  border-color: var(--color-error);
+}
+
+.button.danger:hover {
+  background-color: var(--color-error-dark);
+  border-color: var(--color-error-dark);
+  transform: translateY(-1px);
+}
+
+/* Disabled state */
+.button:disabled {
+  background-color: var(--color-button-disabled);
+  border-color: var(--color-button-disabled);
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Specific adjustments for controls */
+.upload-button {
+  /* Uses .button.primary styles */
+}
+
+.selection-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  position: relative;
-  z-index: 1;
-  justify-content: center;
-  width: 100%;
+  gap: 8px; /* Inner gap for selection buttons */
 }
 
-.action-btn img {
-  width: 20px;
-  height: 20px;
-  display: block;
-  color: currentColor;
-  transition: transform var(--transition-speed) ease;
-  flex-shrink: 0;
+.select-button,
+.cancel-button,
+.delete-button {
+   /* Uses .button.secondary styles */
 }
 
-.action-btn:hover img {
-  transform: scale(1.1);
+.delete-button {
+  /* Uses .button.danger styles */
+  margin-left: 4px; /* Add slight space before delete */
 }
 
-.btn-text {
-  transition: transform var(--transition-speed) ease;
+.selected-count {
+  font-size: 13px;
+  color: var(--color-text-secondary);
   font-weight: 500;
+  margin-left: 8px; /* Space before count */
+  background-color: var(--color-hover);
+  padding: 4px 8px;
+  border-radius: var(--border-radius);
 }
 
-.action-btn:hover .btn-text {
-  transform: translateX(2px);
-}
-
-.upload-btn {
-  background-color: var(--color-primary, #3b82f6);
-  color: white;
-}
-
-.upload-btn:hover {
-  background-color: var(--color-primary-dark, #2563eb);
-}
-
-.upload-btn:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -50%;
-  width: 150%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: translateX(-100%);
-  transition: transform 0.8s ease;
-}
-
-.upload-btn:hover:before {
-  transform: translateX(100%);
-}
-
-.select-btn {
-  background-color: rgba(var(--color-hover-rgb, 241, 245, 249), 0.6);
-}
-
-.select-btn:hover {
-  background-color: rgba(var(--color-hover-rgb, 241, 245, 249), 1);
-}
-
-.delete-btn {
-  background-color: var(--color-error, #ef4444);
-  color: white;
-  min-width: 110px;
-}
-
-.delete-btn:hover {
-  background-color: var(--color-error-dark, #dc2626);
-}
-
-.cancel-btn {
-  background-color: rgba(var(--color-hover-rgb, 241, 245, 249), 0.6);
-}
-
-.cancel-btn:hover {
-  background-color: rgba(var(--color-hover-rgb, 241, 245, 249), 1);
+/* Remove default browser styles for file input */
+input[type="file"] {
+  display: none;
 }
 
 @media (max-width: 768px) {
-  .action-btn {
-    padding: 6px 10px;
-    height: 34px;
-    min-width: 40px;
-  }
-  
-  .btn-text {
-    display: none;
-  }
-  
   .gallery-controls {
+    gap: 8px; /* Reduced gap */
+  }
+
+  .button {
+    padding: 6px 10px; /* Smaller padding */
+    font-size: 13px;
+  }
+
+  .button svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .selection-actions {
     gap: 6px;
   }
-  
-  .action-btn img {
-    width: 18px;
-    height: 18px;
-    margin: 0 auto;
+
+  .selected-count {
+     display: none; /* Hide count on small screens maybe? Or adjust styling */
   }
 }
 </style> 

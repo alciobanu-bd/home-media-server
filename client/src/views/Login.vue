@@ -1,8 +1,8 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h1>Media Server Login</h1>
-      <p>Please sign in to access your media library</p>
+      <h1>Login</h1>
+      <p>Please sign in to access Lumia</p>
       
       <div v-if="authStore.state.error" class="error-message">
         {{ authStore.state.error }}

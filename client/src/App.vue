@@ -4,7 +4,16 @@
       <div class="header-left">
         <div class="title-container">
           <img :src="baseUrl + 'img/logo.svg'" alt="Media Gallery Logo" class="logo" />
-          <div class="app-title">Media Server</div>
+          <div class="app-title">
+            <span 
+              v-for="(letter, index) in appNameLetters" 
+              :key="index" 
+              :style="{ color: happyColors[index % happyColors.length] }"
+              :class="{ 'letter-space': letter === ' ' }"
+            >
+              {{ letter }}
+            </span>
+          </div>
         </div>
       </div>
       <div class="header-center">
@@ -67,8 +76,30 @@ export default {
   data() {
     return {
       showUploadManager: false,
-      baseUrl: process.env.BASE_URL || '/'
+      baseUrl: process.env.BASE_URL || '/',
+      // Define happy colors and app name
+      appName: 'Lumia',
+      happyColors: [
+        '#ff6b6b', // Red
+        '#feca57', // Orange
+        '#48dbfb', // Blue
+        '#1dd1a1', // Green
+        '#9c6ade', // Purple
+        '#ff9ff3', // Pink
+        '#feca57', // Orange (repeat for spacing)
+        '#48dbfb', // Blue
+        '#1dd1a1', // Green
+        '#ff6b6b', // Red
+        '#feca57', // Orange
+        '#48dbfb', // Blue 
+      ]
     };
+  },
+  computed: {
+    // Compute letter array for v-for
+    appNameLetters() {
+      return this.appName.split('');
+    }
   },
   created() {
     // Check if there are any active upload tasks in localStorage
@@ -106,50 +137,55 @@ export default {
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
 :root {
-  /* Primary colors */
-  --color-primary: #3b82f6;
-  --color-primary-dark: #2563eb;
-  --color-primary-light: #93c5fd;
+  /* Primary colors - Slightly softer blue */
+  --color-primary: #4f8ff7; /* Adjusted from #3b82f6 */
+  --color-primary-dark: #3a7bd5; /* Adjusted */
+  --color-primary-light: #a1c4fd; /* Adjusted */
   
-  /* Text colors */
+  /* Text colors - Slightly adjust secondary text */
   --color-text-primary: #1e293b;
-  --color-text-secondary: #64748b;
+  --color-text-secondary: #526176; /* Adjusted from #64748b */
   --color-text-light: #f8fafc;
   
-  /* Background colors */
+  /* Background colors - Use slightly off-white */
   --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8fafc;
-  --color-bg-tertiary: #f1f5f9;
+  --color-bg-secondary: #f7f9fc; /* Adjusted from #f8fafc */
+  --color-bg-tertiary: #eef2f7; /* Adjusted from #f1f5f9 */
   
   /* Interaction colors */
-  --color-hover: #f1f5f9;
-  --color-hover-rgb: 241, 245, 249;
-  --color-hover-dark: #e2e8f0;
-  --color-focus: #e2e8f0;
-  --color-focus-rgb: 226, 232, 240;
+  --color-hover: #eef2f7; /* Adjusted from #f1f5f9 */
+  --color-hover-rgb: 238, 242, 247; /* Adjusted */
+  --color-hover-dark: #dfe6f0; /* Adjusted from #e2e8f0 */
+  --color-focus: #dfe6f0; /* Adjusted from #e2e8f0 */
+  --color-focus-rgb: 223, 230, 240; /* Adjusted */
   
-  /* Status colors */
+  /* Status colors (keeping these as they are generally standard) */
   --color-error: #ef4444;
   --color-error-dark: #dc2626;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   
-  /* Card colors */
+  /* Card colors - Slightly softer border */
   --color-card-background: #ffffff;
-  --color-border: #e2e8f0;
+  --color-border: #e5e9f0; /* Adjusted from #e2e8f0 */
   
-  /* Misc */
-  --border-radius: 4px;
-  --border-radius-lg: 8px;
+  /* Misc - Increase border radius slightly */
+  --border-radius: 6px; /* Adjusted from 4px */
+  --border-radius-lg: 10px; /* Adjusted from 8px */
   --spacing-unit: 8px;
   --header-height: 64px;
   --header-height-mobile: 56px;
-  --transition-speed: 0.2s;
+  --transition-speed: 0.25s; /* Slightly slower for smoother feel */
   
   /* RGB versions of colors */
-  --color-primary-rgb: 59, 130, 246;
-  --color-bg-tertiary-rgb: 241, 245, 249;
+  --color-primary-rgb: 79, 143, 247; /* Adjusted */
+  --color-bg-tertiary-rgb: 238, 242, 247; /* Adjusted */
+
+  /* Add base transition */
+  --base-transition: all var(--transition-speed) ease-in-out;
 }
 
 body {
@@ -159,6 +195,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-text-primary);
   background-color: var(--color-bg-secondary);
+  /* Add transition to body background for theme changes */
+  transition: background-color var(--transition-speed) ease-in-out, color var(--transition-speed) ease-in-out;
 }
 
 .app {
@@ -170,15 +208,17 @@ body {
 .app-header {
   height: var(--header-height);
   background-color: var(--color-bg-primary);
-  background-image: linear-gradient(to bottom, var(--color-bg-primary), rgba(var(--color-bg-tertiary-rgb, 241, 245, 249), 0.5));
-  border-bottom: 1px solid rgba(var(--color-focus-rgb, 226, 232, 240), 0.7);
+  /* Refined Gradient and Border */
+  background-image: linear-gradient(to bottom, var(--color-bg-primary), var(--color-bg-secondary));
+  border-bottom: 1px solid var(--color-border); /* Use updated border color */
   display: flex;
   align-items: center;
   padding: 0 24px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  /* Softer Shadow */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
   transition: height var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
 
@@ -200,8 +240,8 @@ body {
 }
 
 .logo {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   transition: transform var(--transition-speed) ease;
 }
@@ -211,17 +251,32 @@ body {
 }
 
 .app-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  letter-spacing: -0.01em;
+  font-size: 1.8rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: -0.02em;
   display: flex;
   align-items: center;
-  transition: color var(--transition-speed) ease;
+  white-space: nowrap;
 }
 
-.title-container:hover .app-title {
-  color: var(--color-primary-dark);
+/* Style individual letters */
+.app-title span {
+  display: inline-block;
+  transition: transform 0.2s ease-out;
+}
+
+.app-title span:hover {
+  transform: scale(1.1) translateY(-2px);
+}
+
+/* Handle spaces */
+.app-title span.letter-space {
+  width: 0.3em;
+}
+
+.title-container:hover .app-title span {
+  /* Optional: Add hover effect for the whole title container */
 }
 
 .header-center {
@@ -236,35 +291,36 @@ body {
 }
 
 .nav-link {
-  padding: 6px 12px;
+  padding: 8px 14px; /* Adjusted padding */
   color: var(--color-text-secondary);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
   border-radius: var(--border-radius);
-  transition: all var(--transition-speed) ease;
+  transition: var(--base-transition); /* Use base transition */
   position: relative;
 }
 
 .nav-link:hover {
-  color: var(--color-primary);
-  background-color: rgba(var(--color-hover-rgb, 241, 245, 249), 0.6);
+  color: var(--color-primary-dark); /* Darker hover color */
+  background-color: var(--color-hover); /* Use updated hover color */
 }
 
 .nav-link.router-link-active {
-  color: var(--color-primary);
+  color: var(--color-primary-dark); /* Darker active color */
   font-weight: 600;
 }
 
 .nav-link.router-link-active:after {
   content: '';
   position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
+  bottom: -4px; /* Adjusted position */
+  left: 10%; /* Indent underline */
+  width: 80%; /* Narrower underline */
   height: 2px;
   background-color: var(--color-primary);
   border-radius: 2px;
+  transition: var(--base-transition);
 }
 
 .header-right {
@@ -275,10 +331,10 @@ body {
 
 .header-divider {
   width: 1px;
-  height: 28px;
-  background-color: var(--color-focus);
-  margin: 0 4px;
-  opacity: 0.7;
+  height: 24px; /* Adjusted height */
+  background-color: var(--color-border); /* Use border color */
+  margin: 0 8px; /* Adjusted margin */
+  opacity: 0.8;
 }
 
 .app-main {
@@ -297,20 +353,20 @@ body {
   }
   
   .header-right {
-    gap: 8px;
+    gap: 12px; /* Increased gap slightly */
   }
   
   .app-title {
-    font-size: 1.2rem;
+    font-size: 1.5rem; /* Adjusted */
   }
   
   .logo {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
   }
   
   .header-divider {
-    height: 24px;
+    height: 20px; /* Adjusted */
     margin: 0 4px;
   }
   
@@ -319,7 +375,7 @@ body {
   }
   
   .nav-link {
-    padding: 4px 8px;
+    padding: 6px 10px; /* Adjusted */
     font-size: 0.9rem;
   }
   
@@ -335,7 +391,7 @@ body {
 }
 
 .loading-spinner {
-  border: 3px solid rgba(var(--color-primary-rgb, 59, 130, 246), 0.2);
+  border: 3px solid rgba(var(--color-primary-rgb, 79, 143, 247), 0.2); /* Updated RGB */
   border-top: 3px solid var(--color-primary);
   border-radius: 50%;
   width: 24px;

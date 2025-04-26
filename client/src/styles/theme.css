@@ -37,23 +37,23 @@
   /* Dark Theme */
   --color-background: #0f172a;
   --color-text: #e2e8f0;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #60a5fa;
+  --color-primary: #60a5fa;
+  --color-primary-hover: #93c5fd;
   --color-secondary: #94a3b8;
   --color-border: #334155;
   
   /* Card and container styling */
   --color-card-background: #1e293b;
-  --color-card-shadow: rgba(0, 0, 0, 0.25);
-  --color-hover: rgba(255, 255, 255, 0.05);
+  --color-card-shadow: rgba(0, 0, 0, 0.3);
+  --color-hover: #334155;
   
   /* Button styling */
-  --color-button-background: #3b82f6;
-  --color-button-text: #ffffff;
+  --color-button-background: var(--color-primary);
+  --color-button-text: #0f172a;
   --color-button-disabled: #475569;
   
   /* Overlay and modal styling */
-  --color-overlay: rgba(0, 0, 0, 0.75);
+  --color-overlay: rgba(0, 0, 0, 0.8);
   
   /* Status colors (slightly adjusted for dark mode) */
   --color-error: #f87171;
@@ -63,7 +63,24 @@
 
   /* Media viewer specific */
   --viewer-background: #0f172a;
-  --viewer-header-bg: rgba(15, 23, 42, 0.9);
-  --nav-button-bg: rgba(15, 23, 42, 0.7);
-  --nav-button-hover: rgba(15, 23, 42, 0.9);
+  --viewer-header-bg: rgba(30, 41, 59, 0.9);
+  --nav-button-bg: rgba(30, 41, 59, 0.7);
+  --nav-button-hover: rgba(30, 41, 59, 0.9);
+
+  /* Add missing variables used in App.vue for dark mode */
+  --color-bg-primary: #1e293b;
+  --color-bg-secondary: #161e2e;
+  --color-bg-tertiary: #334155;
+  
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  
+  --color-hover-dark: #475569;
+  --color-focus: #475569;
+
+  /* Re-calculate RGBs if needed, using approximations for now */
+  --color-primary-rgb: 96, 165, 250;
+  --color-hover-rgb: 51, 65, 85;
+  --color-focus-rgb: 71, 85, 105;
+  --color-bg-tertiary-rgb: 51, 65, 85;
 } 

@@ -1,64 +1,80 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="40" height="40">
-  <!-- Gradients -->
+  <!-- Gradients and filters -->
   <defs>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#66BB6A" />
-      <stop offset="100%" stop-color="#43A047" />
+    <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF9FF3" />
+      <stop offset="100%" stop-color="#A78BFA" />
     </linearGradient>
-    <linearGradient id="lensGradient" x1="30%" y1="30%" x2="70%" y2="70%">
-      <stop offset="0%" stop-color="#546E7A" />
-      <stop offset="100%" stop-color="#37474F" />
+    <linearGradient id="lensGradient" x1="20%" y1="20%" x2="80%" y2="80%">
+      <stop offset="0%" stop-color="#4F8FF7" />
+      <stop offset="100%" stop-color="#3A7BD5" />
     </linearGradient>
-    <linearGradient id="innerLensGradient" x1="40%" y1="40%" x2="60%" y2="60%">
-      <stop offset="0%" stop-color="#263238" />
-      <stop offset="100%" stop-color="#10171B" />
+    <linearGradient id="rayGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#FFECB3" />
     </linearGradient>
-    <linearGradient id="photoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#BBDEFB" />
-      <stop offset="100%" stop-color="#64B5F6" />
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3" />
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feFlood flood-color="#FF9FF3" flood-opacity="0.6" />
+      <feComposite in2="blur" operator="in" />
+      <feComposite in="SourceGraphic" />
+    </filter>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3" />
     </filter>
   </defs>
 
-  <!-- Background circle with subtle shadow -->
-  <circle cx="50" cy="50" r="45" fill="url(#bgGradient)" filter="url(#shadow)" />
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="46" fill="#F7F9FC" filter="url(#softShadow)" />
   
-  <!-- Camera body with better shadows and details -->
-  <rect x="22" y="35" width="56" height="35" rx="6" ry="6" fill="#263238" filter="url(#shadow)" />
-  <rect x="24" y="37" width="52" height="31" rx="4" ry="4" fill="#37474F" />
+  <!-- Main lens/aperture shape -->
+  <circle cx="50" cy="50" r="38" fill="url(#lensGradient)" filter="url(#softShadow)" />
+  <circle cx="50" cy="50" r="34" fill="#2D3748" />
+  <circle cx="50" cy="50" r="30" fill="#1A202C" />
+  <circle cx="50" cy="50" r="25" fill="#171923" />
   
-  <!-- Camera details -->
-  <rect x="26" y="40" width="8" height="2" rx="1" fill="#78909C" />
-  <rect x="66" y="40" width="6" height="2" rx="1" fill="#78909C" />
+  <!-- Aperture blades -->
+  <path d="M50,20 L58,35 L42,35 Z" fill="#4A5568" opacity="0.7" />
+  <path d="M50,20 L58,35 L42,35 Z" fill="#4A5568" opacity="0.7" transform="rotate(60, 50, 50)" />
+  <path d="M50,20 L58,35 L42,35 Z" fill="#4A5568" opacity="0.7" transform="rotate(120, 50, 50)" />
+  <path d="M50,20 L58,35 L42,35 Z" fill="#4A5568" opacity="0.7" transform="rotate(180, 50, 50)" />
+  <path d="M50,20 L58,35 L42,35 Z" fill="#4A5568" opacity="0.7" transform="rotate(240, 50, 50)" />
+  <path d="M50,20 L58,35 L42,35 Z" fill="#4A5568" opacity="0.7" transform="rotate(300, 50, 50)" />
   
-  <!-- Camera lens with better depth -->
-  <circle cx="50" cy="52.5" r="14" fill="#263238" />
-  <circle cx="50" cy="52.5" r="12" fill="url(#lensGradient)" />
-  <circle cx="50" cy="52.5" r="8" fill="url(#innerLensGradient)" />
-  <circle cx="50" cy="52.5" r="6" fill="#10171B" />
-  <circle cx="47" cy="49.5" r="1.5" fill="#FFFFFF" opacity="0.8" />
-  <circle cx="52" cy="54.5" r="0.8" fill="#FFFFFF" opacity="0.5" />
+  <!-- Central glow -->
+  <circle cx="50" cy="50" r="15" fill="url(#glowGradient)" filter="url(#glow)" />
   
-  <!-- Camera flash with detail -->
-  <rect x="35" y="34" width="30" height="6" rx="2" ry="2" fill="#455A64" />
-  <rect x="38" y="34.5" width="24" height="5" rx="1.5" ry="1.5" fill="#607D8B" />
-  <rect x="45" y="35.5" width="10" height="3" rx="1" ry="1" fill="#CFD8DC" />
+  <!-- Lens flare highlight -->
+  <circle cx="50" cy="50" r="7" fill="#FFFFFF" opacity="0.95" />
+  <circle cx="55" cy="45" r="3" fill="#FFFFFF" opacity="0.7" />
   
-  <!-- Photo/frame with better shadow and details -->
-  <rect x="60" y="30" width="28" height="22" rx="2" ry="2" fill="#FFFFFF" transform="rotate(15, 60, 30)" filter="url(#shadow)" />
-  <rect x="62" y="32" width="24" height="18" rx="1" ry="1" fill="#ECEFF1" transform="rotate(15, 60, 30)" />
+  <!-- Light rays -->
+  <g opacity="0.6">
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(30, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(60, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(90, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(120, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(150, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(180, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(210, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(240, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(270, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(300, 50, 50)" />
+    <path d="M50,15 L52,5 L48,5 Z" fill="url(#rayGradient)" filter="url(#glow)" transform="rotate(330, 50, 50)" />
+  </g>
   
-  <!-- Inner photo details - landscape scene -->
-  <rect x="63" y="33" width="18" height="12" fill="url(#photoGradient)" transform="rotate(15, 60, 30)" />
+  <!-- Orbit accent -->
+  <ellipse cx="50" cy="50" rx="42" ry="16" fill="none" stroke="#A78BFA" stroke-width="0.8" opacity="0.5" transform="rotate(30, 50, 50)" />
+  <ellipse cx="50" cy="50" rx="42" ry="16" fill="none" stroke="#FF9FF3" stroke-width="0.8" opacity="0.5" transform="rotate(-30, 50, 50)" />
   
-  <!-- Sun -->
-  <circle cx="76" cy="36" r="2.5" fill="#FFC107" transform="rotate(15, 60, 30)" />
-  
-  <!-- Mountains -->
-  <polygon points="63,44 69,39 72,41 78,37 81,44" fill="#388E3C" transform="rotate(15, 60, 30)" />
-  
-  <!-- Camera shutter button -->
-  <circle cx="74" cy="44" r="3" fill="#EF5350" stroke="#B71C1C" stroke-width="0.5" />
+  <!-- Small light particles -->
+  <circle cx="30" cy="35" r="1.2" fill="#FFFFFF" filter="url(#glow)" />
+  <circle cx="70" cy="35" r="1.2" fill="#FFFFFF" filter="url(#glow)" />
+  <circle cx="36" cy="70" r="1.2" fill="#FFFFFF" filter="url(#glow)" />
+  <circle cx="64" cy="70" r="1.2" fill="#FFFFFF" filter="url(#glow)" />
+  <circle cx="42" cy="25" r="0.8" fill="#FFFFFF" filter="url(#glow)" />
+  <circle cx="58" cy="25" r="0.8" fill="#FFFFFF" filter="url(#glow)" />
+  <circle cx="25" cy="58" r="0.8" fill="#FFFFFF" filter="url(#glow)" />
+  <circle cx="75" cy="58" r="0.8" fill="#FFFFFF" filter="url(#glow)" />
 </svg> 
