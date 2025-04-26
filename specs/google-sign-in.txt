@@ -1,0 +1,19 @@
+I want to implement google sign in for the media gallery website. 
+
+For the backend: 
+- We will use a users mongodb collection
+- user mongodb document required fields: email, profile_picture
+- users collection indexes: email
+- Implement a method that redirects the user to the google sso
+- Implement a callback method that will receive the OAuth2 code and the will exchange it backend to backend with a id_token
+- Get the google email and profile picture
+- Search if a user with the received mail exists
+- If a user already exists, create an access_token for the user
+- If a user does not exist, add a new user and the create an access_token
+- Set the access_token on cookie so that the cookie will be automatically sent to the server for every request
+- access_tokens will be saved into a new collection. an access_token is a random string
+- access_tokens fields: token, expire, user_id
+- access_tokens indexes: token, expire which will be a ttl index, user_id
+- access_token ttl will be 30 days
+- Create a new API: /api/me which will return the current user. This will be used for showing user data in the frontend (email and profile picture)
+- Every request to the server will check the access_token. If the access_token is invalid, return an authentication error so that the frontend will know to show the login screen

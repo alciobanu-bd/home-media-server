@@ -1,0 +1,72 @@
+I want to develop a website that will server me as a home media server. 
+The website will serve as a media gallery that will allow me to list photos and videos in a grid layout. 
+I will list the functionalities that I want to implement. The website should be responsive because it will be used on mobile devices too.
+
+Media Upload: 
+Upload form should be a modal.
+Allow selecting multiple files. Allow only photos and videos.
+Files that are being uploaded should be transformed to an upload task and processed later. 
+Files in a task will be uploaded one by one (call the upload api for every file).
+The upload task should be visible in the right bottom of the screen. It should show a status for every file (pending, error, success).
+An upload task should allow the following actions: minimize, maximize task window, cancel.
+Progress Indication: visual progress bar for each file being uploaded within the task.
+Task Persistence: the upload task should be kept in the localStorage if the user navigates away from the gallery page and the user wiil need to manually resume the task when he comes back
+For failed uploads, provide more specific error messages to the user if possible (e.g., "File too large," "Unsupported format").
+Esc key functionality to close the upload modal.
+
+Gallery View:
+List thumbnails for photos and videos. Clear and visually appealing grid of thumbnails.
+Display photo and video thumbnails in a responsive grid layout. Video thumbnail should be a default SVG. 
+Thumbnail generation for all media items. The thumbnails will be saved separately on the server and should keep an id to the 
+Subtle visual cues on hover (e.g., border change, slight scaling).
+The delete button should be clearly visible on hover or as an overlay on each item.
+The media files should be sorted by creation time in descending order (newest first). The items should be grouped by day.
+There should be a select mode where multiple items can be selected. The selected files can then be deleted at once.
+Virtualization/Windowing: Implement virtualization or windowing techniques for the grid. This will only render the visible thumbnails, significantly improving performance, especially on lower-end devices.
+"Select All" Functionality: In select mode, a "Select All" and "Deselect All" should be implemented.
+
+Viewing Mode:
+Clean and immersive interface for viewing individual media.
+Prominent "Previous" and "Next" buttons, clearly indicating their function.
+Intuitive zoom and pan controls for photos.
+Standard video player controls should be easily accessible.
+A way to easily return to the gallery view. The should be 2 ways of returning to gallery view: "Close" button and pressing ESC.
+View mode for photos: Display the full-resolution image. Display of advanced metadata as a panel on the right. The metadata should be extracted on the server. It should extract the EXIF metadata and store it in the database. 
+Metadata Display Toggle: For the metadata panel, a toggle button to show/hide should be implemented.
+Zoom in and out functionality (using mouse wheel or on-screen controls).
+Panning/dragging functionality to navigate zoomed images.
+Esc key functionality to close the view mode.
+
+Video Playback:
+Integrated video player with standard controls (play/pause, volume, fullscreen, progress bar).
+Support for common video formats (e.g., MP4, WebM).
+ 
+Navigation in view mode:
+"Previous" and "Next" buttons (SVGs with arrows) within the viewing mode to cycle through media items in the order they appear in the gallery.
+Clear visual cues to indicate the current item and the availability of previous/next items.
+Allow navigation with left and right arrows.
+
+Media Deletion:
+A "Delete" button associated with each item in the gallery grid. Confirmation dialog before permanently deleting a media item.
+Files can be deleted in select mode also. Confirmation dialog only once for all the files when in select mode.
+
+Backend:
+Language: Node.js
+Framework: Fastify
+Storage: MongoDB
+
+API Endpoints:
+[GET] /api/media: Retrieve a paginated list of media items. This endpoint will only return the ids of the files. The ids will be MongoDB ObjectIds. The pagination should be done using the last id. Pass the last id to the API and the API method will load files older than the id. If no id is passed, fetch the newest items. This will allow for implementing infinite scroll.
+[GET] /api/media/:filename: Retrieve the file itself for viewing.
+[GET] /api/thumbnails/:file_id: Retrieve the thumbnail for a specific media item. The thumbnail should have a file_id field in MongoDB. file_id should be indexed for proper performance.
+[GET] /api/metadata/:file_id: Retrieve metadata about a file.
+[DELETE] /api/:file_id: Delete a specific media item by id. When deleting the file, also delete the associated thumnail.
+[POST] /api/upload: Endpoint for uploading new media. This API will allow uploading one file at a time. It should also extract EXIF metadata and store it in the database. The metadata should be saved in a separate metadata collection. The metadata document should have a file_id field that is a key to the actual file. file_id should be indexed. The API should generate a mongo ObjectId for the file based on the creation date extracted from metadata. It should also generate a thumbnail and save it to the thumbnails collection, keeping a file_id field that is a key to the actual file. 
+
+Frontend:
+Framework: Vue.js
+Video Player: Use the browser's native <video> element or a lightweight library for consistent playback.
+Grid Layout: CSS Grid or a responsive grid library (e.g., a component library's grid system).
+HTTP Client: axios or fetch for making API requests to the backend.
+Responsive Design: The website should adapt to different screen sizes (desktop, tablet, mobile).
+Security: Basic measures to prevent unauthorized access (especially important if you plan to expose this website beyond your local network in the future).

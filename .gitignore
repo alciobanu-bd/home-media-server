@@ -1,0 +1,74 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Build files
+/dist
+/build
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Vue.js specific
+.nuxt
+/client/dist
+
+# Server specific
+/server/uploads/*
+/server/thumbnails/*
+!/server/uploads/.gitkeep
+
+# Test coverage
+/coverage
+.nyc_output
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# Media/Upload files (customize as needed)
+/uploads
+*.mp4
+*.mov
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.ico
+*.pdf
+
+# Config files
+config.ini
