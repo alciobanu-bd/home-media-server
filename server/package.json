@@ -9,13 +9,17 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@fastify/cookie": "^8.3.0",
     "@fastify/cors": "^8.3.0",
+    "@fastify/env": "^4.3.0",
     "@fastify/multipart": "^7.7.3",
     "@fastify/static": "^6.10.2",
+    "axios": "^1.9.0",
     "crypto-js": "^4.2.0",
     "exif-parser": "^0.1.12",
     "fastify": "^4.24.0",
     "fs-extra": "^11.1.1",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.1.0",
     "mongoose": "^7.5.3",
     "sharp": "^0.32.6"

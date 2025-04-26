@@ -8,7 +8,8 @@ const dbName = 'login';
 const COLLECTIONS = {
   files: '1-alciobanu-hms-files',
   thumbnails: '1-alciobanu-hms-thumbnails',
-  metadata: '1-alciobanu-hms-metadata'
+  metadata: '1-alciobanu-hms-metadata',
+  users: '1-alciobanu-hms-users'
 };
 
 // Get a collection from the database
@@ -38,10 +39,13 @@ const connectToMongo = async () => {
     const filesCollection = getCollection(db, 'files');
     const thumbnailsCollection = getCollection(db, 'thumbnails');
     const metadataCollection = getCollection(db, 'metadata');
+    const usersCollection = getCollection(db, 'users');
     
     await filesCollection.createIndex({ createdAt: -1 });
     await thumbnailsCollection.createIndex({ file_id: 1 });
     await metadataCollection.createIndex({ file_id: 1 });
+    await usersCollection.createIndex({ googleId: 1 }, { unique: true });
+    await usersCollection.createIndex({ email: 1 }, { unique: true });
     
     return db;
   } catch (err) {

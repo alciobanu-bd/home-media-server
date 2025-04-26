@@ -8,6 +8,7 @@ const metadataRoute = require('./media/getMetadata');
 const serveFilesRoute = require('./files/serveFiles');
 const uploadFileRoute = require('./files/uploadFile');
 const deleteFileRoute = require('./files/deleteFile');
+const authRoutes = require('./auth');
 
 module.exports = function(fastify, opts, done) {
   // Register route modules with /api prefix
@@ -17,6 +18,9 @@ module.exports = function(fastify, opts, done) {
   fastify.register(serveFilesRoute, { prefix: '/api' });
   fastify.register(uploadFileRoute, { prefix: '/api' });
   fastify.register(deleteFileRoute, { prefix: '/api' });
+  
+  // Register auth routes with /api prefix
+  fastify.register(authRoutes, { prefix: '/api' });
   
   done();
 }; 

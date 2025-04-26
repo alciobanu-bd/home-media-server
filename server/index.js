@@ -4,7 +4,17 @@ const { connectToMongo } = require('./routes/utils/db');
 
 // Register plugins
 fastify.register(require('@fastify/cors'), {
-  origin: true
+  origin: true,
+  credentials: true
+});
+
+if (!process.env.COOKIE_SECRET) {
+  throw new Error('COOKIE_SECRET environment variable is required for security');
+}
+
+fastify.register(require('@fastify/cookie'), {
+  secret: process.env.COOKIE_SECRET,
+  parseOptions: {} // options for parsing cookies
 });
 
 fastify.register(require('@fastify/multipart'), {
