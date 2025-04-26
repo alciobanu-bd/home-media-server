@@ -50,6 +50,7 @@ import UploadModal from '../components/UploadModal.vue';
 import ConfirmationDialog from '../components/ConfirmationDialog.vue';
 import '../styles/Gallery.css';
 import '../styles/theme.css';
+import galleryControlsStore from '../store/galleryControlsStore';
 
 export default {
   name: 'Gallery',
@@ -57,17 +58,6 @@ export default {
     MediaItem,
     UploadModal,
     ConfirmationDialog
-  },
-  provide() {
-    return {
-      galleryControls: {
-        selectMode: () => this.selectMode,
-        toggleSelectMode: this.toggleSelectMode,
-        selectedCount: () => this.selectedItems.length,
-        openUploadModal: this.openUploadModal,
-        deleteSelected: this.deleteSelected
-      }
-    };
   },
   data() {
     return {
@@ -110,10 +100,11 @@ export default {
     // Initialize the intersection observer for infinite scrolling
     this.setupInfiniteScroll();
     
-    // Emit event to notify App.vue that Gallery is mounted
-    this.$emit('gallery-mounted', {
-      selectMode: this.selectMode,
-      selectedCount: this.selectedItems.length
+    // Register gallery controls with the store
+    galleryControlsStore.registerGallery({
+      openUploadModal: this.openUploadModal,
+      toggleSelectMode: this.toggleSelectMode,
+      deleteSelected: this.deleteSelected
     });
     
     // Set document title
@@ -127,6 +118,9 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener('upload-completed', this.handleUploadCompleted);
+    
+    // Unregister gallery controls
+    galleryControlsStore.unregisterGallery();
     
     // Disconnect the observer to prevent memory leaks
     if (this.observer) {
@@ -217,52 +211,32 @@ export default {
       }
     },
     handleItemClick(item) {
-      console.log('Item clicked in Gallery:', item._id, item.type);
       if (!this.selectMode) {
-        console.log('Navigating to item view:', item._id);
         this.$router.push({ name: 'ViewMedia', params: { id: item._id } });
       }
     },
     toggleSelectMode() {
-      console.log('TOGGLING SELECT MODE from', this.selectMode, 'to', !this.selectMode);
       this.selectMode = !this.selectMode;
-      console.log('SELECT MODE is now:', this.selectMode);
       if (!this.selectMode) {
         this.selectedItems = [];
       }
       
-      // Dispatch selection update event for GalleryControls
-      window.dispatchEvent(new CustomEvent('gallery-selection-update', {
-        detail: {
-          isSelecting: this.selectMode,
-          selectedCount: this.selectedItems.length
-        }
-      }));
+      // Update gallery controls store
+      galleryControlsStore.updateSelectionState(this.selectMode, this.selectedItems.length);
     },
     toggleSelect(item) {
-      console.log('toggleSelect called with:', item);
       // Check if item is an object or just an ID string
       const itemId = typeof item === 'object' ? item._id : item;
-      console.log('Using itemId:', itemId);
       
       const index = this.selectedItems.indexOf(itemId);
       if (index === -1) {
-        console.log('Adding item to selectedItems');
         this.selectedItems.push(itemId);
-        console.log('selectedItems is now:', this.selectedItems);
       } else {
-        console.log('Removing item from selectedItems');
         this.selectedItems.splice(index, 1);
-        console.log('selectedItems is now:', this.selectedItems);
       }
       
-      // Dispatch selection update event for GalleryControls
-      window.dispatchEvent(new CustomEvent('gallery-selection-update', {
-        detail: {
-          isSelecting: this.selectMode,
-          selectedCount: this.selectedItems.length
-        }
-      }));
+      // Update gallery controls store
+      galleryControlsStore.updateSelectionState(this.selectMode, this.selectedItems.length);
     },
     deleteItem(item) {
       this.itemToDelete = item;

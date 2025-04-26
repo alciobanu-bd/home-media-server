@@ -27,7 +27,7 @@ const getCurrentUser = async (request, reply) => {
 
 /**
  * Logout user by clearing auth cookie
- * POST /api/auth/logout
+ * GET /api/auth/logout
  */
 const logoutUser = async (request, reply) => {
   reply.clearCookie('auth_token', {
@@ -44,6 +44,6 @@ const logoutUser = async (request, reply) => {
 
 module.exports = function(fastify, opts, done) {
   fastify.get('/auth/me', getCurrentUser);
-  fastify.post('/auth/logout', logoutUser);
+  fastify.get('/auth/logout', logoutUser);
   done();
 }; 

@@ -1,6 +1,6 @@
 <template>
   <div class="user-profile" v-if="authStore.state.isAuthenticated">
-    <div class="profile-container" @click="toggleDropdown">
+    <div class="profile-container" @click.stop="toggleDropdown">
       <img 
         :src="authStore.state.user.picture" 
         alt="Profile" 
@@ -13,7 +13,7 @@
       <span class="dropdown-icon">▼</span>
     </div>
     
-    <div class="dropdown-menu" v-if="showDropdown" ref="dropdown">
+    <div class="dropdown-menu" :class="{ visible: showDropdown }" v-show="showDropdown" ref="dropdown">
       <div class="dropdown-header">
         <img 
           :src="authStore.state.user.picture" 
@@ -51,16 +51,46 @@ export default {
     
     const toggleDropdown = () => {
       showDropdown.value = !showDropdown.value;
+      
+      // If opening the dropdown, add a one-time event listener to close on next click
+      if (showDropdown.value) {
+        setTimeout(() => {
+          window.addEventListener('click', closeDropdownOnce);
+        }, 0);
+      }
+    };
+    
+    const closeDropdownOnce = (event) => {
+      // Remove the one-time event listener
+      window.removeEventListener('click', closeDropdownOnce);
+      
+      // Close the dropdown if the click is outside the dropdown
+      if (dropdown.value && !dropdown.value.contains(event.target)) {
+        showDropdown.value = false;
+      }
     };
     
     const logout = async () => {
-      await authStore.logout();
-      showDropdown.value = false;
+      try {
+        const success = await authStore.logout();
+        if (success) {
+          showDropdown.value = false;
+        } else {
+          console.error('Logout failed:', authStore.state.error);
+          alert(`Logout failed: ${authStore.state.error || 'Unknown error'}`);
+        }
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert(`Logout error: ${error.message || 'Unknown error'}`);
+      }
     };
     
     // Close dropdown when clicking outside
     const handleClickOutside = (event) => {
-      if (dropdown.value && !dropdown.value.contains(event.target) && showDropdown.value) {
+      if (dropdown.value && 
+          !dropdown.value.contains(event.target) && 
+          showDropdown.value &&
+          !event.target.closest('.profile-container')) {
         showDropdown.value = false;
       }
     };
@@ -71,6 +101,7 @@ export default {
     
     onBeforeUnmount(() => {
       document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('click', closeDropdownOnce);
     });
     
     return {
@@ -96,12 +127,17 @@ export default {
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 24px;
-  transition: background-color 0.2s;
+  transition: all var(--transition-speed) ease;
   background-color: var(--color-hover, rgba(0,0,0,0.05));
 }
 
 .profile-container:hover {
   background-color: var(--color-hover-dark, rgba(0,0,0,0.1));
+  transform: translateY(-1px);
+}
+
+.profile-container:active {
+  transform: translateY(0);
 }
 
 .profile-picture {
@@ -109,6 +145,12 @@ export default {
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid transparent;
+  transition: all var(--transition-speed) ease;
+}
+
+.profile-container:hover .profile-picture {
+  border-color: var(--color-primary-light);
 }
 
 .user-info {
@@ -119,7 +161,7 @@ export default {
 }
 
 .user-name {
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
   color: var(--color-text-primary);
   white-space: nowrap;
@@ -141,23 +183,41 @@ export default {
   font-size: 10px;
   color: var(--color-text-secondary);
   margin-left: 4px;
+  transition: transform var(--transition-speed) ease;
+}
+
+.profile-container:hover .dropdown-icon {
+  transform: translateY(2px);
 }
 
 .dropdown-menu {
   position: absolute;
   top: 52px;
   right: 0;
-  background-color: var(--color-card-background);
+  background-color: var(--color-bg-primary, white);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   width: 240px;
-  z-index: 100;
+  z-index: 1000;
   overflow: hidden;
+  border: 1px solid var(--color-focus, rgba(0,0,0,0.1));
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.dropdown-menu.visible,
+.dropdown-menu[style*="display: block"] {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .dropdown-header {
   display: flex;
   padding: 16px;
+  background-color: var(--color-bg-secondary, #f8fafc);
 }
 
 .dropdown-profile-picture {
@@ -165,6 +225,7 @@ export default {
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--color-primary-light);
 }
 
 .dropdown-user-info {
@@ -173,7 +234,7 @@ export default {
 }
 
 .dropdown-user-name {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: 4px;
   white-space: nowrap;
@@ -191,7 +252,7 @@ export default {
 
 .dropdown-divider {
   height: 1px;
-  background-color: var(--color-border, #e0e0e0);
+  background-color: var(--color-focus, #e0e0e0);
   margin: 0;
 }
 
@@ -205,7 +266,8 @@ export default {
   cursor: pointer;
   text-align: left;
   color: var(--color-text-primary);
-  transition: background-color 0.2s;
+  transition: background-color var(--transition-speed) ease;
+  font-weight: 500;
 }
 
 .logout-button:hover {
@@ -214,6 +276,7 @@ export default {
 
 .logout-icon {
   margin-right: 8px;
+  color: var(--color-error);
 }
 
 .login-button {
@@ -229,10 +292,36 @@ export default {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all var(--transition-speed) ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .primary-button:hover {
   background-color: var(--color-primary-dark, #2980b9);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.primary-button:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .user-info {
+    display: none;
+  }
+  
+  .dropdown-icon {
+    display: none;
+  }
+  
+  .profile-container {
+    padding: 4px;
+  }
+  
+  .profile-picture {
+    width: 32px;
+    height: 32px;
+  }
 }
 </style> 

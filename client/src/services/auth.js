@@ -41,11 +41,10 @@ export async function getCurrentUser() {
 export async function logout() {
   try {
     const response = await fetch(`${API_URL}/auth/logout`, {
-      method: 'POST',
+      method: 'GET',
       credentials: 'include', // Important for cookies
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Accept': 'application/json'
       }
     });
     

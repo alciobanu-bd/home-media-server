@@ -63,12 +63,16 @@ const actions = {
       if (success) {
         state.user = null;
         state.isAuthenticated = false;
+        return true;
       } else {
-        state.error = 'Failed to logout';
+        state.error = 'Failed to logout. Server returned an error response.';
+        console.error('Logout failed: Server returned an error response');
+        return false;
       }
     } catch (error) {
-      state.error = 'Failed to logout';
-      console.error(error);
+      state.error = `Failed to logout: ${error.message || 'Unknown error'}`;
+      console.error('Logout error:', error);
+      return false;
     } finally {
       state.isLoading = false;
     }
