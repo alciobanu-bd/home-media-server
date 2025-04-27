@@ -87,12 +87,16 @@ const calculateMD5 = async (filePath) => {
   }
 };
 
-// Check if a file with the same MD5 hash already exists
-const findDuplicateFile = async (md5Hash) => {
+// Check if a file with the same MD5 hash already exists for the same user
+const findDuplicateFile = async (md5Hash, userId) => {
   try {
     const db = getDb();
     const filesCollection = getCollection(db, 'files');
-    const duplicateFile = await filesCollection.findOne({ md5Hash });
+    // Only consider a file a duplicate if both MD5 hash and userId match
+    const duplicateFile = await filesCollection.findOne({ 
+      md5Hash: md5Hash,
+      userId: userId 
+    });
     return duplicateFile;
   } catch (err) {
     console.error('Error checking for duplicates:', err);

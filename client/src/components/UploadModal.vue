@@ -70,7 +70,7 @@
 
 <script>
 import '../styles/UploadModal.css';
-import axios from 'axios';
+import api from '../services/api';
 
 export default {
   name: 'UploadModal',
@@ -150,7 +150,7 @@ export default {
           const formData = new FormData();
           formData.append('file', file);
           
-          const response = await axios.post('http://localhost:3000/api/upload', formData, {
+          const response = await api.post('/upload', formData, {
             onUploadProgress: (progressEvent) => {
               // Calculate overall progress as a combination of completed files and current file
               const currentFileProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);

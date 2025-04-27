@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import api from '../services/api';
 import { format } from 'date-fns';
 import MediaItem from '../components/MediaItem.vue';
 import UploadModal from '../components/UploadModal.vue';
@@ -174,7 +174,7 @@ export default {
     async fetchMedia() {
       try {
         this.loading = true;
-        const response = await axios.get('http://localhost:3000/api/media', {
+        const response = await api.get('/media', {
           params: {
             lastId: this.lastId,
             limit: 50
@@ -287,14 +287,14 @@ export default {
       try {
         if (this.itemToDelete) {
           // Delete single item
-          await axios.delete(`http://localhost:3000/api/${this.itemToDelete._id}`);
+          await api.delete(`/${this.itemToDelete._id}`);
           this.media = this.media.filter(item => item._id !== this.itemToDelete._id);
           this.itemToDelete = null;
         } else {
           // Delete multiple items
           await Promise.all(
             this.selectedItems.map(id => 
-              axios.delete(`http://localhost:3000/api/${id}`)
+              api.delete(`/${id}`)
             )
           );
           this.media = this.media.filter(item => !this.selectedItems.includes(item._id));

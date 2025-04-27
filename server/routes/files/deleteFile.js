@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const { ObjectId } = require('mongodb');
 const { getDb, getCollection } = require('../utils/db');
 const { uploadDir, thumbnailsDir } = require('../utils/fileHelpers');
+const { verifyToken } = require('../auth/authMiddleware');
 
 /**
  * Route handler for deleting a file
@@ -10,6 +11,16 @@ const { uploadDir, thumbnailsDir } = require('../utils/fileHelpers');
  */
 const deleteFileHandler = async (request, reply) => {
   const { file_id } = request.params;
+  
+  // Check if user is authenticated
+  if (!request.user) {
+    return reply.code(401).send({ 
+      error: 'Unauthorized',
+      message: 'Authentication required'
+    });
+  }
+
+  const userId = request.user._id;
   const db = getDb();
   
   try {
@@ -21,6 +32,14 @@ const deleteFileHandler = async (request, reply) => {
     
     if (!file) {
       return reply.code(404).send({ error: 'File not found' });
+    }
+    
+    // Check if the file belongs to the authenticated user
+    if (!file.userId || file.userId.toString() !== userId.toString()) {
+      return reply.code(403).send({ 
+        error: 'Forbidden',
+        message: 'You do not have permission to delete this file'
+      });
     }
     
     // Delete file from disk
@@ -51,6 +70,6 @@ const deleteFileHandler = async (request, reply) => {
 };
 
 module.exports = function(fastify, opts, done) {
-  fastify.delete('/:file_id', deleteFileHandler);
+  fastify.delete('/:file_id', { preHandler: verifyToken }, deleteFileHandler);
   done();
 }; 

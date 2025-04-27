@@ -61,8 +61,13 @@ const connectToMongo = async () => {
     const usersCollection = getCollection(db, 'users');
     
     await filesCollection.createIndex({ createdAt: -1 });
+    await filesCollection.createIndex({ userId: 1 });
+    await filesCollection.createIndex({ md5Hash: 1 });
+    await filesCollection.createIndex({ userId: 1, md5Hash: 1 });
     await thumbnailsCollection.createIndex({ file_id: 1 });
+    await thumbnailsCollection.createIndex({ userId: 1 });
     await metadataCollection.createIndex({ file_id: 1 });
+    await metadataCollection.createIndex({ userId: 1 });
     await usersCollection.createIndex({ googleId: 1 }, { unique: true });
     await usersCollection.createIndex({ email: 1 }, { unique: true });
     

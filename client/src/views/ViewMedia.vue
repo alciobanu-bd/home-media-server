@@ -139,7 +139,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import api from '../services/api';
 import { format } from 'date-fns';
 import ThemeToggle from '../components/ThemeToggle.vue';
 import '../styles/ViewMedia.css';
@@ -236,7 +236,7 @@ export default {
         
         // First verify the current item exists
         try {
-          const itemResponse = await axios.get(`http://localhost:3000/api/media/item/${this.id}`);
+          const itemResponse = await api.get(`/media/${this.id}`);
           console.log('Current item verified:', itemResponse.data.originalName);
         } catch (itemError) {
           console.error('Current item not found:', itemError);
@@ -245,7 +245,7 @@ export default {
         }
         
         // Fetch all media items for navigation
-        const response = await axios.get(`http://localhost:3000/api/media`, {
+        const response = await api.get(`/media`, {
           params: { id: this.id }
         });
         
@@ -270,7 +270,7 @@ export default {
         
         // Get the metadata
         try {
-          const metadataResponse = await axios.get(`http://localhost:3000/api/metadata/${this.id}`);
+          const metadataResponse = await api.get(`/metadata/${this.id}`);
           this.metadata = metadataResponse.data;
         } catch (metadataError) {
           console.error('Error fetching metadata:', metadataError);

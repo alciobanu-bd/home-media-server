@@ -2,6 +2,8 @@ const path = require('path');
 const fs = require('fs-extra');
 const { ObjectId } = require('mongodb');
 const { getDb, getCollection } = require('../utils/db');
+const { verifyToken } = require('../auth/authMiddleware');
+
 const {
   uploadDir,
   extractMetadata,
@@ -16,10 +18,21 @@ const {
  */
 const uploadFileHandler = async (request, reply) => {
   const data = await request.file();
-  
+
   if (!data) {
     return reply.code(400).send({ error: 'No file provided' });
   }
+
+  // Check if user is authenticated
+  if (!request.user) {
+    return reply.code(401).send({ 
+      error: 'Unauthorized',
+      message: 'Authentication required'
+    });
+  }
+  
+  // Get userId from request
+  const userId = request.user._id;
   
   const fileType = data.mimetype;
   
@@ -39,8 +52,9 @@ const uploadFileHandler = async (request, reply) => {
     const md5Hash = await calculateMD5(tempPath);
     console.log(`MD5 hash for ${data.filename}: ${md5Hash}`);
     
-    // Check for duplicate files
-    const duplicateFile = await findDuplicateFile(md5Hash);
+    // Check for duplicate files - include userId to check duplicates per user
+    const duplicateFile = await findDuplicateFile(md5Hash, userId);
+  
     
     if (duplicateFile) {
       // Clean up temp file
@@ -63,7 +77,8 @@ const uploadFileHandler = async (request, reply) => {
     
     // Create ObjectId based on creation date if available
     const fileId = new ObjectId(
-      Math.floor(metadata.createdAt.getTime() / 1000).toString(16) + '0000000000000000'
+      Math.floor(metadata.createdAt.getTime() / 1000).toString(16) + 
+      Array.from({length: 16}, () => Math.floor(Math.random() * 16).toString(16)).join('')
     );
     
     // Save file with ObjectId as filename
@@ -86,13 +101,15 @@ const uploadFileHandler = async (request, reply) => {
       size: data.file.bytesRead,
       md5Hash: md5Hash, // Store the MD5 hash for future duplicate checks
       createdAt: metadata.createdAt,
-      uploadedAt: new Date()
+      uploadedAt: new Date(),
+      userId: userId // Add userId to the file document
     });
     
     // Store metadata
     const metadataCollection = getCollection(db, 'metadata');
     await metadataCollection.insertOne({
       file_id: fileId,
+      userId: userId, // Add userId to metadata
       ...metadata
     });
     
@@ -101,11 +118,13 @@ const uploadFileHandler = async (request, reply) => {
     await thumbnailsCollection.insertOne({
       file_id: fileId,
       filename: `${fileId}.jpg`,
+      userId: userId, // Add userId to thumbnail record
       createdAt: new Date()
     });
     
     return { 
       id: fileId.toString(),
+      userId: userId,
       success: true,
       duplicate: false
     };
@@ -119,6 +138,8 @@ const uploadFileHandler = async (request, reply) => {
 };
 
 module.exports = function(fastify, opts, done) {
-  fastify.post('/upload', uploadFileHandler);
+  fastify.post('/upload', {
+    preHandler: verifyToken
+  }, uploadFileHandler);
   done();
 }; 
