@@ -39,6 +39,11 @@ body {
   color: var(--color-text);
 }
 
+/* Add bottom padding when in selection mode */
+body.selection-active .gallery {
+  padding-bottom: 80px; /* Ensure content isn't hidden behind the selection controls */
+}
+
 .gallery-header {
   display: flex;
   justify-content: space-between;

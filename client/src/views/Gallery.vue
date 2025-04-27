@@ -60,6 +60,7 @@ import ConfirmationDialog from '../components/ConfirmationDialog.vue';
 import '../styles/Gallery.css';
 import '../styles/theme.css';
 import galleryControlsStore from '../store/galleryControlsStore';
+import { watch } from 'vue';
 
 export default {
   name: 'Gallery',
@@ -118,6 +119,15 @@ export default {
     
     // Set document title
     document.title = 'Lumia';
+
+    // Watch for changes to selectMode to add/remove body class
+    watch(() => this.selectMode, (newValue) => {
+      if (newValue) {
+        document.body.classList.add('selection-active');
+      } else {
+        document.body.classList.remove('selection-active');
+      }
+    });
   },
   created() {
     this.fetchMedia();

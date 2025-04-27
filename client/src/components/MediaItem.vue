@@ -17,6 +17,13 @@
       </div>
     </div>
     
+    <!-- Selection checkbox - visible on hover -->
+    <div class="select-checkbox-trigger" @click.stop="startSelection">
+      <div class="checkbox-container" :title="'Select'">
+        <img :src="baseUrl + 'img/checkbox-icon.svg'" alt="Select" />
+      </div>
+    </div>
+    
     <div class="media-actions" v-if="!selectMode">
       <button class="action-btn delete-btn" type="button" @click.stop="$emit('delete', item)">
         <img :src="baseUrl + 'img/delete-icon.svg'" alt="Delete" />
@@ -107,6 +114,18 @@ export default {
     onSelectClick() {
       console.log('Select operation for:', this.item._id);
       this.$emit('select', this.item);
+    },
+    startSelection() {
+      // Only trigger if not already in select mode
+      if (!this.selectMode) {
+        // Tell parent to enter selection mode
+        this.$parent.toggleSelectMode();
+        
+        // After entering selection mode, select this item
+        if (this.item && this.item._id) {
+          this.$emit('select', this.item);
+        }
+      }
     }
   }
 };
