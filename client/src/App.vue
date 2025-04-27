@@ -10,7 +10,15 @@
           </div>
         </div>
         <nav class="main-nav">
-          <router-link to="/" class="nav-link">Gallery</router-link>
+          <router-link to="/" class="nav-link">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+              <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+              <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+              <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            </svg>
+            <span>Gallery</span>
+          </router-link>
           <!-- Additional menu items can be added here -->
         </nav>
       </div>
@@ -226,6 +234,7 @@ body {
   align-items: center;
   gap: 12px;
   transition: transform var(--transition-speed) ease;
+  cursor: default; /* Default arrow cursor */
 }
 
 .title-container:hover {
@@ -237,6 +246,7 @@ body {
   height: 60px !important;
   object-fit: contain;
   transition: transform var(--transition-speed) ease;
+  cursor: default; /* Default arrow cursor */
 }
 
 .title-container:hover .logo {
@@ -281,39 +291,50 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
+  margin-left: 8px;
 }
 
 .nav-link {
-  padding: 8px 14px; /* Adjusted padding */
+  padding: 8px 16px;
   color: var(--color-text-secondary);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
-  border-radius: var(--border-radius);
-  transition: var(--base-transition); /* Use base transition */
+  border-radius: 30px; /* More pill-shaped */
+  transition: var(--base-transition);
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+}
+
+.nav-link .nav-icon {
+  stroke: currentColor;
+  transition: transform 0.2s ease;
 }
 
 .nav-link:hover {
-  color: var(--color-primary-dark); /* Darker hover color */
-  background-color: var(--color-hover); /* Use updated hover color */
+  color: var(--color-primary);
+  background-color: var(--color-hover);
+  border-color: var(--color-border);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.nav-link:hover .nav-icon {
+  transform: scale(1.1);
 }
 
 .nav-link.router-link-active {
-  color: var(--color-primary-dark); /* Darker active color */
+  color: var(--color-primary);
   font-weight: 600;
+  background-color: rgba(var(--color-primary-rgb), 0.05);
+  border-color: rgba(var(--color-primary-rgb), 0.2);
 }
 
 .nav-link.router-link-active:after {
-  content: '';
-  position: absolute;
-  bottom: -4px; /* Adjusted position */
-  left: 10%; /* Indent underline */
-  width: 80%; /* Narrower underline */
-  height: 2px;
-  background-color: var(--color-primary);
-  border-radius: 2px;
-  transition: var(--base-transition);
+  content: none;
 }
 
 .header-right {
@@ -408,6 +429,7 @@ body {
   display: flex;
   flex-direction: column;
   margin-left: 12px;
+  cursor: default; /* Default arrow cursor */
 }
 .brand-name {
   font-size: 1.8rem;
@@ -417,11 +439,13 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
+  cursor: default; /* Default arrow cursor */
 }
 .brand-tagline {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-text-secondary);
   margin: 0;
+  cursor: default; /* Default arrow cursor */
 }
 </style> 

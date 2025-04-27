@@ -43,7 +43,10 @@
             title="Cancel Selection"
           >
             <span class="btn-content">
-              <img :src="baseUrl + 'img/close.svg'" alt="Cancel" width="20" height="20" />
+              <svg class="cancel-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
               <span class="btn-text">Cancel</span>
             </span>
           </button>
@@ -207,12 +210,12 @@ export default {
 /* --- Cancel Button --- */
 .cancel-btn {
   background-color: transparent;
-  color: #333;
-  border: 1px solid #ccc;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .cancel-btn:hover {
-  background-color: rgba(0, 0, 0, 0.03); /* Very light gray background on hover */
+  background-color: var(--color-hover);
 }
 
 @media (max-width: 768px) {
@@ -247,5 +250,11 @@ export default {
   width: 16px;
   height: 16px;
   fill: currentColor;
+}
+
+.btn-content svg.cancel-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
 }
 </style> 
