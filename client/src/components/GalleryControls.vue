@@ -7,7 +7,10 @@
       title="Upload Media"
     >
       <span class="btn-content">
-        <img :src="baseUrl + 'img/upload-icon.svg'" alt="Upload" width="20" height="20" />
+        <svg class="upload-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4s-6.67 2.59-7.35 6.04C2.95 10.22 1 12.36 1 15c0 3.31 2.69 6 6 6h10c3.31 0 6-2.69 6-6 0-2.64-1.95-4.78-4.65-4.96z" />
+          <path d="M11 16v-4H8l4-4 4 4h-3v4h-2z" />
+        </svg>
         <span class="btn-text">Upload</span>
       </span>
     </button>
@@ -19,7 +22,10 @@
       title="Select Items"
     >
       <span class="btn-content">
-        <img :src="baseUrl + 'img/checkbox-icon.svg'" alt="Select" width="20" height="20" />
+        <svg class="select-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M9 12l2 2l4 -4" />
+        </svg>
         <span class="btn-text">Select</span>
       </span>
     </button>
@@ -142,7 +148,7 @@ export default {
 }
 
 .upload-btn:hover {
-  background-color: var(--color-primary-hover);
+  background-color: var(--color-button-background);
 }
 
 .upload-btn:disabled {
@@ -153,8 +159,8 @@ export default {
 /* --- Select Button (matching Lumia theme) --- */
 .select-btn {
   background-color: transparent;
-  color: var(--color-secondary);
-  border: 1px solid var(--color-secondary);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   min-width: 180px;
 }
 
@@ -199,5 +205,17 @@ export default {
     width: 16px;
     height: 16px;
   }
+}
+
+.btn-content svg.upload-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.btn-content svg.select-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
 }
 </style> 
