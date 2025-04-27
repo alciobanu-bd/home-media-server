@@ -28,18 +28,18 @@ export default {
       baseUrl: process.env.BASE_URL || '/',
       showPalette: false,
       themeColors: [
-        '#ff6b6b',
-        '#feca57',
-        '#48dbfb',
         '#1dd1a1',
+        '#96be25',
+        '#1e81b0',
         '#9c6ade',
-        '#ff9ff3',
+        '#7b58ed',
         '#cfcc30',
+        '#f0932b',
+        '#873a1a',
+        '#ff9fca',
         '#c90a5a',
         '#c75687',
         '#eb3853',
-        '#e87a25',
-        '#7b58ed'
       ]
     };
   },

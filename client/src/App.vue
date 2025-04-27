@@ -314,6 +314,12 @@ body {
   transition: transform 0.2s ease;
 }
 
+.nav-link img.nav-icon {
+  width: 18px;
+  height: 18px;
+  filter: none; /* Allow SVG to use currentColor */
+}
+
 .nav-link:hover {
   color: var(--color-primary);
   background-color: var(--color-hover);
@@ -447,5 +453,25 @@ body {
   color: var(--color-text-secondary);
   margin: 0;
   cursor: default; /* Default arrow cursor */
+}
+
+/* Dark mode enhancements for navigation */
+[data-theme="dark"] .nav-link {
+  color: #cbd5e1; /* Lighter text color in dark mode */
+  background-color: rgba(51, 65, 85, 0.4); /* Subtle background even for non-active state */
+  border: 1px solid rgba(51, 65, 85, 0.8); /* More visible border */
+}
+
+[data-theme="dark"] .nav-link:hover {
+  background-color: rgba(51, 65, 85, 0.8); /* Stronger background on hover */
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+}
+
+[data-theme="dark"] .nav-link.router-link-active {
+  background-color: rgba(var(--color-primary-rgb), 0.2); /* Stronger active background */
+  border-color: var(--color-primary);
+  color: var(--color-primary); /* Brighter text for active item */
+  box-shadow: 0 0 0 1px rgba(var(--color-primary-rgb), 0.5); /* Outline glow effect */
 }
 </style> 

@@ -8,11 +8,8 @@
         title="Upload Media"
       >
         <span class="btn-content">
-          <svg class="upload-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4s-6.67 2.59-7.35 6.04C2.95 10.22 1 12.36 1 15c0 3.31 2.69 6 6 6h10c3.31 0 6-2.69 6-6 0-2.64-1.95-4.78-4.65-4.96z" />
-            <path d="M11 16v-4H8l4-4 4 4h-3v4h-2z" />
-          </svg>
-          <span class="btn-text">Upload</span>
+          <img :src="baseUrl + 'img/upload-icon-white.svg'" alt="Upload" class="upload-icon" width="20" height="20" />
+          <span class="btn-text">Upload Media</span>
         </span>
       </button>
     </div>
@@ -181,19 +178,88 @@ export default {
 
 /* --- Upload Button (matching Lumia theme) --- */
 .upload-btn {
-  background-color: var(--color-button-background);
-  color: var(--color-button-text);
+  background-color: var(--color-primary);
+  color: white;
   border: none;
   min-width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  padding: 10px 18px;
+}
+
+.upload-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.upload-btn .upload-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.upload-btn .btn-text {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 13px;
+  color: white;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(var(--color-primary-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0); }
 }
 
 .upload-btn:hover {
-  background-color: var(--color-button-background);
+  background-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.4);
+  animation: pulse 1.5s infinite;
+}
+
+.upload-btn:hover:before {
+  opacity: 1;
+}
+
+.upload-btn:hover .upload-icon {
+  transform: translateY(-2px);
+}
+
+.upload-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(var(--color-primary-rgb), 0.2);
 }
 
 .upload-btn:disabled {
   background-color: var(--color-button-disabled);
+  opacity: 0.7;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.upload-btn:disabled .upload-icon {
+  opacity: 0.7;
+}
+
+/* When in a different context (not on primary-colored button), 
+   use the theme color instead */
+:not(.upload-btn) .upload-icon {
+  filter: none;
+  color: var(--color-primary);
 }
 
 /* --- Delete Button --- */
@@ -244,12 +310,6 @@ export default {
     width: 16px;
     height: 16px;
   }
-}
-
-.btn-content svg.upload-icon {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
 }
 
 .btn-content svg.cancel-icon {
