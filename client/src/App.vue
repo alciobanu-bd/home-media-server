@@ -176,8 +176,8 @@ export default {
   --border-radius: 6px; /* Adjusted from 4px */
   --border-radius-lg: 10px; /* Adjusted from 8px */
   --spacing-unit: 8px;
-  --header-height: 80px; /* Increased from 64px */
-  --header-height-mobile: 68px; /* Increased from 56px */
+  --header-height: 96px; /* Increased from 80px for a taller header */
+  --header-height-mobile: 80px; /* Increased from 68px for mobile */
   --transition-speed: 0.25s; /* Slightly slower for smoother feel */
   
   /* RGB versions of colors */
@@ -242,8 +242,8 @@ body {
 }
 
 .logo {
-  width: 60px !important;
-  height: 60px !important;
+  width: 70px !important;
+  height: 70px !important;
   object-fit: contain;
   transition: transform var(--transition-speed) ease;
   cursor: default; /* Default arrow cursor */
@@ -295,23 +295,25 @@ body {
 }
 
 .nav-link {
-  padding: 8px 16px;
+  padding: 10px 18px;
   color: var(--color-text-secondary);
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   border-radius: 30px; /* More pill-shaped */
   transition: var(--base-transition);
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   border: 1px solid transparent;
 }
 
 .nav-link .nav-icon {
   stroke: currentColor;
   transition: transform 0.2s ease;
+  width: 20px;
+  height: 20px;
 }
 
 .nav-link img.nav-icon {
@@ -351,9 +353,9 @@ body {
 
 .header-divider {
   width: 1px;
-  height: 24px; /* Adjusted height */
+  height: 32px; /* Increased height */
   background-color: var(--color-border); /* Use border color */
-  margin: 0 8px; /* Adjusted margin */
+  margin: 0 12px; /* Adjusted margin */
   opacity: 0.8;
 }
 
@@ -373,11 +375,11 @@ body {
   }
   
   .header-right {
-    gap: 12px; /* Increased gap slightly */
+    gap: 14px; /* Increased gap slightly */
   }
   
   .app-title {
-    font-size: 1.5rem; /* Adjusted */
+    font-size: 1.6rem; /* Adjusted */
   }
   
   .logo {
@@ -386,8 +388,16 @@ body {
   }
   
   .header-divider {
-    height: 20px; /* Adjusted */
-    margin: 0 4px;
+    height: 24px; /* Adjusted */
+    margin: 0 6px;
+  }
+  
+  .brand-name {
+    font-size: 1.8rem;
+  }
+  
+  .brand-tagline {
+    font-size: 0.9rem;
   }
   
   .title-container {
@@ -395,8 +405,8 @@ body {
   }
   
   .nav-link {
-    padding: 6px 10px; /* Adjusted */
-    font-size: 0.9rem;
+    padding: 8px 12px; /* Adjusted */
+    font-size: 1rem;
   }
   
   .app-main {
@@ -438,7 +448,7 @@ body {
   cursor: default; /* Default arrow cursor */
 }
 .brand-name {
-  font-size: 1.8rem;
+  font-size: 2.1rem;
   font-weight: 700;
   font-family: 'Poppins', sans-serif;
   background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #1dd1a1, #9c6ade, #ff9ff3);
@@ -448,7 +458,7 @@ body {
   cursor: default; /* Default arrow cursor */
 }
 .brand-tagline {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--color-text-secondary);
   margin: 0;
