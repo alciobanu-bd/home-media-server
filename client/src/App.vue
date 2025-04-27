@@ -3,16 +3,10 @@
     <header class="app-header">
       <div class="header-left">
         <div class="title-container">
-          <img :src="baseUrl + 'img/logo.svg'" alt="Media Gallery Logo" class="logo" />
-          <div class="app-title">
-            <span 
-              v-for="(letter, index) in appNameLetters" 
-              :key="index" 
-              :style="{ color: happyColors[index % happyColors.length] }"
-              :class="{ 'letter-space': letter === ' ' }"
-            >
-              {{ letter }}
-            </span>
+          <img :src="baseUrl + 'img/logo.svg'" alt="Lumia Logo" class="logo" />
+          <div class="brand">
+            <h1 class="brand-name">Lumia</h1>
+            <p class="brand-tagline">Illuminate Your Media</p>
           </div>
         </div>
         <nav class="main-nav">
@@ -407,5 +401,27 @@ body {
   height: 100vh;
   gap: 16px;
   color: var(--color-text-secondary);
+}
+
+/* Brand styles for header */
+.brand {
+  display: flex;
+  flex-direction: column;
+  margin-left: 12px;
+}
+.brand-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #1dd1a1, #9c6ade, #ff9ff3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+.brand-tagline {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin: 0;
 }
 </style> 

@@ -100,34 +100,22 @@ export default {
 .gallery-controls {
   display: flex;
   align-items: center;
-  gap: 10px; /* Slightly smaller gap */
+  gap: 10px;
 }
 
 .action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px; /* Increased gap for better text/icon separation */
-  padding: 9px 18px; /* Slightly more padding */
-  border-radius: 12px; /* More rounded corners */
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 4px;
   font-size: 14px;
-  font-weight: 600; /* Slightly bolder text */
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: none; /* Remove border */
-  position: relative;
-  overflow: hidden;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow */
-}
-
-.action-btn:hover {
-  transform: translateY(-1px); /* Slight lift on hover */
-}
-
-.action-btn:active {
-  transform: scale(0.97) translateY(0);
-  box-shadow: none; /* Remove shadow on press */
+  transition: background-color 0.2s ease;
+  min-width: 160px;
+  text-align: center;
 }
 
 .btn-content {
@@ -137,61 +125,63 @@ export default {
 }
 
 .btn-content img {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .btn-text {
-  line-height: 1.2; /* Ensure text aligns well */
+  line-height: 1.2;
 }
 
-/* --- Upload Button --- */
+/* --- Upload Button (matching UploadModal's upload-btn) --- */
 .upload-btn {
-  background-color: #4b96f3; /* Slightly brighter blue */
+  background-color: #4caf50; /* Green color from UploadModal */
   color: white;
+  border: none;
+  min-width: 180px;
 }
 
 .upload-btn:hover {
-  background-color: #5aa2ff; /* Even brighter on hover */
-  box-shadow: 0 3px 6px rgba(75, 150, 243, 0.25); /* Colored shadow */
+  background-color: #43a047; /* Slightly darker green */
 }
 
-/* --- Select Button --- */
+.upload-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* --- Select Button (matching UploadModal's cancel-btn style but with proper color) --- */
 .select-btn {
-  background-color: #5a6474; /* Slightly lighter gray */
-  color: white; /* Full white text for better contrast */
+  background-color: transparent;
+  color: #333;
+  border: 1px solid #ccc;
+  min-width: 180px;
 }
 
 .select-btn:hover {
-  background-color: #6b7585; /* Lighter on hover */
-  box-shadow: 0 3px 6px rgba(107, 117, 133, 0.25); /* Colored shadow */
+  background-color: rgba(0, 0, 0, 0.03); /* Very light gray background on hover */
 }
 
 /* --- Delete Button --- */
 .delete-btn {
-  /* Keeping gradient but maybe less bright */
-  background: linear-gradient(145deg, #ef4444, #b91c1c); /* Red 500 to Red 700 */
+  background-color: #ef4444; /* Flat red */
   color: white;
-  border-color: transparent;
+  border: none;
 }
 
 .delete-btn:hover {
-  background: linear-gradient(145deg, #dc2626, #991b1b); /* Red 600 to Red 800 */
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+  background-color: #dc2626; /* Darker red on hover */
 }
 
-/* --- Cancel Button (Similar to Select) --- */
+/* --- Cancel Button --- */
 .cancel-btn {
-  background-color: #4B5563; /* Tailwind Gray 600 */
-  color: #D1D5DB; /* Tailwind Gray 300 */
-  border-color: #4B5563; /* Match background */
+  background-color: transparent;
+  color: #333;
+  border: 1px solid #ccc;
 }
 
 .cancel-btn:hover {
-  background-color: #6B7280; /* Tailwind Gray 500 */
-  border-color: #6B7280;
-  color: #F9FAFB; /* Tailwind Gray 50 */
-  box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
+  background-color: rgba(0, 0, 0, 0.03); /* Very light gray background on hover */
 }
 
 @media (max-width: 768px) {
@@ -200,8 +190,9 @@ export default {
   }
 
   .action-btn {
-    padding: 7px 14px; /* Slightly adjusted mobile padding */
+    padding: 7px 14px;
     font-size: 13px;
+    min-width: 120px;
   }
   
   .btn-content img {
