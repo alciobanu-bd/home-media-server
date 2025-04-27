@@ -20,6 +20,20 @@ export default {
       type: String,
       required: true
     }
+  },
+  emits: ['confirm', 'cancel'],
+  methods: {
+    handleKeydown(event) {
+      if (event.key === 'Escape') {
+        this.$emit('cancel');
+      }
+    }
+  },
+  mounted() {
+    window.addEventListener('keydown', this.handleKeydown);
+  },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.handleKeydown);
   }
 };
 </script>
