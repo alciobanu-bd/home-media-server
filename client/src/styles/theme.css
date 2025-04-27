@@ -13,7 +13,7 @@
   --color-hover: rgba(0, 0, 0, 0.03);
   
   /* Button styling */
-  --color-button-background: #3b82f6;
+  --color-button-background: var(--color-primary);
   --color-button-text: #ffffff;
   --color-button-disabled: #cbd5e1;
   

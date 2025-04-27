@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: var(--color-overlay);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,7 +12,8 @@
 }
 
 .upload-modal {
-  background-color: white;
+  background-color: var(--color-card-background);
+  box-shadow: 0 4px 12px var(--color-card-shadow);
   border-radius: 8px;
   width: 90%;
   max-width: 600px;
@@ -26,7 +27,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .modal-header h2 {
@@ -37,7 +38,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #666;
+  color: var(--color-secondary);
   width: 40px;
   height: 40px;
   display: flex;
@@ -48,12 +49,12 @@
 }
 
 .close-btn:hover {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--color-hover);
   transform: scale(1.1);
 }
 
 .close-btn svg {
-  fill: #666;
+  fill: var(--color-secondary);
   width: 22px;
   height: 22px;
 }
@@ -65,7 +66,7 @@
 }
 
 .upload-dropzone {
-  border: 2px dashed #ccc;
+  border: 2px dashed var(--color-border);
   border-radius: 4px;
   padding: 40px;
   text-align: center;
@@ -74,7 +75,7 @@
 }
 
 .upload-dropzone.active {
-  border-color: #2196f3;
+  border-color: var(--color-primary);
   background-color: rgba(33, 150, 243, 0.05);
 }
 
@@ -85,29 +86,37 @@
 }
 
 .dropzone-content svg {
-  fill: #666;
+  fill: var(--color-secondary);
   margin-bottom: 15px;
 }
 
 .dropzone-content p {
   margin: 5px 0;
-  color: #333;
+  color: var(--color-text);
 }
 
 .dropzone-content .small {
   font-size: 12px;
-  color: #666;
+  color: var(--color-secondary);
 }
 
 .selected-files {
   margin-top: 20px;
+  background-color: var(--color-card-background);
+  padding: 10px;
+}
+
+.selected-files h3 {
+  margin: 0 0 10px;
+  color: var(--color-text);
 }
 
 .file-list {
   max-height: 200px;
   overflow-y: auto;
-  border: 1px solid #eee;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
+  background-color: var(--color-card-background);
 }
 
 .file-item {
@@ -115,7 +124,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-card-background);
 }
 
 .file-item:last-child {
@@ -131,14 +141,14 @@
 
 .file-size {
   margin: 0 10px;
-  color: #666;
+  color: var(--color-secondary);
   font-size: 12px;
 }
 
 .remove-file {
   background: none;
   border: none;
-  color: #f44336;
+  color: var(--color-error);
   cursor: pointer;
   width: 36px;
   height: 36px;
@@ -150,12 +160,12 @@
 }
 
 .remove-file:hover {
-  background-color: rgba(244, 67, 54, 0.15);
+  background-color: rgba(var(--color-error-rgb), 0.15);
   transform: scale(1.1);
 }
 
 .remove-file svg {
-  fill: #f44336;
+  fill: var(--color-error);
   width: 22px;
   height: 22px;
 }
@@ -164,7 +174,7 @@
   display: flex;
   justify-content: flex-end;
   padding: 15px 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
 }
 
 .modal-footer button {
@@ -176,16 +186,34 @@
 
 .cancel-btn {
   background-color: transparent;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 
 .upload-btn {
-  background-color: #4caf50;
-  color: white;
+  background-color: var(--color-button-background);
+  color: var(--color-button-text);
   border: none;
 }
 
 .upload-btn:disabled {
-  background-color: #ccc;
+  background-color: var(--color-button-disabled);
   cursor: not-allowed;
+}
+
+/* Ensure selected-files list adapts to the Lumia theme */
+.upload-modal .selected-files,
+.upload-modal .selected-files .file-list,
+.upload-modal .selected-files .file-item {
+  background-color: var(--color-card-background);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+/* Explicitly style file-name and file-size text colors */
+.upload-modal .file-name {
+  color: var(--color-text);
+}
+.upload-modal .file-size {
+  color: var(--color-secondary);
 } 
