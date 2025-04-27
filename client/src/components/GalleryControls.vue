@@ -133,33 +133,33 @@ export default {
   line-height: 1.2;
 }
 
-/* --- Upload Button (matching UploadModal's upload-btn) --- */
+/* --- Upload Button (matching Lumia theme) --- */
 .upload-btn {
-  background-color: #4caf50; /* Green color from UploadModal */
-  color: white;
+  background-color: var(--color-button-background);
+  color: var(--color-button-text);
   border: none;
   min-width: 180px;
 }
 
 .upload-btn:hover {
-  background-color: #43a047; /* Slightly darker green */
+  background-color: var(--color-primary-hover);
 }
 
 .upload-btn:disabled {
-  background-color: #ccc;
+  background-color: var(--color-button-disabled);
   cursor: not-allowed;
 }
 
-/* --- Select Button (matching UploadModal's cancel-btn style but with proper color) --- */
+/* --- Select Button (matching Lumia theme) --- */
 .select-btn {
   background-color: transparent;
-  color: #333;
-  border: 1px solid #ccc;
+  color: var(--color-secondary);
+  border: 1px solid var(--color-secondary);
   min-width: 180px;
 }
 
 .select-btn:hover {
-  background-color: rgba(0, 0, 0, 0.03); /* Very light gray background on hover */
+  background-color: var(--color-hover);
 }
 
 /* --- Delete Button --- */

@@ -10,7 +10,16 @@
     
     <div v-else class="media-grid">
       <div v-for="(group, date) in groupedMedia" :key="date" class="date-group">
-        <h2 class="date-header">{{ formatDate(date) }}</h2>
+        <h2 class="date-header">
+          {{ formatDate(date) }}
+          <button
+            class="day-select-btn"
+            @click.prevent="handleDaySelect(date)"
+            title="Select all items from this day"
+          >
+            Select Day
+          </button>
+        </h2>
         <div class="grid">
           <media-item 
             v-for="item in group" 
@@ -236,6 +245,21 @@ export default {
       }
       
       // Update gallery controls store
+      galleryControlsStore.updateSelectionState(this.selectMode, this.selectedItems.length);
+    },
+    handleDaySelect(date) {
+      // Enable select mode if it's off
+      if (!this.selectMode) {
+        this.toggleSelectMode();
+      }
+      // Add all items from the day to selection without duplicates
+      const dayItems = this.groupedMedia[date] || [];
+      dayItems.forEach(item => {
+        if (!this.selectedItems.includes(item._id)) {
+          this.selectedItems.push(item._id);
+        }
+      });
+      // Update selection state in store
       galleryControlsStore.updateSelectionState(this.selectMode, this.selectedItems.length);
     },
     deleteItem(item) {
