@@ -245,10 +245,10 @@ export default {
           this.$router.push('/');
           return;
         }
-        
+
         // Store the current item
         this.media = currentItem;
-        
+
         // Get the metadata
         try {
           const metadataResponse = await api.get(`/metadata/${this.id}`);
@@ -268,7 +268,7 @@ export default {
               sort: -1
             }
           });
-          
+
           // Get items with IDs greater than the current item (newer items)
           const prevResponse = await api.get(`/media`, {
             params: { 
@@ -277,14 +277,14 @@ export default {
               sort: 1
             }
           });
-          
+
           console.log('Previous items:', prevResponse.data.length);
           console.log('Next items:', nextResponse.data.length);
-          
+
           // Combine the arrays and remove duplicates
           const allItems = [];
           const seenIds = new Set();
-          
+
           // Add the previous items (newer) first
           const prevItems = [...prevResponse.data].reverse();
           prevItems.forEach(item => {
@@ -293,13 +293,13 @@ export default {
               seenIds.add(item._id);
             }
           });
-          
+
           // Add the current item in the middle
           if (!seenIds.has(this.id)) {
             allItems.push(currentItem);
             seenIds.add(this.id);
           }
-          
+
           // Add the next items (older)
           nextResponse.data.forEach(item => {
             if (!seenIds.has(item._id)) {
@@ -307,12 +307,12 @@ export default {
               seenIds.add(item._id);
             }
           });
-          
+
           console.log('Combined items:', allItems.length);
-          
+
           // Find the index of the current item
           const currentIndex = allItems.findIndex(item => item._id.toString() === this.id.toString());
-          
+
           if (currentIndex > 0) {
             this.previousItem = allItems[currentIndex - 1];
             console.log('Previous item found:', this.previousItem.originalName);
@@ -417,29 +417,29 @@ export default {
       
       // If scale didn't change, don't proceed
       if (newScale === oldScale) return;
-      
+
       // Zoom toward cursor position
       if (this.$refs.mediaElement && this.$refs.mediaContainer) {
         const img = this.$refs.mediaElement;
         const imgRect = img.getBoundingClientRect();
         const containerRect = this.$refs.mediaContainer.getBoundingClientRect();
-        
+
         // Calculate the cursor position relative to the container
         const containerX = event.clientX - containerRect.left;
         const containerY = event.clientY - containerRect.top;
-        
+
         // Calculate the cursor position relative to the image's current position
         const imgX = containerX - this.translateX;
         const imgY = containerY - this.translateY;
-        
+
         // Calculate the point on the image where we're zooming
         const pointXRatio = imgX / (imgRect.width / oldScale);
         const pointYRatio = imgY / (imgRect.height / oldScale);
-        
+
         // Calculate how much the point will move when we zoom
         const newPointX = pointXRatio * (imgRect.width / newScale);
         const newPointY = pointYRatio * (imgRect.height / newScale);
-        
+
         // Adjust translation to keep the point under the cursor
         this.translateX = containerX - newPointX;
         this.translateY = containerY - newPointY;
@@ -456,31 +456,31 @@ export default {
     },
     startPan(event) {
       if (!this.isImage || this.scale <= 1) return;
-      
+
       // Prevent default behavior to avoid browser drag behavior
       event.preventDefault();
-      
+
       this.isPanning = true;
       this.startX = event.clientX - this.translateX;
       this.startY = event.clientY - this.translateY;
     },
     pan(event) {
       if (!this.isPanning) return;
-      
+
       // Calculate new position
       const newTranslateX = event.clientX - this.startX;
       const newTranslateY = event.clientY - this.startY;
-      
+
       // Update position - constraints will be applied later
       this.translateX = newTranslateX;
       this.translateY = newTranslateY;
-      
+
       // Apply constraints while panning for smoother experience
       this.constrainBounds();
     },
     stopPan() {
       this.isPanning = false;
-      
+
       // Apply constraints after panning stops
       if (this.scale > 1) {
         this.constrainBounds();
@@ -504,7 +504,7 @@ export default {
     },
     handleKeydown(event) {
       console.log('Key pressed:', event.key);
-      
+
       switch (event.key) {
         case ' ':
           event.preventDefault(); // Prevent scrolling
