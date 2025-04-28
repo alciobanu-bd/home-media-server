@@ -76,6 +76,45 @@ const actions = {
     } finally {
       state.isLoading = false;
     }
+  },
+  
+  /**
+   * Update user settings
+   */
+  async updateUserSettings(settings) {
+    state.isLoading = true;
+    state.error = null;
+    
+    try {
+      // In a real app, you would call an API here to save the settings
+      // const response = await updateUserSettingsApi(settings);
+      
+      // For demo purposes, we'll just update the local state
+      if (state.user) {
+        // Create a new user object with the updated settings
+        state.user = {
+          ...state.user,
+          picture: settings.picture || state.user.picture,
+          preferences: {
+            ...(state.user.preferences || {}),
+            theme: settings.theme || 'system'
+          }
+        };
+        
+        console.log('User settings updated:', state.user);
+        return true;
+      } else {
+        state.error = 'Cannot update settings: User not authenticated';
+        console.error('Settings update failed: User not authenticated');
+        return false;
+      }
+    } catch (error) {
+      state.error = `Failed to update settings: ${error.message || 'Unknown error'}`;
+      console.error('Settings update error:', error);
+      return false;
+    } finally {
+      state.isLoading = false;
+    }
   }
 };
 
