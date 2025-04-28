@@ -19,6 +19,14 @@
             </svg>
             <span>Gallery</span>
           </router-link>
+          <router-link to="/albums" class="nav-link">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <rect x="7" y="7" width="4" height="10"></rect>
+              <rect x="13" y="7" width="4" height="10"></rect>
+            </svg>
+            <span>Albums</span>
+          </router-link>
           <!-- Additional menu items can be added here -->
         </nav>
       </div>

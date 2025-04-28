@@ -9,6 +9,14 @@ const serveFilesRoute = require('./files/serveFiles');
 const uploadFileRoute = require('./files/uploadFile');
 const deleteFileRoute = require('./files/deleteFile');
 const authRoutes = require('./auth');
+// Add album routes
+const createAlbumRoute = require('./albums/createAlbum');
+const listAlbumsRoute = require('./albums/listAlbums');
+const getAlbumRoute = require('./albums/getAlbum');
+const updateAlbumRoute = require('./albums/updateAlbum');
+const deleteAlbumRoute = require('./albums/deleteAlbum');
+const addMediaToAlbumRoute = require('./albums/addMediaToAlbum');
+const removeMediaFromAlbumRoute = require('./albums/removeMediaFromAlbum');
 
 module.exports = function(fastify, opts, done) {
     // Register route modules with /api prefix
@@ -21,6 +29,15 @@ module.exports = function(fastify, opts, done) {
   
     // Register auth routes with /api prefix
     fastify.register(authRoutes, { prefix: '/api' });
+    
+    // Register album routes with /api prefix
+    fastify.register(createAlbumRoute, { prefix: '/api' });
+    fastify.register(listAlbumsRoute, { prefix: '/api' });
+    fastify.register(getAlbumRoute, { prefix: '/api' });
+    fastify.register(updateAlbumRoute, { prefix: '/api' });
+    fastify.register(deleteAlbumRoute, { prefix: '/api' });
+    fastify.register(addMediaToAlbumRoute, { prefix: '/api' });
+    fastify.register(removeMediaFromAlbumRoute, { prefix: '/api' });
   
     done();
 }; 

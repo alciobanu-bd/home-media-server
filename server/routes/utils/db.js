@@ -11,7 +11,8 @@ const validateRequiredEnvVars = () => {
         'COLLECTION_FILES',
         'COLLECTION_THUMBNAILS',
         'COLLECTION_METADATA',
-        'COLLECTION_USERS'
+        'COLLECTION_USERS',
+        'COLLECTION_ALBUMS'
     ];
   
     const missingVars = requiredVars.filter(varName => !process.env[varName]);
@@ -25,7 +26,8 @@ const COLLECTIONS = {
     files: process.env.COLLECTION_FILES,
     thumbnails: process.env.COLLECTION_THUMBNAILS,
     metadata: process.env.COLLECTION_METADATA,
-    users: process.env.COLLECTION_USERS
+    users: process.env.COLLECTION_USERS,
+    albums: process.env.COLLECTION_ALBUMS
 };
 
 // Get a collection from the database
@@ -59,6 +61,7 @@ const connectToMongo = async () => {
         const thumbnailsCollection = getCollection(db, 'thumbnails');
         const metadataCollection = getCollection(db, 'metadata');
         const usersCollection = getCollection(db, 'users');
+        const albumsCollection = getCollection(db, 'albums');
     
         await filesCollection.createIndex({ createdAt: -1 });
         await filesCollection.createIndex({ userId: 1 });
@@ -70,6 +73,9 @@ const connectToMongo = async () => {
         await metadataCollection.createIndex({ userId: 1 });
         await usersCollection.createIndex({ googleId: 1 }, { unique: true });
         await usersCollection.createIndex({ email: 1 }, { unique: true });
+        // Add indexes for albums collection
+        await albumsCollection.createIndex({ userId: 1 });
+        await albumsCollection.createIndex({ createdAt: -1 });
     
         return db;
     } catch (err) {

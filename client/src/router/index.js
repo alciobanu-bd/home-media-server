@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Gallery from '../views/Gallery.vue';
 import ViewMedia from '../views/ViewMedia.vue';
 import Login from '../views/Login.vue';
+import Albums from '../views/Albums.vue';
+import AlbumView from '../views/AlbumView.vue';
 import authStore from '../store/authStore';
 
 const routes = [
@@ -15,6 +17,19 @@ const routes = [
     path: '/view/:id',
     name: 'ViewMedia',
     component: ViewMedia,
+    props: true,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/albums',
+    name: 'Albums',
+    component: Albums,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/albums/:id',
+    name: 'AlbumView',
+    component: AlbumView,
     props: true,
     meta: { requiresAuth: true }
   },

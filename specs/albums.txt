@@ -1,0 +1,8 @@
+Create album functionality. 
+There should be another Albums tab in the menu.
+Add a new button for add an album. When adding a new album, open a new modal. 
+The modal should ask for album name. There should be a save button in the modal. When the save button is pressed, a new API call should be made that creates the album. 
+There should be a new album collection in mongodb. 
+album collection has a userId which will be the owner of the album. The userId should be an index field. 
+To add a file in the album, a new API will be developed for that.
+Adding a new files means that the file document will have an array called albums. No duplicate album ids should be allowed for a file. The albums field should be an index.
