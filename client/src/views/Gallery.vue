@@ -177,7 +177,8 @@ export default {
         const response = await api.get('/media', {
           params: {
             lastId: this.lastId,
-            limit: 50
+            limit: 50,
+            sort: -1
           }
         });
         

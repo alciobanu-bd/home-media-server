@@ -7,15 +7,15 @@ const userRoutes = require('./userRoutes');
 const { verifyToken, requireAuth } = require('./authMiddleware');
 
 module.exports = function(fastify, opts, done) {
-  // Register the token verification middleware
-  fastify.addHook('preHandler', verifyToken);
+    // Register the token verification middleware
+    fastify.addHook('preHandler', verifyToken);
   
-  // Register auth routes
-  fastify.register(googleAuthRoute);
-  fastify.register(googleCallbackRoute);
-  fastify.register(userRoutes);
+    // Register auth routes
+    fastify.register(googleAuthRoute);
+    fastify.register(googleCallbackRoute);
+    fastify.register(userRoutes);
   
-  done();
+    done();
 };
 
 // Export middleware for use in other parts of the application

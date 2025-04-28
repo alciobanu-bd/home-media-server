@@ -235,37 +235,18 @@ export default {
         this.nextItem = null;
         
         // First verify the current item exists
+        let currentItem;
         try {
           const itemResponse = await api.get(`/media/${this.id}`);
-          console.log('Current item verified:', itemResponse.data.originalName);
+          currentItem = itemResponse.data;
+          console.log('Current item verified:', currentItem.originalName);
         } catch (itemError) {
           console.error('Current item not found:', itemError);
           this.$router.push('/');
           return;
         }
         
-        // Fetch all media items for navigation
-        const response = await api.get(`/media`, {
-          params: { id: this.id }
-        });
-        
-        console.log('API response:', response.data.length, 'items');
-        
-        if (response.data.length === 0) {
-          console.error('No media items found');
-          this.$router.push('/');
-          return;
-        }
-        
-        // Find the current item using string comparison
-        const currentItem = response.data.find(item => item._id.toString() === this.id.toString());
-        if (!currentItem) {
-          console.error('Current item not found in results');
-          this.$router.push('/');
-          return;
-        }
-        
-        console.log('Current item found:', currentItem.originalName);
+        // Store the current item
         this.media = currentItem;
         
         // Get the metadata
@@ -276,21 +257,74 @@ export default {
           console.error('Error fetching metadata:', metadataError);
           // Continue without metadata
         }
-        
-        // Find previous and next items
-        const allItems = response.data;
-        const currentIndex = allItems.findIndex(item => item._id.toString() === this.id.toString());
-        
-        if (currentIndex > 0) {
-          this.previousItem = allItems[currentIndex - 1];
-          console.log('Previous item found:', this.previousItem.originalName);
+
+        // Fetch neighbors using two API calls with different sort directions
+        try {
+          // Get items with IDs less than the current item (older items)
+          const nextResponse = await api.get(`/media`, {
+            params: { 
+              lastId: this.id,
+              limit: 10,
+              sort: -1
+            }
+          });
+          
+          // Get items with IDs greater than the current item (newer items)
+          const prevResponse = await api.get(`/media`, {
+            params: { 
+              lastId: this.id,
+              limit: 10,
+              sort: 1
+            }
+          });
+          
+          console.log('Previous items:', prevResponse.data.length);
+          console.log('Next items:', nextResponse.data.length);
+          
+          // Combine the arrays and remove duplicates
+          const allItems = [];
+          const seenIds = new Set();
+          
+          // Add the previous items (newer) first
+          const prevItems = [...prevResponse.data].reverse();
+          prevItems.forEach(item => {
+            if (!seenIds.has(item._id)) {
+              allItems.push(item);
+              seenIds.add(item._id);
+            }
+          });
+          
+          // Add the current item in the middle
+          if (!seenIds.has(this.id)) {
+            allItems.push(currentItem);
+            seenIds.add(this.id);
+          }
+          
+          // Add the next items (older)
+          nextResponse.data.forEach(item => {
+            if (!seenIds.has(item._id)) {
+              allItems.push(item);
+              seenIds.add(item._id);
+            }
+          });
+          
+          console.log('Combined items:', allItems.length);
+          
+          // Find the index of the current item
+          const currentIndex = allItems.findIndex(item => item._id.toString() === this.id.toString());
+          
+          if (currentIndex > 0) {
+            this.previousItem = allItems[currentIndex - 1];
+            console.log('Previous item found:', this.previousItem.originalName);
+          }
+          
+          if (currentIndex < allItems.length - 1) {
+            this.nextItem = allItems[currentIndex + 1];
+            console.log('Next item found:', this.nextItem.originalName);
+          }
+        } catch (error) {
+          console.error('Error fetching neighbor items:', error);
         }
-        
-        if (currentIndex < allItems.length - 1) {
-          this.nextItem = allItems[currentIndex + 1];
-          console.log('Next item found:', this.nextItem.originalName);
-        }
-        
       } catch (error) {
         console.error('Error fetching media details:', error);
         this.$router.push('/');

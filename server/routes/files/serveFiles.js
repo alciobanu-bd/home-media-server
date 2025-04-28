@@ -6,8 +6,8 @@ const { uploadDir, thumbnailsDir } = require('../utils/fileHelpers');
  * GET /api/media/file/:filename
  */
 const serveMediaFileHandler = (req, reply) => {
-  const { filename } = req.params;
-  reply.sendFile(filename, uploadDir);
+    const { filename } = req.params;
+    reply.sendFile(filename, uploadDir);
 };
 
 /**
@@ -15,12 +15,12 @@ const serveMediaFileHandler = (req, reply) => {
  * GET /api/thumbnails/:filename
  */
 const serveThumbnailHandler = (req, reply) => {
-  const { filename } = req.params;
-  reply.sendFile(filename, thumbnailsDir);
+    const { filename } = req.params;
+    reply.sendFile(filename, thumbnailsDir);
 };
 
 module.exports = function(fastify, opts, done) {
-  fastify.get('/media/file/:filename', serveMediaFileHandler);
-  fastify.get('/thumbnails/:filename', serveThumbnailHandler);
-  done();
+    fastify.get('/media/file/:filename', serveMediaFileHandler);
+    fastify.get('/thumbnails/:filename', serveThumbnailHandler);
+    done();
 }; 

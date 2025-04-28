@@ -11,16 +11,16 @@ const deleteFileRoute = require('./files/deleteFile');
 const authRoutes = require('./auth');
 
 module.exports = function(fastify, opts, done) {
-  // Register route modules with /api prefix
-  fastify.register(mediaListRoute, { prefix: '/api' });
-  fastify.register(mediaItemRoute, { prefix: '/api' });
-  fastify.register(metadataRoute, { prefix: '/api' });
-  fastify.register(serveFilesRoute, { prefix: '/api' });
-  fastify.register(uploadFileRoute, { prefix: '/api' });
-  fastify.register(deleteFileRoute, { prefix: '/api' });
+    // Register route modules with /api prefix
+    fastify.register(mediaListRoute, { prefix: '/api' });
+    fastify.register(mediaItemRoute, { prefix: '/api' });
+    fastify.register(metadataRoute, { prefix: '/api' });
+    fastify.register(serveFilesRoute, { prefix: '/api' });
+    fastify.register(uploadFileRoute, { prefix: '/api' });
+    fastify.register(deleteFileRoute, { prefix: '/api' });
   
-  // Register auth routes with /api prefix
-  fastify.register(authRoutes, { prefix: '/api' });
+    // Register auth routes with /api prefix
+    fastify.register(authRoutes, { prefix: '/api' });
   
-  done();
+    done();
 }; 
