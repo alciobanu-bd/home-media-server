@@ -170,7 +170,9 @@ export default {
       startY: 0,
       previousItem: null,
       nextItem: null,
-      baseUrl: process.env.BASE_URL || '/'
+      baseUrl: process.env.BASE_URL || '/',
+      albumId: null,
+      albumItems: []
     };
   },
   computed: {
@@ -208,6 +210,25 @@ export default {
     }
   },
   mounted() {
+    // Check if we're coming from an album view
+    const referrer = document.referrer;
+    if (referrer && referrer.includes('/album/')) {
+      // Extract album ID from the referrer URL
+      const albumIdMatch = referrer.match(/\/album\/([^/]+)/);
+      if (albumIdMatch && albumIdMatch[1]) {
+        this.albumId = albumIdMatch[1];
+        console.log('Viewing from album:', this.albumId);
+      }
+    }
+    
+    // Also check if album ID is in the query params (for direct navigation or page refresh)
+    const urlParams = new URLSearchParams(window.location.search);
+    const albumParam = urlParams.get('album');
+    if (albumParam) {
+      this.albumId = albumParam;
+      console.log('Album ID from query param:', this.albumId);
+    }
+    
     this.$nextTick(() => {
       if (this.$refs.viewer) {
         this.$refs.viewer.focus();
@@ -258,72 +279,12 @@ export default {
           // Continue without metadata
         }
 
-        // Fetch neighbors using two API calls with different sort directions
-        try {
-          // Get items with IDs less than the current item (older items)
-          const nextResponse = await api.get(`/media`, {
-            params: { 
-              lastId: this.id,
-              limit: 10,
-              sort: -1
-            }
-          });
-
-          // Get items with IDs greater than the current item (newer items)
-          const prevResponse = await api.get(`/media`, {
-            params: { 
-              lastId: this.id,
-              limit: 10,
-              sort: 1
-            }
-          });
-
-          console.log('Previous items:', prevResponse.data.length);
-          console.log('Next items:', nextResponse.data.length);
-
-          // Combine the arrays and remove duplicates
-          const allItems = [];
-          const seenIds = new Set();
-
-          // Add the previous items (newer) first
-          const prevItems = [...prevResponse.data].reverse();
-          prevItems.forEach(item => {
-            if (!seenIds.has(item._id)) {
-              allItems.push(item);
-              seenIds.add(item._id);
-            }
-          });
-
-          // Add the current item in the middle
-          if (!seenIds.has(this.id)) {
-            allItems.push(currentItem);
-            seenIds.add(this.id);
-          }
-
-          // Add the next items (older)
-          nextResponse.data.forEach(item => {
-            if (!seenIds.has(item._id)) {
-              allItems.push(item);
-              seenIds.add(item._id);
-            }
-          });
-
-          console.log('Combined items:', allItems.length);
-
-          // Find the index of the current item
-          const currentIndex = allItems.findIndex(item => item._id.toString() === this.id.toString());
-
-          if (currentIndex > 0) {
-            this.previousItem = allItems[currentIndex - 1];
-            console.log('Previous item found:', this.previousItem.originalName);
-          }
-          
-          if (currentIndex < allItems.length - 1) {
-            this.nextItem = allItems[currentIndex + 1];
-            console.log('Next item found:', this.nextItem.originalName);
-          }
-        } catch (error) {
-          console.error('Error fetching neighbor items:', error);
+        // If we have an album ID, get only items from that album
+        if (this.albumId) {
+          await this.fetchAlbumItems();
+        } else {
+          // Otherwise use the original behavior - fetch from global media list
+          await this.fetchNeighborItems();
         }
       } catch (error) {
         console.error('Error fetching media details:', error);
@@ -332,6 +293,111 @@ export default {
         this.loading = false;
       }
     },
+
+    async fetchAlbumItems() {
+      try {
+        console.log('Fetching items for album:', this.albumId);
+        const response = await api.get(`/albums/${this.albumId}/files`);
+        this.albumItems = response.data.files;
+        
+        if (this.albumItems.length > 0) {
+          // Find the index of the current item in the album
+          const currentIndex = this.albumItems.findIndex(item => item._id === this.id);
+          
+          if (currentIndex !== -1) {
+            console.log(`Current item is at index ${currentIndex} of ${this.albumItems.length} items in album`);
+            
+            // Set previous item if available
+            if (currentIndex > 0) {
+              this.previousItem = this.albumItems[currentIndex - 1];
+              console.log('Previous item in album:', this.previousItem.originalName);
+            }
+            
+            // Set next item if available
+            if (currentIndex < this.albumItems.length - 1) {
+              this.nextItem = this.albumItems[currentIndex + 1];
+              console.log('Next item in album:', this.nextItem.originalName);
+            }
+          } else {
+            console.warn('Current item not found in album items array');
+          }
+        } else {
+          console.warn('Album has no items');
+        }
+      } catch (error) {
+        console.error('Error fetching album items:', error);
+      }
+    },
+
+    async fetchNeighborItems() {
+      try {
+        // Get items with IDs less than the current item (older items)
+        const nextResponse = await api.get(`/media`, {
+          params: { 
+            lastId: this.id,
+            limit: 10,
+            sort: -1
+          }
+        });
+
+        // Get items with IDs greater than the current item (newer items)
+        const prevResponse = await api.get(`/media`, {
+          params: { 
+            lastId: this.id,
+            limit: 10,
+            sort: 1
+          }
+        });
+
+        console.log('Previous items:', prevResponse.data.length);
+        console.log('Next items:', nextResponse.data.length);
+
+        // Combine the arrays and remove duplicates
+        const allItems = [];
+        const seenIds = new Set();
+
+        // Add the previous items (newer) first
+        const prevItems = [...prevResponse.data].reverse();
+        prevItems.forEach(item => {
+          if (!seenIds.has(item._id)) {
+            allItems.push(item);
+            seenIds.add(item._id);
+          }
+        });
+
+        // Add the current item in the middle
+        if (!seenIds.has(this.id)) {
+          allItems.push(this.media);
+          seenIds.add(this.id);
+        }
+
+        // Add the next items (older)
+        nextResponse.data.forEach(item => {
+          if (!seenIds.has(item._id)) {
+            allItems.push(item);
+            seenIds.add(item._id);
+          }
+        });
+
+        console.log('Combined items:', allItems.length);
+
+        // Find the index of the current item
+        const currentIndex = allItems.findIndex(item => item._id.toString() === this.id.toString());
+
+        if (currentIndex > 0) {
+          this.previousItem = allItems[currentIndex - 1];
+          console.log('Previous item found:', this.previousItem.originalName);
+        }
+        
+        if (currentIndex < allItems.length - 1) {
+          this.nextItem = allItems[currentIndex + 1];
+          console.log('Next item found:', this.nextItem.originalName);
+        }
+      } catch (error) {
+        console.error('Error fetching neighbor items:', error);
+      }
+    },
+
     onMediaLoad() {
       this.loading = false;
     },
@@ -489,17 +555,23 @@ export default {
     navigateToPrevious() {
       console.log('Navigating to previous item:', this.previousItem?._id);
       if (this.previousItem) {
-        // Force a full reload navigation for maximum reliability
-        const id = this.previousItem._id;
-        window.location.href = `/view/${id}`;
+        // Include album ID in the URL if we're in album context
+        let url = `/view/${this.previousItem._id}`;
+        if (this.albumId) {
+          url += `?album=${this.albumId}`;
+        }
+        window.location.href = url;
       }
     },
     navigateToNext() {
       console.log('Navigating to next item:', this.nextItem?._id);
       if (this.nextItem) {
-        // Force a full reload navigation for maximum reliability
-        const id = this.nextItem._id;
-        window.location.href = `/view/${id}`;
+        // Include album ID in the URL if we're in album context
+        let url = `/view/${this.nextItem._id}`;
+        if (this.albumId) {
+          url += `?album=${this.albumId}`;
+        }
+        window.location.href = url;
       }
     },
     handleKeydown(event) {

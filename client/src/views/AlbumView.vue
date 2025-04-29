@@ -194,7 +194,11 @@ export default {
     },
     handleItemClick(item) {
       if (!this.selectMode) {
-        this.$router.push({ name: 'ViewMedia', params: { id: item._id } });
+        this.$router.push({ 
+          name: 'ViewMedia', 
+          params: { id: item._id },
+          query: { album: this.$route.params.id }
+        });
       }
     },
     toggleSelect(item) {
