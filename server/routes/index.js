@@ -14,6 +14,7 @@ const createAlbumRoute = require('./albums/createAlbum');
 const listAlbumsRoute = require('./albums/listAlbums');
 const getAlbumRoute = require('./albums/getAlbum');
 const updateAlbumRoute = require('./albums/updateAlbum');
+const updateAlbumThumbnailRoute = require('./albums/updateAlbumThumbnail');
 const deleteAlbumRoute = require('./albums/deleteAlbum');
 const addMediaToAlbumRoute = require('./albums/addMediaToAlbum');
 const removeMediaFromAlbumRoute = require('./albums/removeMediaFromAlbum');
@@ -36,6 +37,7 @@ module.exports = function(fastify, opts, done) {
     fastify.register(listAlbumsRoute, { prefix: '/api' });
     fastify.register(getAlbumRoute, { prefix: '/api' });
     fastify.register(updateAlbumRoute, { prefix: '/api' });
+    fastify.register(updateAlbumThumbnailRoute, { prefix: '/api' });
     fastify.register(deleteAlbumRoute, { prefix: '/api' });
     fastify.register(addMediaToAlbumRoute, { prefix: '/api' });
     fastify.register(removeMediaFromAlbumRoute, { prefix: '/api' });

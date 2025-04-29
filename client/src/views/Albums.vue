@@ -180,23 +180,29 @@
     <div v-if="showSetThumbnailModal" class="modal-overlay" @click.self="showSetThumbnailModal = false">
       <div class="modal-content thumbnail-modal">
         <h2>Select Album Thumbnail</h2>
-        <div v-if="thumbnailLoading" class="loading">
-          Loading thumbnails...
-        </div>
-        <div v-else-if="!albumFiles.length" class="empty-thumbnails">
-          <p>No images in this album to set as thumbnail.</p>
-        </div>
-        <div v-else class="thumbnail-grid">
-          <div 
-            v-for="file in albumFiles" 
-            :key="file._id"
-            class="thumbnail-option"
-            :class="{ 'selected': currentThumbnailId === file._id }"
-            @click="selectThumbnail(file._id)"
-          >
-            <img :src="`${apiBaseUrl}/thumbnails/${file._id}.jpg`" alt="Thumbnail option" />
+        
+        <!-- Content section -->
+        <div class="modal-body">
+          <div v-if="thumbnailLoading" class="loading">
+            Loading thumbnails...
+          </div>
+          <div v-else-if="!albumFiles.length" class="empty-thumbnails">
+            <p>No images in this album to set as thumbnail.</p>
+          </div>
+          <div v-else class="thumbnail-grid">
+            <div 
+              v-for="file in albumFiles" 
+              :key="file._id"
+              class="thumbnail-option"
+              :class="{ 'selected': currentThumbnailId === file._id }"
+              @click="selectThumbnail(file._id)"
+            >
+              <img :src="`${apiBaseUrl}/thumbnails/${file._id}.jpg`" alt="Thumbnail option" />
+            </div>
           </div>
         </div>
+        
+        <!-- Always visible buttons section -->
         <div class="modal-actions">
           <button type="button" class="cancel-btn" @click="showSetThumbnailModal = false">Cancel</button>
           <button 
@@ -734,10 +740,35 @@ export default {
   border: 1px solid var(--color-border);
 }
 
+.modal-body {
+  margin-bottom: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.empty-thumbnails {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
 .thumbnail-modal {
+  display: flex;
+  flex-direction: column;
   max-width: 600px;
   max-height: 80vh;
   overflow-y: auto;
+}
+
+.thumbnail-modal .modal-body {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.thumbnail-modal .modal-actions {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
 }
 
 .delete-message {
@@ -874,12 +905,6 @@ export default {
   border-color: var(--color-primary);
   transform: scale(1.05);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.empty-thumbnails {
-  text-align: center;
-  color: var(--color-text-secondary);
-  padding: 24px 0;
 }
 
 @media (max-width: 768px) {
