@@ -39,7 +39,14 @@
           @click="viewAlbum(album)"
         >
           <div class="album-thumbnail">
-            <div v-if="!album.fileCount || album.fileCount === 0" class="album-placeholder">
+            <div v-if="album.thumbnailId" class="album-thumbnail-container">
+              <img 
+                :src="`${apiBaseUrl}/thumbnails/${album.thumbnailId}.jpg`" 
+                alt="Album thumbnail"
+                class="album-thumbnail-image"
+              />
+            </div>
+            <div v-else-if="!album.fileCount || album.fileCount === 0" class="album-placeholder">
               <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -52,7 +59,7 @@
                 :key="index"
                 class="album-thumbnail-item"
               >
-                <img :src="`http://localhost:3000/api/thumbnails/${thumbnail}.jpg`" alt="Album thumbnail" />
+                <img :src="`${apiBaseUrl}/thumbnails/${thumbnail}.jpg`" alt="Album thumbnail" />
               </div>
             </div>
           </div>
@@ -108,7 +115,8 @@ export default {
       showCreateAlbumModal: false,
       newAlbumName: '',
       creating: false,
-      baseUrl: process.env.BASE_URL || '/'
+      baseUrl: process.env.BASE_URL || '/',
+      apiBaseUrl: 'http://localhost:3000/api'
     };
   },
   created() {
@@ -291,6 +299,24 @@ export default {
   justify-content: center;
   align-items: center;
   border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.album-thumbnail-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.album-thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.album-card:hover .album-thumbnail-image {
+  transform: scale(1.05);
 }
 
 .album-placeholder {

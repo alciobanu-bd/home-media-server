@@ -37,6 +37,7 @@ const createAlbumHandler = async (request, reply) => {
             userId,
             createdAt: new Date(),
             updatedAt: new Date()
+            // thumbnailId will be set when media is added to the album
         };
         
         // Insert the album into the database

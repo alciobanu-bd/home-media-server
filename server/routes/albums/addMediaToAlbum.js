@@ -89,11 +89,40 @@ const addMediaToAlbumHandler = async (request, reply) => {
             }
         );
         
-        // Update the album's updatedAt timestamp
-        await albumsCollection.updateOne(
-            { _id: new ObjectId(albumId) },
-            { $set: { updatedAt: new Date() } }
-        );
+        // Check if the album already has a thumbnail, if not, choose the oldest file's thumbnail
+        if (!album.thumbnailId) {
+            // Get all files in this album after adding new files
+            const allAlbumFiles = await filesCollection
+                .find({ 
+                    userId: userId,
+                    albums: albumId
+                })
+                .sort({ _id: 1 }) // Sort by _id in ascending order (oldest first based on ObjectId)
+                .limit(1) // Get just the oldest file
+                .toArray();
+            
+            // If we have files, use the oldest one's ID as the thumbnail
+            if (allAlbumFiles.length > 0) {
+                const oldestFileId = allAlbumFiles[0]._id;
+                
+                // Update the album with the thumbnail ID (store as ObjectId)
+                await albumsCollection.updateOne(
+                    { _id: new ObjectId(albumId) },
+                    { 
+                        $set: { 
+                            thumbnailId: oldestFileId,
+                            updatedAt: new Date() 
+                        } 
+                    }
+                );
+            }
+        } else {
+            // Just update the timestamp if thumbnail already exists
+            await albumsCollection.updateOne(
+                { _id: new ObjectId(albumId) },
+                { $set: { updatedAt: new Date() } }
+            );
+        }
         
         // Return the updated album with files
         const updatedAlbum = await albumsCollection.findOne({

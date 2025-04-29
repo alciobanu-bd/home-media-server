@@ -72,13 +72,64 @@ const removeMediaFromAlbumHandler = async (request, reply) => {
             });
         }
         
-        // Update the album's updatedAt timestamp
-        await albumsCollection.updateOne(
-            { _id: new ObjectId(albumId) },
-            { $set: { updatedAt: new Date() } }
-        );
+        // Check if the removed media was used as the album thumbnail
+        let thumbnailChanged = false;
+        const mediaObjectId = new ObjectId(mediaId);
         
-        return { success: true, message: 'Media item removed from album successfully' };
+        // Compare ObjectIds properly
+        if (album.thumbnailId && album.thumbnailId.equals(mediaObjectId)) {
+            // Need to select a new thumbnail
+            // Get all files in this album after removing the specified file
+            const remainingFiles = await filesCollection
+                .find({ 
+                    userId: userId,
+                    albums: albumId
+                })
+                .sort({ _id: 1 }) // Sort by _id in ascending order (oldest first)
+                .limit(1)
+                .toArray();
+            
+            if (remainingFiles.length > 0) {
+                // Still have files, use the oldest one as thumbnail (store as ObjectId)
+                const newThumbnailId = remainingFiles[0]._id;
+                
+                // Update the album with the new thumbnail
+                await albumsCollection.updateOne(
+                    { _id: new ObjectId(albumId) },
+                    { 
+                        $set: { 
+                            thumbnailId: newThumbnailId,
+                            updatedAt: new Date() 
+                        } 
+                    }
+                );
+                thumbnailChanged = true;
+            } else {
+                // No files left in this album, remove thumbnail
+                await albumsCollection.updateOne(
+                    { _id: new ObjectId(albumId) },
+                    { 
+                        $unset: { thumbnailId: '' },
+                        $set: { updatedAt: new Date() }
+                    }
+                );
+                thumbnailChanged = true;
+            }
+        }
+        
+        if (!thumbnailChanged) {
+            // Just update the timestamp if thumbnail didn't change
+            await albumsCollection.updateOne(
+                { _id: new ObjectId(albumId) },
+                { $set: { updatedAt: new Date() } }
+            );
+        }
+        
+        return { 
+            success: true, 
+            message: 'Media item removed from album successfully',
+            thumbnailChanged
+        };
     } catch (err) {
         console.error('Error removing media from album:', err);
         return reply.code(500).send({ error: 'Failed to remove media from album' });

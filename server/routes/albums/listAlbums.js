@@ -34,9 +34,13 @@ const listAlbumsHandler = async (request, reply) => {
                 albums: album._id.toString()
             });
             
+            // Convert ObjectId to string for the frontend if it exists
+            const thumbnailId = album.thumbnailId ? album.thumbnailId.toString() : null;
+            
             return {
                 ...album,
-                fileCount
+                fileCount,
+                thumbnailId
             };
         }));
         
