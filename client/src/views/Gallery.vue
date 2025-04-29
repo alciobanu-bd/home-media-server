@@ -48,6 +48,13 @@
       @confirm="confirmDelete"
       @cancel="cancelDelete"
     />
+    
+    <album-selector-modal
+      v-if="showAlbumSelector"
+      :mediaIds="selectedItems"
+      @close="closeAlbumSelector"
+      @saved="handleAddToAlbumSuccess"
+    />
   </div>
 </template>
 
@@ -57,17 +64,18 @@ import { format } from 'date-fns';
 import MediaItem from '../components/MediaItem.vue';
 import UploadModal from '../components/UploadModal.vue';
 import ConfirmationDialog from '../components/ConfirmationDialog.vue';
+import AlbumSelectorModal from '../components/AlbumSelectorModal.vue';
 import '../styles/Gallery.css';
 import '../styles/theme.css';
 import galleryControlsStore from '../store/galleryControlsStore';
-import { watch } from 'vue';
 
 export default {
   name: 'Gallery',
   components: {
     MediaItem,
     UploadModal,
-    ConfirmationDialog
+    ConfirmationDialog,
+    AlbumSelectorModal
   },
   data() {
     return {
@@ -83,7 +91,8 @@ export default {
       itemToDelete: null,
       observer: null,
       observerThreshold: 0.3, // Load more when 30% of the loading indicator is visible
-      baseUrl: process.env.BASE_URL || '/'
+      baseUrl: process.env.BASE_URL || '/',
+      showAlbumSelector: false
     };
   },
   computed: {
@@ -114,20 +123,12 @@ export default {
     galleryControlsStore.registerGallery({
       openUploadModal: this.openUploadModal,
       toggleSelectMode: this.toggleSelectMode,
-      deleteSelected: this.deleteSelected
+      deleteSelected: this.deleteSelected,
+      addToAlbum: this.addToAlbum
     });
     
     // Set document title
     document.title = 'Lumia';
-
-    // Watch for changes to selectMode to add/remove body class
-    watch(() => this.selectMode, (newValue) => {
-      if (newValue) {
-        document.body.classList.add('selection-active');
-      } else {
-        document.body.classList.remove('selection-active');
-      }
-    });
   },
   created() {
     this.fetchMedia();
@@ -319,6 +320,56 @@ export default {
       this.lastId = null;
       this.hasMore = true;
       this.fetchMedia();
+    },
+    addToAlbum() {
+      console.log('Gallery - addToAlbum called', this.selectedItems.length);
+      if (this.selectedItems.length === 0) return;
+      console.log('Setting showAlbumSelector to true');
+      
+      // Add debugger to help trace the issue
+      debugger;
+      
+      // Force a refresh of the flag if it's already true in case of stale state
+      if (this.showAlbumSelector) {
+        this.showAlbumSelector = false;
+        this.$nextTick(() => {
+          this.showAlbumSelector = true;
+        });
+      } else {
+        this.showAlbumSelector = true;
+      }
+    },
+    closeAlbumSelector() {
+      this.showAlbumSelector = false;
+    },
+    handleAddToAlbumSuccess(result) {
+      console.log('Album addition success:', result);
+      // Optionally show a success message or notification
+      this.showAlbumSelector = false;
+      
+      // Exit select mode or show a success message
+      this.toggleSelectMode();
+      
+      // Show toast notification (if you have a notification system)
+      alert(`Added ${result.mediaIds.length} items to ${result.albumIds.length} album(s).`);
+    }
+  },
+  watch: {
+    selectMode(newVal) {
+      // Add/remove body class based on select mode
+      if (newVal) {
+        document.body.classList.add('selection-active');
+      } else {
+        document.body.classList.remove('selection-active');
+      }
+    },
+    selectedItems: {
+      handler(newVal) {
+        console.log('selectedItems changed:', newVal.length);
+        // Update gallery controls store
+        galleryControlsStore.updateSelectionState(this.selectMode, newVal.length);
+      },
+      deep: true
     }
   }
 };

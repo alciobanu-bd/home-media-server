@@ -11,6 +11,7 @@ const state = reactive({
 let openUploadModalCallback = null;
 let toggleSelectModeCallback = null;
 let deleteSelectedCallback = null;
+let addToAlbumCallback = null;
 
 // Actions
 const actions = {
@@ -21,6 +22,7 @@ const actions = {
     openUploadModalCallback = callbacks.openUploadModal;
     toggleSelectModeCallback = callbacks.toggleSelectMode;
     deleteSelectedCallback = callbacks.deleteSelected;
+    addToAlbumCallback = callbacks.addToAlbum;
     state.galleryInstance = true;
   },
 
@@ -31,6 +33,7 @@ const actions = {
     openUploadModalCallback = null;
     toggleSelectModeCallback = null;
     deleteSelectedCallback = null;
+    addToAlbumCallback = null;
     state.galleryInstance = null;
     state.isSelecting = false;
     state.selectedCount = 0;
@@ -68,6 +71,16 @@ const actions = {
   deleteSelected() {
     if (deleteSelectedCallback) {
       deleteSelectedCallback();
+    }
+  },
+  
+  /**
+   * Call the addToAlbum method on the gallery
+   */
+  addToAlbum() {
+    console.log('galleryControlsStore - addToAlbum called', !!addToAlbumCallback);
+    if (addToAlbumCallback) {
+      addToAlbumCallback();
     }
   }
 };

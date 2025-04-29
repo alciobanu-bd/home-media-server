@@ -58,7 +58,7 @@
           <h2>This Album is Empty</h2>
           <p>Add some media to this album or go back to the gallery</p>
           <div class="empty-actions">
-            <button @click="goToGallery" class="action-btn secondary-btn">
+            <button @click="goToGallery" class="select-btn">
               <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -261,10 +261,10 @@ export default {
 
 <style scoped>
 .album-view {
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 24px;
   background-color: var(--color-background);
+  min-height: calc(100vh - var(--header-height));
+  box-sizing: border-box;
 }
 
 .loading {
@@ -390,13 +390,15 @@ export default {
 }
 
 .delete-btn {
-  background-color: transparent;
-  color: #ef4444;
-  border: 1px solid #ef4444;
+  /* background-color: var(--color-error); */
+  background-color: #ef4444; /* Exact red color used in GalleryControls */
+  color: white;
+  border: none;
 }
 
 .delete-btn:hover {
-  background-color: rgba(239, 68, 68, 0.1);
+  /* background-color: var(--color-error-dark); */
+  background-color: #dc2626; /* Exact darker red on hover used in GalleryControls */
 }
 
 .btn-icon {
@@ -416,7 +418,7 @@ export default {
   gap: 12px;
 }
 
-.action-btn {
+.select-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -428,13 +430,7 @@ export default {
   transition: all 0.2s ease;
 }
 
-.secondary-btn {
-  background-color: var(--color-bg-tertiary);
-  color: var(--color-text-secondary);
-  border: none;
-}
-
-.secondary-btn:hover {
+.select-btn:hover {
   background-color: var(--color-hover-dark);
   color: var(--color-text-primary);
 }
