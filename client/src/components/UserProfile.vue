@@ -2,11 +2,11 @@
   <div class="user-profile" v-if="authStore.state.isAuthenticated">
     <div class="profile-container" @click.stop="toggleDropdown" :class="{ 'active': showDropdown }">
       <div class="avatar-container">
-        <img 
-          :src="authStore.state.user.picture" 
-          alt="Profile" 
-          class="profile-picture"
-        />
+      <img 
+        :src="authStore.state.user.picture" 
+        alt="Profile" 
+        class="profile-picture"
+      />
         <div class="status-indicator"></div>
       </div>
       <div class="user-info">

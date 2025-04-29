@@ -36,37 +36,85 @@
           v-for="album in albums" 
           :key="album._id"
           class="album-card"
-          @click="viewAlbum(album)"
         >
-          <div class="album-thumbnail">
-            <div v-if="album.thumbnailId" class="album-thumbnail-container">
-              <img 
-                :src="`${apiBaseUrl}/thumbnails/${album.thumbnailId}.jpg`" 
-                alt="Album thumbnail"
-                class="album-thumbnail-image"
-              />
-            </div>
-            <div v-else-if="!album.fileCount || album.fileCount === 0" class="album-placeholder">
-              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
+          <!-- Album menu icon with dropdown -->
+          <div class="album-menu">
+            <div 
+              class="album-menu-icon" 
+              @click.stop="toggleAlbumMenu(album._id)"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
               </svg>
             </div>
-            <div v-else-if="album.thumbnails && album.thumbnails.length > 0" class="album-thumbnails">
-              <div 
-                v-for="(thumbnail, index) in album.thumbnails.slice(0, 4)" 
-                :key="index"
-                class="album-thumbnail-item"
-              >
-                <img :src="`${apiBaseUrl}/thumbnails/${thumbnail}.jpg`" alt="Album thumbnail" />
+            <div 
+              v-if="activeAlbumMenu === album._id" 
+              class="album-dropdown-menu" 
+              @click.stop
+            >
+              <div class="album-dropdown-item" @click="showRenameModal(album)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                Rename
+              </div>
+              <div class="album-dropdown-item" @click="showThumbnailModal(album)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                Set Thumbnail
+              </div>
+              <div class="album-dropdown-item delete" @click="confirmDeleteAlbum(album)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+                Delete
               </div>
             </div>
           </div>
-          <div class="album-info">
-            <h3 class="album-name">{{ album.name }}</h3>
-            <p class="album-count">{{ album.fileCount || 0 }} items</p>
-            <p class="album-date">{{ formatDate(album.createdAt) }}</p>
+          
+          <div 
+            class="album-content"
+            @click="viewAlbum(album)"
+          >
+            <div class="album-thumbnail">
+              <div v-if="album.thumbnailId" class="album-thumbnail-container">
+                <img 
+                  :src="`${apiBaseUrl}/thumbnails/${album.thumbnailId}.jpg`" 
+                  alt="Album thumbnail"
+                  class="album-thumbnail-image"
+                />
+              </div>
+              <div v-else-if="!album.fileCount || album.fileCount === 0" class="album-placeholder">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+              </div>
+              <div v-else-if="album.thumbnails && album.thumbnails.length > 0" class="album-thumbnails">
+                <div 
+                  v-for="(thumbnail, index) in album.thumbnails.slice(0, 4)" 
+                  :key="index"
+                  class="album-thumbnail-item"
+                >
+                  <img :src="`${apiBaseUrl}/thumbnails/${thumbnail}.jpg`" alt="Album thumbnail" />
+                </div>
+              </div>
+            </div>
+            <div class="album-info">
+              <h3 class="album-name">{{ album.name }}</h3>
+              <p class="album-count">{{ album.fileCount || 0 }} items</p>
+              <p class="album-date">{{ formatDate(album.createdAt) }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -99,6 +147,88 @@
         </form>
       </div>
     </div>
+    
+    <!-- Rename Album Modal -->
+    <div v-if="showRenameAlbumModal" class="modal-overlay" @click.self="showRenameAlbumModal = false">
+      <div class="modal-content">
+        <h2>Rename Album</h2>
+        <form @submit.prevent="renameAlbum">
+          <div class="form-group">
+            <label for="rename-album-name">Album Name</label>
+            <input
+              id="rename-album-name"
+              v-model="editAlbumName"
+              type="text"
+              placeholder="Enter album name"
+              required
+              class="form-control"
+              autofocus
+            />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="cancel-btn" @click="showRenameAlbumModal = false">Cancel</button>
+            <button type="submit" class="submit-btn" :disabled="!editAlbumName.trim() || updating">
+              <span v-if="updating">Updating...</span>
+              <span v-else>Save</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Select Thumbnail Modal -->
+    <div v-if="showSetThumbnailModal" class="modal-overlay" @click.self="showSetThumbnailModal = false">
+      <div class="modal-content thumbnail-modal">
+        <h2>Select Album Thumbnail</h2>
+        <div v-if="thumbnailLoading" class="loading">
+          Loading thumbnails...
+        </div>
+        <div v-else-if="!albumFiles.length" class="empty-thumbnails">
+          <p>No images in this album to set as thumbnail.</p>
+        </div>
+        <div v-else class="thumbnail-grid">
+          <div 
+            v-for="file in albumFiles" 
+            :key="file._id"
+            class="thumbnail-option"
+            :class="{ 'selected': currentThumbnailId === file._id }"
+            @click="selectThumbnail(file._id)"
+          >
+            <img :src="`${apiBaseUrl}/thumbnails/${file._id}.jpg`" alt="Thumbnail option" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="cancel-btn" @click="showSetThumbnailModal = false">Cancel</button>
+          <button 
+            class="submit-btn" 
+            @click="setAlbumThumbnail" 
+            :disabled="!currentThumbnailId || updating"
+          >
+            <span v-if="updating">Updating...</span>
+            <span v-else>Save</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteConfirmation" class="modal-overlay" @click.self="showDeleteConfirmation = false">
+      <div class="modal-content">
+        <h2>Delete Album</h2>
+        <p class="delete-message">Are you sure you want to delete this album? This action cannot be undone.</p>
+        <div class="modal-actions">
+          <button type="button" class="cancel-btn" @click="showDeleteConfirmation = false">Cancel</button>
+          <button 
+            class="delete-btn" 
+            @click="deleteAlbum" 
+            :disabled="deleting"
+          >
+            <span v-if="deleting">Deleting...</span>
+            <span v-else>Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -113,16 +243,33 @@ export default {
       albums: [],
       loading: true,
       showCreateAlbumModal: false,
+      showRenameAlbumModal: false,
+      showSetThumbnailModal: false,
+      showDeleteConfirmation: false,
       newAlbumName: '',
+      editAlbumName: '',
       creating: false,
+      updating: false,
+      deleting: false,
+      activeAlbumMenu: null,
+      selectedAlbum: null,
+      albumFiles: [],
+      thumbnailLoading: false,
+      currentThumbnailId: null,
       baseUrl: process.env.BASE_URL || '/',
       apiBaseUrl: 'http://localhost:3000/api'
     };
   },
   created() {
     this.fetchAlbums();
+    // Add global click handler to close menus
+    document.addEventListener('click', this.closeMenus);
     // Set document title
     document.title = 'Albums | Lumia';
+  },
+  beforeUnmount() {
+    // Remove global click handler when component is destroyed
+    document.removeEventListener('click', this.closeMenus);
   },
   methods: {
     async fetchAlbums() {
@@ -142,6 +289,14 @@ export default {
     },
     viewAlbum(album) {
       this.$router.push({ name: 'AlbumView', params: { id: album._id } });
+    },
+    toggleAlbumMenu(albumId) {
+      // Toggle the menu for the clicked album
+      this.activeAlbumMenu = this.activeAlbumMenu === albumId ? null : albumId;
+    },
+    closeMenus() {
+      // Close any open menus
+      this.activeAlbumMenu = null;
     },
     async createAlbum() {
       if (!this.newAlbumName.trim()) return;
@@ -163,6 +318,117 @@ export default {
         alert('Failed to create album. Please try again.');
       } finally {
         this.creating = false;
+      }
+    },
+    // Rename album related functions
+    showRenameModal(album) {
+      this.selectedAlbum = album;
+      this.editAlbumName = album.name;
+      this.showRenameAlbumModal = true;
+      this.activeAlbumMenu = null; // Close the menu
+    },
+    async renameAlbum() {
+      if (!this.editAlbumName.trim() || !this.selectedAlbum) return;
+
+      try {
+        this.updating = true;
+        await api.put(`/albums/${this.selectedAlbum._id}`, {
+          name: this.editAlbumName.trim()
+        });
+        
+        // Update the album in the local array
+        const index = this.albums.findIndex(a => a._id === this.selectedAlbum._id);
+        if (index !== -1) {
+          this.albums[index].name = this.editAlbumName.trim();
+        }
+        
+        // Close modal
+        this.showRenameAlbumModal = false;
+        this.selectedAlbum = null;
+      } catch (error) {
+        console.error('Error renaming album:', error);
+        alert('Failed to rename album. Please try again.');
+      } finally {
+        this.updating = false;
+      }
+    },
+    // Delete album related functions
+    confirmDeleteAlbum(album) {
+      this.selectedAlbum = album;
+      this.showDeleteConfirmation = true;
+      this.activeAlbumMenu = null; // Close the menu
+    },
+    async deleteAlbum() {
+      if (!this.selectedAlbum) return;
+
+      try {
+        this.deleting = true;
+        await api.delete(`/albums/${this.selectedAlbum._id}`);
+        
+        // Remove the album from the local array
+        this.albums = this.albums.filter(a => a._id !== this.selectedAlbum._id);
+        
+        // Close modal
+        this.showDeleteConfirmation = false;
+        this.selectedAlbum = null;
+      } catch (error) {
+        console.error('Error deleting album:', error);
+        alert('Failed to delete album. Please try again.');
+      } finally {
+        this.deleting = false;
+      }
+    },
+    // Thumbnail selection related functions
+    async showThumbnailModal(album) {
+      this.selectedAlbum = album;
+      this.currentThumbnailId = album.thumbnailId || null;
+      this.showSetThumbnailModal = true;
+      this.activeAlbumMenu = null; // Close the menu
+      
+      // Fetch album files for thumbnail selection
+      await this.fetchAlbumFiles(album._id);
+    },
+    async fetchAlbumFiles(albumId) {
+      try {
+        this.thumbnailLoading = true;
+        const response = await api.get(`/albums/${albumId}/files`);
+        this.albumFiles = response.data.files;
+      } catch (error) {
+        console.error('Error fetching album files:', error);
+        alert('Failed to load album files. Please try again.');
+        this.albumFiles = [];
+      } finally {
+        this.thumbnailLoading = false;
+      }
+    },
+    selectThumbnail(fileId) {
+      this.currentThumbnailId = fileId;
+    },
+    async setAlbumThumbnail() {
+      if (!this.selectedAlbum || !this.currentThumbnailId) return;
+
+      try {
+        this.updating = true;
+        // Update album with the new thumbnail ID
+        await api.put(`/albums/${this.selectedAlbum._id}/thumbnail`, {
+          thumbnailId: this.currentThumbnailId
+        });
+        
+        // Update the album in the local array
+        const index = this.albums.findIndex(a => a._id === this.selectedAlbum._id);
+        if (index !== -1) {
+          this.albums[index].thumbnailId = this.currentThumbnailId;
+        }
+        
+        // Close modal
+        this.showSetThumbnailModal = false;
+        this.selectedAlbum = null;
+        this.currentThumbnailId = null;
+      } catch (error) {
+        console.error('Error setting album thumbnail:', error);
+        alert('Failed to set album thumbnail. Please try again.');
+      } finally {
+        this.updating = false;
       }
     }
   }
@@ -284,12 +550,80 @@ export default {
   cursor: pointer;
   border: 1px solid var(--color-border);
   padding-bottom: 12px;
+  position: relative;
 }
 
 .album-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   border-color: var(--color-primary);
+}
+
+/* Album menu styles */
+.album-menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+}
+
+.album-menu-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  color: white;
+}
+
+.album-menu-icon:hover {
+  opacity: 1;
+}
+
+.album-dropdown-menu {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 160px;
+  background-color: var(--color-card-background);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.album-dropdown-item {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-primary);
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.album-dropdown-item:hover {
+  background-color: var(--color-hover);
+}
+
+.album-dropdown-item.delete {
+  color: var(--color-error);
+}
+
+.album-dropdown-item.delete:hover {
+  background-color: rgba(var(--color-error-rgb), 0.1);
+}
+
+.album-content {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
 }
 
 .album-thumbnail {
@@ -400,6 +734,17 @@ export default {
   border: 1px solid var(--color-border);
 }
 
+.thumbnail-modal {
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.delete-message {
+  margin-bottom: 20px;
+  color: var(--color-text-secondary);
+}
+
 .modal-content h2 {
   font-size: 20px;
   font-weight: 600;
@@ -478,6 +823,65 @@ export default {
   cursor: not-allowed;
 }
 
+.delete-btn {
+  padding: 10px 16px;
+  background-color: var(--color-error);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  background-color: rgba(var(--color-error-rgb), 0.8);
+}
+
+.delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Thumbnail selection grid */
+.thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.thumbnail-option {
+  border-radius: 6px;
+  overflow: hidden;
+  height: 100px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.thumbnail-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-option:hover {
+  transform: scale(1.05);
+}
+
+.thumbnail-option.selected {
+  border-color: var(--color-primary);
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-thumbnails {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 24px 0;
+}
+
 @media (max-width: 768px) {
   .albums {
     padding: 16px;
@@ -504,6 +908,19 @@ export default {
   .create-album-btn {
     padding: 8px 14px;
     font-size: 14px;
+  }
+  
+  .album-menu-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .thumbnail-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+  
+  .thumbnail-option {
+    height: 80px;
   }
 }
 </style> 
