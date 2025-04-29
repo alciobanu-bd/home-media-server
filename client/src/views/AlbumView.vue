@@ -88,7 +88,7 @@
             class="control-btn remove-btn" 
             @click="removeSelectedItems"
           >
-            Remove Selected ({{ selectedItems.length }})
+            Remove from album ({{ selectedItems.length }})
           </button>
         </div>
         <div class="media-grid">
@@ -108,32 +108,19 @@
     </div>
 
     <!-- Edit Album Modal -->
-    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
-      <div class="modal-content">
-        <h2>Rename Album</h2>
-        <form @submit.prevent="updateAlbum">
-          <div class="form-group">
-            <label for="album-name">Album Name</label>
-            <input
-              id="album-name"
-              v-model="editAlbumName"
-              type="text"
-              placeholder="Enter album name"
-              required
-              class="form-control"
-              autofocus
-            />
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="cancel-btn" @click="showEditModal = false">Cancel</button>
-            <button type="submit" class="submit-btn" :disabled="!editAlbumName.trim() || updating">
-              <span v-if="updating">Updating...</span>
-              <span v-else>Save Changes</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <rename-modal 
+      v-if="showEditModal"
+      title="Rename Album"
+      label="Album Name"
+      placeholder="Enter album name"
+      :initial-value="editAlbumName"
+      :is-processing="updating"
+      processing-text="Updating..."
+      submit-text="Save"
+      input-id="album-name"
+      @cancel="showEditModal = false"
+      @submit="updateAlbum"
+    />
 
     <!-- Delete Confirmation Modal -->
     <confirmation-dialog
@@ -159,13 +146,15 @@ import api from '../services/api';
 import MediaItem from '../components/MediaItem.vue';
 import ConfirmationDialog from '../components/ConfirmationDialog.vue';
 import UploadModal from '../components/UploadModal.vue';
+import RenameModal from '../components/RenameModal.vue';
 
 export default {
   name: 'AlbumView',
   components: {
     MediaItem,
     ConfirmationDialog,
-    UploadModal
+    UploadModal,
+    RenameModal
   },
   data() {
     return {
@@ -250,17 +239,18 @@ export default {
         this.selectedItems = [];
       }
     },
-    async updateAlbum() {
-      if (!this.editAlbumName.trim()) return;
+    async updateAlbum(newName) {
+      if (!newName) return;
       
       try {
         this.updating = true;
         await api.put(`/albums/${this.album._id}`, {
-          name: this.editAlbumName.trim()
+          name: newName
         });
         
         // Update local album name
-        this.album.name = this.editAlbumName.trim();
+        this.album.name = newName;
+        this.editAlbumName = newName;
         
         // Update document title
         document.title = `${this.album.name} | Lumia`;

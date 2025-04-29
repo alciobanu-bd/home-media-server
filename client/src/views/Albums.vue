@@ -121,60 +121,34 @@
     </div>
 
     <!-- Create Album Modal -->
-    <div v-if="showCreateAlbumModal" class="modal-overlay" @click.self="showCreateAlbumModal = false">
-      <div class="modal-content">
-        <h2>Create New Album</h2>
-        <form @submit.prevent="createAlbum">
-          <div class="form-group">
-            <label for="album-name">Album Name</label>
-            <input
-              id="album-name"
-              v-model="newAlbumName"
-              type="text"
-              placeholder="Enter album name"
-              required
-              class="form-control"
-              autofocus
-            />
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="cancel-btn" @click="showCreateAlbumModal = false">Cancel</button>
-            <button type="submit" class="submit-btn" :disabled="!newAlbumName.trim() || creating">
-              <span v-if="creating">Creating...</span>
-              <span v-else>Create Album</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <rename-modal 
+      v-if="showCreateAlbumModal"
+      title="Create New Album"
+      label="Album Name"
+      placeholder="Enter album name"
+      :initial-value="newAlbumName"
+      :is-processing="creating"
+      processing-text="Creating..."
+      submit-text="Create Album"
+      input-id="album-name"
+      @cancel="showCreateAlbumModal = false"
+      @submit="createAlbum"
+    />
     
     <!-- Rename Album Modal -->
-    <div v-if="showRenameAlbumModal" class="modal-overlay" @click.self="showRenameAlbumModal = false">
-      <div class="modal-content">
-        <h2>Rename Album</h2>
-        <form @submit.prevent="renameAlbum">
-          <div class="form-group">
-            <label for="rename-album-name">Album Name</label>
-            <input
-              id="rename-album-name"
-              v-model="editAlbumName"
-              type="text"
-              placeholder="Enter album name"
-              required
-              class="form-control"
-              autofocus
-            />
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="cancel-btn" @click="showRenameAlbumModal = false">Cancel</button>
-            <button type="submit" class="submit-btn" :disabled="!editAlbumName.trim() || updating">
-              <span v-if="updating">Updating...</span>
-              <span v-else>Save</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <rename-modal 
+      v-if="showRenameAlbumModal"
+      title="Rename Album"
+      label="Album Name"
+      placeholder="Enter album name"
+      :initial-value="editAlbumName"
+      :is-processing="updating"
+      processing-text="Updating..."
+      submit-text="Save"
+      input-id="rename-album-name"
+      @cancel="showRenameAlbumModal = false"
+      @submit="renameAlbum"
+    />
     
     <!-- Select Thumbnail Modal -->
     <div v-if="showSetThumbnailModal" class="modal-overlay" @click.self="showSetThumbnailModal = false">
@@ -241,9 +215,13 @@
 <script>
 import api from '../services/api';
 import { format } from 'date-fns';
+import RenameModal from '../components/RenameModal.vue';
 
 export default {
   name: 'Albums',
+  components: {
+    RenameModal
+  },
   data() {
     return {
       albums: [],
@@ -270,14 +248,31 @@ export default {
     this.fetchAlbums();
     // Add global click handler to close menus
     document.addEventListener('click', this.closeMenus);
+    // Add ESC key handler for modals
+    document.addEventListener('keydown', this.handleKeydown);
     // Set document title
     document.title = 'Albums | Lumia';
   },
   beforeUnmount() {
     // Remove global click handler when component is destroyed
     document.removeEventListener('click', this.closeMenus);
+    document.removeEventListener('keydown', this.handleKeydown);
   },
   methods: {
+    handleKeydown(event) {
+      if (event.key === 'Escape') {
+        // Close any open modals based on their state
+        if (this.showCreateAlbumModal) {
+          this.showCreateAlbumModal = false;
+        }
+        if (this.showDeleteConfirmation) {
+          this.showDeleteConfirmation = false;
+        }
+        if (this.showSetThumbnailModal) {
+          this.showSetThumbnailModal = false;
+        }
+      }
+    },
     async fetchAlbums() {
       try {
         this.loading = true;
@@ -304,13 +299,13 @@ export default {
       // Close any open menus
       this.activeAlbumMenu = null;
     },
-    async createAlbum() {
-      if (!this.newAlbumName.trim()) return;
+    async createAlbum(newName) {
+      if (!newName) return;
       
       try {
         this.creating = true;
         const response = await api.post('/albums', {
-          name: this.newAlbumName.trim()
+          name: newName
         });
         
         // Add the new album to the list
@@ -333,19 +328,19 @@ export default {
       this.showRenameAlbumModal = true;
       this.activeAlbumMenu = null; // Close the menu
     },
-    async renameAlbum() {
-      if (!this.editAlbumName.trim() || !this.selectedAlbum) return;
+    async renameAlbum(newName) {
+      if (!newName || !this.selectedAlbum) return;
 
       try {
         this.updating = true;
         await api.put(`/albums/${this.selectedAlbum._id}`, {
-          name: this.editAlbumName.trim()
+          name: newName
         });
         
         // Update the album in the local array
         const index = this.albums.findIndex(a => a._id === this.selectedAlbum._id);
         if (index !== -1) {
-          this.albums[index].name = this.editAlbumName.trim();
+          this.albums[index].name = newName;
         }
         
         // Close modal
