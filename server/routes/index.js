@@ -17,6 +17,7 @@ const updateAlbumRoute = require('./albums/updateAlbum');
 const deleteAlbumRoute = require('./albums/deleteAlbum');
 const addMediaToAlbumRoute = require('./albums/addMediaToAlbum');
 const removeMediaFromAlbumRoute = require('./albums/removeMediaFromAlbum');
+const getAlbumFilesRoute = require('./albums/getAlbumFiles');
 
 module.exports = function(fastify, opts, done) {
     // Register route modules with /api prefix
@@ -38,6 +39,7 @@ module.exports = function(fastify, opts, done) {
     fastify.register(deleteAlbumRoute, { prefix: '/api' });
     fastify.register(addMediaToAlbumRoute, { prefix: '/api' });
     fastify.register(removeMediaFromAlbumRoute, { prefix: '/api' });
+    fastify.register(getAlbumFilesRoute, { prefix: '/api' });
   
     done();
 }; 

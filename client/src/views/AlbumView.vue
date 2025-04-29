@@ -30,7 +30,7 @@
             Back
           </button>
           <h1 class="album-title">{{ album.name }}</h1>
-          <span class="album-count">{{ album.files.length }} items</span>
+          <span class="album-count">{{ albumFiles.length }} items</span>
         </div>
         <div class="album-actions">
           <button class="album-action-btn edit-btn" @click="showEditModal = true">
@@ -52,7 +52,7 @@
         </div>
       </div>
 
-      <div v-if="!album.files.length" class="empty-album">
+      <div v-if="!albumFiles.length" class="empty-album">
         <div class="empty-content">
           <img :src="baseUrl + 'img/empty-album.svg'" alt="Empty Album" class="empty-icon" />
           <h2>This Album is Empty</h2>
@@ -73,7 +73,7 @@
       <div v-else>
         <div class="media-grid">
           <media-item 
-            v-for="item in album.files" 
+            v-for="item in albumFiles" 
             :key="item._id"
             :item="item" 
             :select-mode="selectMode"
@@ -139,6 +139,7 @@ export default {
   data() {
     return {
       album: null,
+      albumFiles: [],
       loading: true,
       showEditModal: false,
       showDeleteConfirmation: false,
@@ -163,8 +164,14 @@ export default {
       try {
         this.loading = true;
         const albumId = this.$route.params.id;
-        const response = await api.get(`/albums/${albumId}`);
-        this.album = response.data;
+        
+        // Fetch album details first
+        const albumResponse = await api.get(`/albums/${albumId}`);
+        this.album = albumResponse.data;
+        
+        // Then fetch album files separately
+        const filesResponse = await api.get(`/albums/${albumId}/files`);
+        this.albumFiles = filesResponse.data.files;
         
         // Set document title
         document.title = `${this.album.name} | Lumia`;
@@ -245,10 +252,10 @@ export default {
     async removeFromAlbum(item) {
       try {
         await api.delete(`/albums/${this.album._id}/media/${item._id}`);
-        // Remove the item from the local album files array
-        const index = this.album.files.findIndex(file => file._id === item._id);
+        // Remove the item from the local albumFiles array
+        const index = this.albumFiles.findIndex(file => file._id === item._id);
         if (index !== -1) {
-          this.album.files.splice(index, 1);
+          this.albumFiles.splice(index, 1);
         }
       } catch (error) {
         console.error('Error removing item from album:', error);

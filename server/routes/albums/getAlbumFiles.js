@@ -3,10 +3,10 @@ const { getDb, getCollection } = require('../utils/db');
 const { verifyToken } = require('../auth/authMiddleware');
 
 /**
- * Route handler for getting a single album without its contents
- * GET /api/albums/:id
+ * Route handler for getting files in an album
+ * GET /api/albums/:id/files
  */
-const getAlbumHandler = async (request, reply) => {
+const getAlbumFilesHandler = async (request, reply) => {
     // Check if user is authenticated
     if (!request.user) {
         return reply.code(401).send({ 
@@ -31,7 +31,7 @@ const getAlbumHandler = async (request, reply) => {
         const albumsCollection = getCollection(db, 'albums');
         const filesCollection = getCollection(db, 'files');
         
-        // Find the album
+        // Verify album exists and belongs to user
         const album = await albumsCollection.findOne({
             _id: new ObjectId(albumId),
             userId: userId
@@ -44,24 +44,24 @@ const getAlbumHandler = async (request, reply) => {
             });
         }
         
-        // Get the file count for this album
-        const fileCount = await filesCollection.countDocuments({
-            userId: userId,
-            albums: albumId
-        });
+        // Find all files in this album
+        const files = await filesCollection
+            .find({ 
+                userId: userId,
+                albums: albumId
+            })
+            .sort({ _id: -1 }) // Sort by _id in descending order (newer first)
+            .toArray();
         
-        // Return the album with file count but without the files array
-        return {
-            ...album,
-            fileCount
-        };
+        // Return the files array
+        return { files };
     } catch (err) {
-        console.error('Error getting album:', err);
-        return reply.code(500).send({ error: 'Failed to get album' });
+        console.error('Error getting album files:', err);
+        return reply.code(500).send({ error: 'Failed to get album files' });
     }
 };
 
 module.exports = function(fastify, opts, done) {
-    fastify.get('/albums/:id', { preHandler: verifyToken }, getAlbumHandler);
+    fastify.get('/albums/:id/files', { preHandler: verifyToken }, getAlbumFilesHandler);
     done();
 }; 
