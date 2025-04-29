@@ -261,7 +261,13 @@ export default {
   methods: {
     handleKeydown(event) {
       if (event.key === 'Escape') {
-        // Close any open modals based on their state
+        // Close any open menus first
+        if (this.activeAlbumMenu !== null) {
+          this.activeAlbumMenu = null;
+          return;
+        }
+        
+        // Then close modals based on their state
         if (this.showCreateAlbumModal) {
           this.showCreateAlbumModal = false;
         }
@@ -270,6 +276,9 @@ export default {
         }
         if (this.showSetThumbnailModal) {
           this.showSetThumbnailModal = false;
+        }
+        if (this.showRenameAlbumModal) {
+          this.showRenameAlbumModal = false;
         }
       }
     },
@@ -590,7 +599,7 @@ export default {
   position: absolute;
   top: 40px;
   right: 0;
-  width: 160px;
+  width: 200px;
   background-color: var(--color-card-background);
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -600,13 +609,16 @@ export default {
 }
 
 .album-dropdown-item {
-  padding: 10px 16px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: var(--color-text-primary);
   transition: background-color 0.2s;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .album-dropdown-item:hover {
@@ -618,7 +630,8 @@ export default {
 }
 
 .album-dropdown-item.delete:hover {
-  background-color: rgba(var(--color-error-rgb), 0.1);
+  background-color: #ffebeb; /* Light red background */
+  color: #ef4444; /* Bright red text to emphasize */
 }
 
 .album-content {
@@ -851,7 +864,7 @@ export default {
 
 .delete-btn {
   padding: 10px 16px;
-  background-color: var(--color-error);
+  background-color: var(--color-error, #ef4444);
   color: white;
   border: none;
   border-radius: 8px;
@@ -861,7 +874,7 @@ export default {
 }
 
 .delete-btn:hover {
-  background-color: rgba(var(--color-error-rgb), 0.8);
+  background-color: #dc2626; /* Darker red on hover */
 }
 
 .delete-btn:disabled {

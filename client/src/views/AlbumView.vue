@@ -33,6 +33,15 @@
           <span class="album-count">{{ albumFiles.length }} items</span>
         </div>
         <div class="album-actions">
+          <button class="album-action-btn view-btn" @click="groupByDate = !groupByDate">
+            <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            {{ groupByDate ? 'Grid View' : 'Group by Day' }}
+          </button>
           <button class="album-action-btn upload-btn" @click="showUploadModal = true">
             <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -91,7 +100,40 @@
             Remove from album ({{ selectedItems.length }})
           </button>
         </div>
-        <div class="media-grid">
+        
+        <!-- Grouped by date view -->
+        <div v-if="groupByDate" class="media-grid-grouped">
+          <div v-for="(group, date) in groupedAlbumFiles" :key="date" class="date-group">
+            <h2 class="date-header">
+              {{ formatDate(date) }}
+              <button
+                v-if="date !== 'ungrouped'"
+                class="day-select-btn"
+                @click.prevent="handleDaySelect(date)"
+                title="Select all items from this day"
+              >
+                Select Day
+              </button>
+              <div style="flex-grow: 1;"></div>
+            </h2>
+            <div class="media-grid">
+              <media-item 
+                v-for="item in group" 
+                :key="item._id"
+                :item="item" 
+                :select-mode="inSelectionMode"
+                :selected="selectedItems.includes(item._id)"
+                :selection-index="selectedItems.indexOf(item._id)"
+                @click="handleItemClick(item)"
+                @select="toggleSelect(item)"
+                @delete="removeFromAlbum(item)"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <!-- Regular grid view -->
+        <div v-else class="media-grid">
           <media-item 
             v-for="item in albumFiles" 
             :key="item._id"
@@ -157,6 +199,17 @@ export default {
     RenameModal
   },
   data() {
+    // Load view preference from localStorage
+    const loadViewPreference = () => {
+      try {
+        const savedPreference = localStorage.getItem('albumViewGroupByDate');
+        return savedPreference !== null ? JSON.parse(savedPreference) : false;
+      } catch (e) {
+        console.error('Error loading view preference:', e);
+        return false;
+      }
+    };
+    
     return {
       album: null,
       albumFiles: [],
@@ -168,7 +221,8 @@ export default {
       updating: false,
       inSelectionMode: false,
       selectedItems: [],
-      baseUrl: process.env.BASE_URL || '/'
+      baseUrl: process.env.BASE_URL || '/',
+      groupByDate: loadViewPreference()
     };
   },
   created() {
@@ -178,9 +232,21 @@ export default {
     // Watch for route param changes to reload album when navigating between albums
     '$route.params.id': function() {
       this.fetchAlbum();
+    },
+    // Watch for changes to groupByDate to save preference
+    groupByDate: function(newValue) {
+      this.saveViewPreference(newValue);
     }
   },
   methods: {
+    // Method to save view preference to localStorage
+    saveViewPreference(value) {
+      try {
+        localStorage.setItem('albumViewGroupByDate', JSON.stringify(value));
+      } catch (e) {
+        console.error('Error saving view preference:', e);
+      }
+    },
     async fetchAlbum() {
       try {
         this.loading = true;
@@ -320,6 +386,67 @@ export default {
     },
     refreshAlbumFiles() {
       this.fetchAlbum();
+    },
+    formatDate(dateStr) {
+      if (dateStr === 'ungrouped') return '';
+      
+      const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      
+      if (dateStr === today) {
+        return 'Today';
+      } else if (dateStr === yesterday) {
+        return 'Yesterday';
+      } else {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+    },
+    handleDaySelect(date) {
+      // Enable selection mode if not already enabled
+      if (!this.inSelectionMode) {
+        this.inSelectionMode = true;
+      }
+      
+      // Get all items from the selected day
+      const dayItems = this.groupedAlbumFiles[date] || [];
+      
+      // Add all items from the day to selection without duplicates
+      dayItems.forEach(item => {
+        if (!this.selectedItems.includes(item._id)) {
+          this.selectedItems.push(item._id);
+        }
+      });
+    }
+  },
+  computed: {
+    // Computed property to group media by date when groupByDate is true
+    groupedAlbumFiles() {
+      if (!this.groupByDate) {
+        // Return simple array when grouping is disabled
+        return { ungrouped: this.albumFiles };
+      }
+      
+      // Group by date when enabled
+      const groups = {};
+      this.albumFiles.forEach(item => {
+        const date = new Date(item.createdAt).toISOString().split('T')[0];
+        if (!groups[date]) {
+          groups[date] = [];
+        }
+        groups[date].push(item);
+      });
+      
+      // Sort dates in descending order
+      return Object.keys(groups)
+        .sort((a, b) => new Date(b) - new Date(a))
+        .reduce((obj, key) => {
+          obj[key] = groups[key];
+          return obj;
+        }, {});
     }
   }
 };
@@ -450,6 +577,17 @@ export default {
   transition: all 0.2s ease;
 }
 
+.view-btn {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: none;
+}
+
+.view-btn:hover {
+  background-color: var(--color-hover-dark);
+  color: var(--color-text-primary);
+}
+
 .upload-btn {
   background-color: var(--color-bg-tertiary);
   color: var(--color-text-secondary);
@@ -493,7 +631,44 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
   margin-top: 16px;
-  margin-bottom: 70px; /* Add space at the bottom to prevent content from being hidden behind the selection controls */
+}
+
+.media-grid-grouped {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-bottom: 70px;
+}
+
+.date-group {
+  margin-bottom: 0;
+}
+
+.date-header {
+  font-size: 18px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.day-select-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-left: 10px;
+}
+
+.day-select-btn:hover {
+  background-color: var(--color-hover-dark);
+  color: var(--color-text-primary);
 }
 
 /* Empty actions */
