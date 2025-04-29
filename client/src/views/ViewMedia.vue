@@ -402,7 +402,13 @@ export default {
       this.loading = false;
     },
     closeViewer() {
-      this.$router.push('/');
+      if (this.albumId) {
+        // If we're viewing from an album, go back to that album
+        this.$router.push({ name: 'AlbumView', params: { id: this.albumId } });
+      } else {
+        // Otherwise go back to the gallery
+        this.$router.push('/');
+      }
     },
     formatDate(dateString, includeTime = false) {
       if (!dateString) return '';
@@ -592,6 +598,7 @@ export default {
           }
           break;
         case 'Escape':
+          event.preventDefault();
           this.closeViewer();
           break;
         case 'ArrowLeft':
