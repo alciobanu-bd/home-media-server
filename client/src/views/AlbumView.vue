@@ -33,6 +33,14 @@
           <span class="album-count">{{ albumFiles.length }} items</span>
         </div>
         <div class="album-actions">
+          <button class="album-action-btn upload-btn" @click="showUploadModal = true">
+            <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Upload
+          </button>
           <button class="album-action-btn edit-btn" @click="showEditModal = true">
             <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 20h9"></path>
@@ -122,6 +130,15 @@
       @confirm="deleteAlbum"
       @cancel="showDeleteConfirmation = false"
     />
+
+    <!-- Upload Modal -->
+    <upload-modal
+      v-if="showUploadModal"
+      :album-id="$route.params.id"
+      :album-name="album?.name"
+      @close="showUploadModal = false"
+      @upload-complete="refreshAlbumFiles"
+    />
   </div>
 </template>
 
@@ -129,12 +146,14 @@
 import api from '../services/api';
 import MediaItem from '../components/MediaItem.vue';
 import ConfirmationDialog from '../components/ConfirmationDialog.vue';
+import UploadModal from '../components/UploadModal.vue';
 
 export default {
   name: 'AlbumView',
   components: {
     MediaItem,
-    ConfirmationDialog
+    ConfirmationDialog,
+    UploadModal
   },
   data() {
     return {
@@ -143,6 +162,7 @@ export default {
       loading: true,
       showEditModal: false,
       showDeleteConfirmation: false,
+      showUploadModal: false,
       editAlbumName: '',
       updating: false,
       selectMode: false,
@@ -265,6 +285,9 @@ export default {
         console.error('Error removing item from album:', error);
         alert('Failed to remove item from album. Please try again.');
       }
+    },
+    refreshAlbumFiles() {
+      this.fetchAlbum();
     }
   }
 };
@@ -387,6 +410,17 @@ export default {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.upload-btn {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: none;
+}
+
+.upload-btn:hover {
+  background-color: var(--color-hover-dark);
+  color: var(--color-text-primary);
 }
 
 .edit-btn {

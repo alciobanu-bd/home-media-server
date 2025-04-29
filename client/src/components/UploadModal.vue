@@ -2,7 +2,7 @@
   <div class="upload-modal-overlay" @click.self="closeModal">
     <div class="upload-modal">
       <div class="modal-header">
-        <h2>Upload Media</h2>
+        <h2>{{ albumId ? `Add Media to ${albumName}` : 'Upload Media' }}</h2>
         <button class="close-btn" @click="closeModal">
           <svg viewBox="0 0 24 24" width="22" height="22">
             <circle cx="12" cy="12" r="10" fill="rgba(0, 0, 0, 0.05)"/>
@@ -33,7 +33,7 @@
               <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" />
             </svg>
             <p>Drag photos and videos here, or click to select files</p>
-            <p class="small">Supported formats: JPG, PNG, GIF, MP4, WebM</p>
+            <p class="small">{{ albumId ? `Files will be automatically added to ${albumName}` : 'Supported formats: JPG, PNG, GIF, MP4, WebM' }}</p>
           </div>
         </div>
         
@@ -74,6 +74,16 @@ import api from '../services/api';
 
 export default {
   name: 'UploadModal',
+  props: {
+    albumId: {
+      type: String,
+      default: null
+    },
+    albumName: {
+      type: String,
+      default: null
+    }
+  },
   data() {
     return {
       selectedFiles: [],
@@ -143,6 +153,7 @@ export default {
       
       const successfulUploads = [];
       const duplicateFiles = [];
+      const fileIdsToAddToAlbum = [];
       
       for (let i = 0; i < this.selectedFiles.length; i++) {
         try {
@@ -161,6 +172,11 @@ export default {
           });
           
           this.completedFilesCount++;
+          
+          // Store file ID for possible album addition
+          if (this.albumId) {
+            fileIdsToAddToAlbum.push(response.data.id);
+          }
           
           // Check if the file was a duplicate
           if (response.data.duplicate) {
@@ -181,14 +197,33 @@ export default {
         }
       }
       
+      // If we're uploading to an album and have successful uploads, add them to the album
+      if (this.albumId && fileIdsToAddToAlbum.length > 0) {
+        try {
+          // Add all uploaded files to the album
+          await api.post(`/albums/${this.albumId}/media`, {
+            mediaIds: fileIdsToAddToAlbum
+          });
+          
+          console.log(`Added ${fileIdsToAddToAlbum.length} files to album ${this.albumId}`);
+        } catch (error) {
+          console.error('Failed to add files to album:', error);
+          alert('Files were uploaded but could not be added to the album. Please try adding them manually.');
+        }
+      }
+      
       this.uploading = false;
       
       if (successfulUploads.length > 0) {
         // Show duplicate notifications if any found
         if (duplicateFiles.length > 0) {
           const duplicateMessage = duplicateFiles.length === 1
-            ? `"${duplicateFiles[0].name}" is already in your library.`
-            : `${duplicateFiles.length} files were already in your library.`;
+            ? this.albumId 
+              ? `"${duplicateFiles[0].name}" was already in your library but has been added to the album.`
+              : `"${duplicateFiles[0].name}" is already in your library.`
+            : this.albumId
+              ? `${duplicateFiles.length} files were already in your library but have been added to the album.`
+              : `${duplicateFiles.length} files were already in your library.`;
           
           alert(duplicateMessage);
         }
@@ -197,9 +232,16 @@ export default {
         window.dispatchEvent(new CustomEvent('upload-completed', { 
           detail: { 
             count: successfulUploads.length,
-            duplicates: duplicateFiles.length
+            duplicates: duplicateFiles.length,
+            albumId: this.albumId,
+            albumName: this.albumName
           }
         }));
+        
+        // Emit upload-complete event if we're in an album context
+        if (this.albumId) {
+          this.$emit('upload-complete');
+        }
         
         this.closeModal();
       } else {
