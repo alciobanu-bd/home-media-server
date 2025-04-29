@@ -79,12 +79,24 @@
       </div>
       
       <div v-else>
+        <div class="selection-controls" v-if="albumFiles.length > 0">
+          <button class="control-btn" @click="inSelectionMode = !inSelectionMode">
+            {{ inSelectionMode ? 'Cancel Selection' : 'Select Items' }}
+          </button>
+          <button 
+            v-if="inSelectionMode && selectedItems.length > 0" 
+            class="control-btn remove-btn" 
+            @click="removeSelectedItems"
+          >
+            Remove Selected ({{ selectedItems.length }})
+          </button>
+        </div>
         <div class="media-grid">
           <media-item 
             v-for="item in albumFiles" 
             :key="item._id"
             :item="item" 
-            :select-mode="selectMode"
+            :select-mode="inSelectionMode"
             :selected="selectedItems.includes(item._id)"
             :selection-index="selectedItems.indexOf(item._id)"
             @click="handleItemClick(item)"
@@ -165,7 +177,7 @@ export default {
       showUploadModal: false,
       editAlbumName: '',
       updating: false,
-      selectMode: false,
+      inSelectionMode: false,
       selectedItems: [],
       baseUrl: process.env.BASE_URL || '/'
     };
@@ -213,7 +225,7 @@ export default {
       this.$router.push({ name: 'Gallery' });
     },
     handleItemClick(item) {
-      if (!this.selectMode) {
+      if (!this.inSelectionMode) {
         this.$router.push({ 
           name: 'ViewMedia', 
           params: { id: item._id },
@@ -233,8 +245,8 @@ export default {
       }
     },
     toggleSelectMode() {
-      this.selectMode = !this.selectMode;
-      if (!this.selectMode) {
+      this.inSelectionMode = !this.inSelectionMode;
+      if (!this.inSelectionMode) {
         this.selectedItems = [];
       }
     },
@@ -284,6 +296,36 @@ export default {
       } catch (error) {
         console.error('Error removing item from album:', error);
         alert('Failed to remove item from album. Please try again.');
+      }
+    },
+    async removeSelectedItems() {
+      if (this.selectedItems.length === 0) return;
+      
+      try {
+        const confirmMessage = this.selectedItems.length === 1 
+          ? 'Are you sure you want to remove this item from the album?' 
+          : `Are you sure you want to remove these ${this.selectedItems.length} items from the album?`;
+        
+        if (!confirm(confirmMessage)) return;
+        
+        // Create array of promises for all delete operations
+        const deletePromises = this.selectedItems.map(itemId => 
+          api.delete(`/albums/${this.album._id}/media/${itemId}`)
+        );
+        
+        // Execute all delete operations
+        await Promise.all(deletePromises);
+        
+        // Remove items from local albumFiles array
+        this.albumFiles = this.albumFiles.filter(file => !this.selectedItems.includes(file._id));
+        
+        // Clear selection and exit select mode
+        this.selectedItems = [];
+        this.inSelectionMode = false;
+        
+      } catch (error) {
+        console.error('Error removing items from album:', error);
+        alert('Failed to remove some items from album. Please try again.');
       }
     },
     refreshAlbumFiles() {
@@ -351,7 +393,13 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 0;
+  position: sticky;
+  top: var(--header-height);
+  z-index: 10;
+  background-color: var(--color-background);
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .album-header-left {
@@ -455,6 +503,7 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
   margin-top: 16px;
+  margin-bottom: 70px; /* Add space at the bottom to prevent content from being hidden behind the selection controls */
 }
 
 /* Empty actions */
@@ -581,6 +630,52 @@ export default {
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Selection controls */
+.selection-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background-color: var(--color-card-background);
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  justify-content: center;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: none;
+}
+
+.control-btn:hover {
+  background-color: var(--color-hover-dark);
+  color: var(--color-text-primary);
+}
+
+.remove-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.remove-btn:hover {
+  background-color: #dc2626;
 }
 
 @media (max-width: 768px) {
