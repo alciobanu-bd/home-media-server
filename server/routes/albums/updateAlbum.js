@@ -57,7 +57,12 @@ const updateAlbumHandler = async (request, reply) => {
             }
         );
         
-        if (!result.value) {
+        // Check if document was found and updated
+        // In MongoDB Node.js driver 6.0.0+, the result could be directly the document
+        // In older versions, the document would be in result.value
+        const updatedAlbum = result?.value || result;
+        
+        if (!updatedAlbum) {
             return reply.code(404).send({
                 error: 'Not found',
                 message: 'Album not found or you do not have permission to update it'
@@ -65,7 +70,7 @@ const updateAlbumHandler = async (request, reply) => {
         }
         
         // Return the updated album
-        return result.value;
+        return updatedAlbum;
     } catch (err) {
         console.error('Error updating album:', err);
         return reply.code(500).send({ error: 'Failed to update album' });

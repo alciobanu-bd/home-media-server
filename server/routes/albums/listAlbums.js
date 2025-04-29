@@ -19,6 +19,7 @@ const listAlbumsHandler = async (request, reply) => {
     try {
         const db = getDb();
         const albumsCollection = getCollection(db, 'albums');
+        const filesCollection = getCollection(db, 'files');
         
         // Get all albums belonging to this user, sorted by creation date (newest first)
         const albums = await albumsCollection
@@ -26,7 +27,20 @@ const listAlbumsHandler = async (request, reply) => {
             .sort({ createdAt: -1 })
             .toArray();
         
-        return { albums };
+        // For each album, get the file count
+        const albumsWithCount = await Promise.all(albums.map(async (album) => {
+            const fileCount = await filesCollection.countDocuments({
+                userId: userId,
+                albums: album._id.toString()
+            });
+            
+            return {
+                ...album,
+                fileCount
+            };
+        }));
+        
+        return { albums: albumsWithCount };
     } catch (err) {
         console.error('Error fetching albums:', err);
         return reply.code(500).send({ error: 'Failed to fetch albums' });

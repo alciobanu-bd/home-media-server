@@ -35,7 +35,6 @@ const createAlbumHandler = async (request, reply) => {
         const newAlbum = {
             name: name.trim(),
             userId,
-            files: [],
             createdAt: new Date(),
             updatedAt: new Date()
         };

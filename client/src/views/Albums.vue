@@ -39,7 +39,7 @@
           @click="viewAlbum(album)"
         >
           <div class="album-thumbnail">
-            <div v-if="!album.files || album.files.length === 0" class="album-placeholder">
+            <div v-if="!album.fileCount || album.fileCount === 0" class="album-placeholder">
               <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -58,7 +58,7 @@
           </div>
           <div class="album-info">
             <h3 class="album-name">{{ album.name }}</h3>
-            <p class="album-count">{{ album.files ? album.files.length : 0 }} items</p>
+            <p class="album-count">{{ album.fileCount || 0 }} items</p>
             <p class="album-date">{{ formatDate(album.createdAt) }}</p>
           </div>
         </div>

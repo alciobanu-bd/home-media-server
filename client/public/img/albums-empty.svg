@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- First album -->
+  <rect x="45" y="50" width="80" height="100" rx="4" ry="4" fill="#E5E7EB" stroke="#9CA3AF" stroke-width="2"/>
+  <rect x="55" y="60" width="60" height="50" rx="2" ry="2" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+  <line x1="55" y1="125" x2="95" y2="125" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+  <line x1="55" y1="135" x2="85" y2="135" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Second album (slightly behind) -->
+  <rect x="60" y="40" width="80" height="100" rx="4" ry="4" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+  <rect x="70" y="50" width="60" height="50" rx="2" ry="2" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="2"/>
+  <line x1="70" y1="115" x2="110" y2="115" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+  <line x1="70" y1="125" x2="100" y2="125" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Third album (in front) -->
+  <rect x="75" y="30" width="80" height="100" rx="4" ry="4" fill="#F9FAFB" stroke="#9CA3AF" stroke-width="2"/>
+  <rect x="85" y="40" width="60" height="50" rx="2" ry="2" fill="#FFFFFF" stroke="#9CA3AF" stroke-width="2" stroke-dasharray="4 2"/>
+  <line x1="85" y1="105" x2="125" y2="105" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+  <line x1="85" y1="115" x2="115" y2="115" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Plus icon -->
+  <circle cx="140" cy="140" r="20" fill="#6B7280" opacity="0.8"/>
+  <line x1="140" y1="130" x2="140" y2="150" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <line x1="130" y1="140" x2="150" y2="140" stroke="white" stroke-width="4" stroke-linecap="round"/>
+</svg> 
