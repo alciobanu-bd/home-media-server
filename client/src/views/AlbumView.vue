@@ -1,6 +1,6 @@
 <template>
   <div class="album-view">
-    <div v-if="loading && !album" class="loading">
+    <div v-if="loading" class="loading">
       Loading album...
     </div>
     
