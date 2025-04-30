@@ -16,56 +16,48 @@
     
     <!-- Bottom selection controls - only visible in selection mode -->
     <div v-if="showControls && isSelecting" class="selection-controls">
-      <div class="selection-controls-inner">
-        <div class="selection-count" v-if="selectedCount > 0">
-          {{ selectedCount }} item{{ selectedCount !== 1 ? 's' : '' }} selected
-        </div>
+      <div class="selection-count" v-if="selectedCount > 0">
+        {{ selectedCount }} item{{ selectedCount !== 1 ? 's' : '' }} selected
+      </div>
+      
+      <div class="selection-actions">
+        <button 
+          v-if="selectedCount > 0" 
+          @click="addToAlbum" 
+          class="control-btn"
+          title="Add to Album"
+        >
+          <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+            <path d="M12 9V15"></path>
+            <path d="M9 12H15"></path>
+          </svg>
+          Add to Album
+        </button>
         
-        <div class="selection-actions">
-          <button 
-            v-if="selectedCount > 0" 
-            @click="addToAlbum" 
-            class="action-btn select-btn"
-            title="Add to Album"
-          >
-            <span class="btn-content">
-              <svg class="album-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-                <path d="M12 9V15"></path>
-                <path d="M9 12H15"></path>
-              </svg>
-              <span class="btn-text">Add to Album</span>
-            </span>
-          </button>
-          
-          <button 
-            v-if="selectedCount > 0" 
-            @click="deleteSelected" 
-            class="action-btn delete-btn"
-            title="Delete Selected"
-          >
-            <span class="btn-content">
-              <img :src="baseUrl + 'img/delete-icon.svg'" alt="Delete" width="20" height="20" />
-              <span class="btn-text">Delete</span>
-            </span>
-          </button>
-          
-          <button 
-            @click="cancelSelection" 
-            class="action-btn cancel-btn"
-            title="Cancel Selection"
-          >
-            <span class="btn-content">
-              <svg class="cancel-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-              <span class="btn-text">Cancel</span>
-            </span>
-          </button>
-        </div>
+        <button 
+          v-if="selectedCount > 0" 
+          @click="deleteSelected" 
+          class="control-btn remove-btn"
+          title="Delete Selected"
+        >
+          <img :src="baseUrl + 'img/delete-icon.svg'" alt="Delete" width="20" height="20" />
+          Delete
+        </button>
+        
+        <button 
+          @click="cancelSelection" 
+          class="control-btn"
+          title="Cancel Selection"
+        >
+          <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancel Selection
+        </button>
       </div>
     </div>
   </div>
@@ -128,16 +120,19 @@ export default {
 
 /* Bottom selection controls styles */
 .selection-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 0;
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  width: 100%;
+  z-index: 20;
   background-color: var(--color-card-background);
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  padding: 12px 16px;
-  transition: transform 0.3s ease-in-out;
+  justify-content: center;
   animation: slide-up 0.3s ease;
 }
 
@@ -150,54 +145,53 @@ export default {
   }
 }
 
-.selection-controls-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .selection-count {
   font-size: 15px;
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--color-text-primary);
+  margin-right: 12px;
 }
 
 .selection-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
-/* Common button styles */
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  min-width: 120px;
-  text-align: center;
-}
-
-.btn-content {
+/* Control button styles (matching Album view) */
+.control-btn {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: none;
 }
 
-.btn-content img {
-  width: 16px;
-  height: 16px;
+.control-btn:hover {
+  background-color: var(--color-hover-dark);
+  color: var(--color-text-primary);
 }
 
-.btn-text {
-  line-height: 1.2;
+/* Delete/Remove Button */
+.remove-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.remove-btn:hover {
+  background-color: #dc2626;
+}
+
+.btn-icon {
+  stroke: currentColor;
+  width: 20px;
+  height: 20px;
 }
 
 /* --- Upload Button (matching Lumia theme) --- */
@@ -286,59 +280,34 @@ export default {
   color: var(--color-primary);
 }
 
-/* --- Delete Button --- */
-.delete-btn {
-  background-color: #ef4444; /* Flat red */
-  color: white;
-  border: none;
+.btn-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.delete-btn:hover {
-  background-color: #dc2626; /* Darker red on hover */
-}
-
-/* --- Cancel Button --- */
-.cancel-btn {
-  background-color: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-}
-
-.cancel-btn:hover {
-  background-color: var(--color-hover);
+.btn-content img {
+  width: 20px;
+  height: 20px;
 }
 
 @media (max-width: 768px) {
-  .selection-controls-inner {
-    flex-direction: column;
-    gap: 12px;
+  .selection-controls {
+    padding: 12px 16px;
   }
   
   .selection-count {
-    align-self: flex-start;
+    font-size: 14px;
   }
   
   .selection-actions {
-    width: 100%;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
-  .action-btn {
-    flex: 1;
-    padding: 7px 14px;
+  .control-btn {
     font-size: 13px;
-    min-width: auto;
+    padding: 6px 12px;
   }
-  
-  .btn-content img {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-.btn-content svg.cancel-icon {
-  width: 16px;
-  height: 16px;
-  stroke: currentColor;
 }
 </style> 

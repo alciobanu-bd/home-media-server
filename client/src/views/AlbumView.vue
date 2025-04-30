@@ -631,6 +631,7 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
   margin-top: 16px;
+  margin-bottom: 70px;
 }
 
 .media-grid-grouped {
