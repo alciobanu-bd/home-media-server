@@ -334,7 +334,7 @@ label {
 }
 
 .save-btn:hover {
-  background-color: var(--color-primary-dark);
+  opacity: 0.8;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.4);
 }

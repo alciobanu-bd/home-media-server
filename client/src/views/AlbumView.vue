@@ -133,18 +133,22 @@
         </div>
         
         <!-- Regular grid view -->
-        <div v-else class="media-grid">
-          <media-item 
-            v-for="item in albumFiles" 
-            :key="item._id"
-            :item="item" 
-            :select-mode="inSelectionMode"
-            :selected="selectedItems.includes(item._id)"
-            :selection-index="selectedItems.indexOf(item._id)"
-            @click="handleItemClick(item)"
-            @select="toggleSelect(item)"
-            @delete="removeFromAlbum(item)"
-          />
+        <div v-else class="media-grid-grouped">
+          <div class="date-group">
+            <div class="media-grid">
+              <media-item 
+                v-for="item in albumFiles" 
+                :key="item._id"
+                :item="item" 
+                :select-mode="inSelectionMode"
+                :selected="selectedItems.includes(item._id)"
+                :selection-index="selectedItems.indexOf(item._id)"
+                @click="handleItemClick(item)"
+                @select="toggleSelect(item)"
+                @delete="removeFromAlbum(item)"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -631,7 +635,7 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
   margin-top: 16px;
-  margin-bottom: 70px;
+  margin-bottom: 0px;
 }
 
 .media-grid-grouped {
@@ -790,7 +794,7 @@ export default {
 }
 
 .submit-btn:hover {
-  background-color: var(--color-primary-dark);
+  opacity: 0.8;
 }
 
 .submit-btn:disabled {

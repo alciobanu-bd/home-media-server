@@ -83,6 +83,6 @@ export default {
 }
 
 .login-btn:hover {
-  background-color: var(--color-primary-dark);
+  opacity: 0.8;
 }
 </style> 
