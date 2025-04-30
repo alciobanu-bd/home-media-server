@@ -6,7 +6,7 @@
           <img :src="baseUrl + 'img/logo.svg'" alt="Lumia Logo" class="logo" />
           <div class="brand">
             <h1 class="brand-name">Lumia</h1>
-            <p class="brand-tagline">Illuminate Your Media</p>
+            <p class="brand-tagline">{{ currentTagline }}</p>
           </div>
         </div>
         <nav class="main-nav">
@@ -27,6 +27,14 @@
             </svg>
             <span>Albums</span>
           </router-link>
+          <router-link to="/about" class="nav-link">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span>About</span>
+          </router-link>
           <!-- Additional menu items can be added here -->
         </nav>
       </div>
@@ -37,8 +45,10 @@
         <user-profile />
       </div>
     </header>
-    <router-view v-if="appReady" />
-    <div v-else class="app-loading">
+    <div class="router-view-container">
+      <router-view v-if="appReady" />
+    </div>
+    <div v-if="!appReady" class="app-loading">
       <div class="loading-spinner"></div>
       <p>Loading application...</p>
     </div>
@@ -100,7 +110,22 @@ export default {
         '#ff6b6b', // Red
         '#feca57', // Orange
         '#48dbfb', // Blue 
-      ]
+      ],
+      taglines: [
+        "Illuminate Your Media",
+        "Share Smarter, Not Wider",
+        "The Social Network for Your Inner Circle",
+        "Share with Who Matters Most",
+        "Where Family and Friends Connect Privately",
+        "Share Naturally, Within Your Tribe",
+        "Share What Matters, With Who Matters",
+        "Where Sharing Feels Right",
+        "The Private Social",
+        "Moments Meant for Your Closest",
+        "For the People You Cherish Most",
+        "Keep Your Loved Ones in the Loop, Privately",
+      ],
+      currentTagline: ""
     };
   },
   computed: {
@@ -119,6 +144,9 @@ export default {
     });
     
     window.addEventListener('upload-completed', this.checkForActiveTasks);
+    
+    // Set the tagline
+    this.setTagline();
   },
   beforeUnmount() {
     window.removeEventListener('upload-completed', this.checkForActiveTasks);
@@ -139,6 +167,53 @@ export default {
     },
     hideUploadManager() {
       this.showUploadManager = false;
+    },
+    setTagline() {
+      try {
+        // Check if we already have a tagline in local storage
+        let taglineData = localStorage.getItem('lumia_tagline');
+        let tagline = null;
+        let shouldSetNew = true;
+        
+        if (taglineData) {
+          try {
+            const data = JSON.parse(taglineData);
+            tagline = data.tagline;
+            
+            // Check if the tagline is still valid (less than 1 day old)
+            const now = new Date().getTime();
+            const storedTime = data.timestamp;
+            const dayInMs = 24 * 60 * 60 * 1000;
+            
+            // If the tagline is less than a day old, use it
+            if (now - storedTime < dayInMs) {
+              shouldSetNew = false;
+            }
+          } catch (e) {
+            console.warn('Invalid tagline data format, will select a new one');
+          }
+        }
+        
+        if (shouldSetNew) {
+          // Choose a random tagline
+          const randomIndex = Math.floor(Math.random() * this.taglines.length);
+          tagline = this.taglines[randomIndex];
+          
+          // Save it to local storage with a timestamp
+          const data = {
+            tagline: tagline,
+            timestamp: new Date().getTime()
+          };
+          localStorage.setItem('lumia_tagline', JSON.stringify(data));
+        }
+        
+        this.currentTagline = tagline;
+      } catch (error) {
+        // Fallback in case of storage issues
+        console.error('Error accessing local storage:', error);
+        const randomIndex = Math.floor(Math.random() * this.taglines.length);
+        this.currentTagline = this.taglines[randomIndex];
+      }
     }
   }
 };
@@ -492,5 +567,20 @@ body {
   border-color: var(--color-primary);
   color: var(--color-primary); /* Brighter text for active item */
   box-shadow: 0 0 0 1px rgba(var(--color-primary-rgb), 0.5); /* Outline glow effect */
+}
+
+.router-view-container {
+  background-color: var(--color-background);
+  min-height: calc(100vh - var(--header-height));
+}
+
+@media (max-width: 768px) {
+  .router-view-container {
+    min-height: calc(100vh - var(--header-height-mobile));
+  }
+}
+
+[data-theme="dark"] .router-view-container {
+  background-color: var(--color-background) !important;
 }
 </style> 

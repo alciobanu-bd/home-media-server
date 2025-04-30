@@ -4,6 +4,7 @@ import ViewMedia from '../views/ViewMedia.vue';
 import Login from '../views/Login.vue';
 import Albums from '../views/Albums.vue';
 import AlbumView from '../views/AlbumView.vue';
+import About from '../views/About.vue';
 import authStore from '../store/authStore';
 
 const routes = [
@@ -32,6 +33,12 @@ const routes = [
     component: AlbumView,
     props: true,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: About,
+    // About page can be viewed by anyone
   },
   {
     path: '/login',

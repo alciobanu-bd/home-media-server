@@ -140,6 +140,11 @@ body.selection-active .gallery {
   padding-bottom: 8px;
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text);
+  background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7, #a7f3d0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
 }
 
 /* Day-select small button styling */
@@ -154,6 +159,8 @@ body.selection-active .gallery {
   color: var(--color-text);
   cursor: pointer;
   transition: background-color 0.2s ease;
+  -webkit-text-fill-color: initial;
+  background: none;
 }
 
 .day-select-btn:hover {

@@ -534,6 +534,10 @@ export default {
   font-weight: 600;
   color: var(--color-text-primary);
   margin: 0;
+  background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7, #a7f3d0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Poppins', sans-serif;
 }
 
 .album-count {
@@ -654,9 +658,13 @@ export default {
   margin-bottom: 16px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-primary);
   display: flex;
   align-items: center;
+  background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7, #a7f3d0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
 }
 
 .day-select-btn {
@@ -669,6 +677,8 @@ export default {
   cursor: pointer;
   transition: background-color 0.2s ease;
   margin-left: 10px;
+  -webkit-text-fill-color: initial;
+  background: none;
 }
 
 .day-select-btn:hover {

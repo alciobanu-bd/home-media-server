@@ -512,6 +512,10 @@ export default {
   font-size: 28px;
   font-weight: 600;
   color: var(--color-text-primary);
+  background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7, #a7f3d0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Poppins', sans-serif;
 }
 
 .create-album-btn {
