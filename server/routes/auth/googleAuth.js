@@ -22,7 +22,6 @@ const googleAuthInitHandler = async (request, reply) => {
     const scope = 'profile email';
     const responseType = 'code';
     const accessType = 'offline';
-    const prompt = 'consent';
   
     // Construct the Google OAuth2 URL
     const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -31,7 +30,6 @@ const googleAuthInitHandler = async (request, reply) => {
     googleAuthUrl.searchParams.append('response_type', responseType);
     googleAuthUrl.searchParams.append('scope', scope);
     googleAuthUrl.searchParams.append('access_type', accessType);
-    googleAuthUrl.searchParams.append('prompt', prompt);
   
     // Optional: Add state parameter for security (prevents CSRF)
     const state = Math.random().toString(36).substring(2);
