@@ -89,7 +89,7 @@
       
       <div v-else>
         <div class="selection-controls" v-if="albumFiles.length > 0">
-          <button class="control-btn" @click="inSelectionMode = !inSelectionMode">
+          <button class="control-btn" @click="toggleSelectMode">
             {{ inSelectionMode ? 'Cancel Selection' : 'Select Items' }}
           </button>
           <button 
