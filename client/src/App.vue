@@ -446,6 +446,7 @@ body {
   height: 100vh;
   gap: 16px;
   color: var(--color-text-secondary);
+  background-color: var(--color-bg-secondary);
 }
 
 /* Brand styles for header */
