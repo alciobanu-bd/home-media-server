@@ -32,6 +32,11 @@
           </div>
         </div>
         
+        <div class="storage-section">
+          <h3>Storage</h3>
+          <StorageQuota title="Your Storage Usage" />
+        </div>
+        
         <div class="settings-section">
           <h3>Preferences</h3>
           <div class="form-group">
@@ -56,9 +61,13 @@
 <script>
 import { reactive, onMounted, onBeforeUnmount, computed } from 'vue';
 import authStore from '../store/authStore';
+import StorageQuota from './StorageQuota.vue';
 
 export default {
   name: 'AccountSettingsModal',
+  components: {
+    StorageQuota
+  },
   props: {
     show: {
       type: Boolean,
@@ -253,6 +262,18 @@ export default {
 .user-email {
   font-size: 14px;
   color: var(--color-text-secondary);
+}
+
+.storage-section {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.storage-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--color-text-primary);
 }
 
 .settings-section {

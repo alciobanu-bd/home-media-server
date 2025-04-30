@@ -35,6 +35,8 @@
         </div>
       </div>
       
+      <StorageQuota :is-compact="true" />
+      
       <div class="dropdown-menu-items">
         <a class="menu-item" href="#" @click.prevent="openAccountSettings">
           <svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -91,11 +93,13 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import authStore from '../store/authStore';
 import AccountSettingsModal from './AccountSettingsModal.vue';
+import StorageQuota from './StorageQuota.vue';
 
 export default {
   name: 'UserProfile',
   components: {
-    AccountSettingsModal
+    AccountSettingsModal,
+    StorageQuota
   },
   setup() {
     const showDropdown = ref(false);
@@ -376,6 +380,46 @@ export default {
   color: var(--color-success);
   font-weight: 500;
   font-size: 12px;
+}
+
+.quota-info {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-secondary, #f8fafc);
+}
+
+.quota-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.quota-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progress-bar {
+  height: 6px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.quota-text {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  display: flex;
+  justify-content: space-between;
 }
 
 .dropdown-menu-items {
