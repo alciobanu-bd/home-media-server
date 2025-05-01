@@ -21,8 +21,22 @@ const deleteAlbumRoute = require('./albums/deleteAlbum');
 const addMediaToAlbumRoute = require('./albums/addMediaToAlbum');
 const removeMediaFromAlbumRoute = require('./albums/removeMediaFromAlbum');
 const getAlbumFilesRoute = require('./albums/getAlbumFiles');
+// Import Circles routes
+const circlesRoutes = require('./circles');
 
+// Import dependencies
+const path = require('path');
+
+// Import auth middleware
+const { verifyToken } = require('./auth/authMiddleware');
+
+/**
+ * Register all API routes
+ */
 module.exports = function(fastify, opts, done) {
+    // Set up authentication middleware for all routes
+    fastify.addHook('preHandler', verifyToken);
+    
     // Register route modules with /api prefix
     fastify.register(mediaListRoute, { prefix: '/api' });
     fastify.register(mediaItemRoute, { prefix: '/api' });
@@ -47,6 +61,14 @@ module.exports = function(fastify, opts, done) {
     fastify.register(addMediaToAlbumRoute, { prefix: '/api' });
     fastify.register(removeMediaFromAlbumRoute, { prefix: '/api' });
     fastify.register(getAlbumFilesRoute, { prefix: '/api' });
-  
+    
+    // Register circles routes (already has /api prefix handled internally)
+    fastify.register(circlesRoutes);
+    
+    // Root route for API health check
+    fastify.get('/api', async (request, reply) => {
+        return { status: 'OK', message: 'API is running' };
+    });
+    
     done();
 }; 

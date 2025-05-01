@@ -5,6 +5,8 @@ import Login from '../views/Login.vue';
 import Albums from '../views/Albums.vue';
 import AlbumView from '../views/AlbumView.vue';
 import About from '../views/About.vue';
+import Circles from '../views/Circles.vue';
+import CircleView from '../views/CircleView.vue';
 import authStore from '../store/authStore';
 
 const routes = [
@@ -31,6 +33,19 @@ const routes = [
     path: '/albums/:id',
     name: 'AlbumView',
     component: AlbumView,
+    props: true,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/circles',
+    name: 'Circles',
+    component: Circles,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/circles/:id',
+    name: 'CircleView',
+    component: CircleView,
     props: true,
     meta: { requiresAuth: true }
   },

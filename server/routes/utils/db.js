@@ -12,7 +12,8 @@ const validateRequiredEnvVars = () => {
         'COLLECTION_THUMBNAILS',
         'COLLECTION_METADATA',
         'COLLECTION_USERS',
-        'COLLECTION_ALBUMS'
+        'COLLECTION_ALBUMS',
+        'COLLECTION_CIRCLES'
     ];
   
     const missingVars = requiredVars.filter(varName => !process.env[varName]);
@@ -27,7 +28,8 @@ const COLLECTIONS = {
     thumbnails: process.env.COLLECTION_THUMBNAILS,
     metadata: process.env.COLLECTION_METADATA,
     users: process.env.COLLECTION_USERS,
-    albums: process.env.COLLECTION_ALBUMS
+    albums: process.env.COLLECTION_ALBUMS,
+    circles: process.env.COLLECTION_CIRCLES
 };
 
 // Get a collection from the database
@@ -62,6 +64,7 @@ const connectToMongo = async () => {
         const metadataCollection = getCollection(db, 'metadata');
         const usersCollection = getCollection(db, 'users');
         const albumsCollection = getCollection(db, 'albums');
+        const circlesCollection = getCollection(db, 'circles');
     
         await filesCollection.createIndex({ createdAt: -1 });
         await filesCollection.createIndex({ userId: 1 });
@@ -76,6 +79,12 @@ const connectToMongo = async () => {
         // Add indexes for albums collection
         await albumsCollection.createIndex({ userId: 1 });
         await albumsCollection.createIndex({ createdAt: -1 });
+        
+        // Add indexes for circles collection
+        await circlesCollection.createIndex({ createdAt: -1 });
+        await circlesCollection.createIndex({ adminIds: 1 });
+        await circlesCollection.createIndex({ memberIds: 1 });
+        await circlesCollection.createIndex({ invitedEmails: 1 });
     
         return db;
     } catch (err) {
