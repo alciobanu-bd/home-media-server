@@ -136,17 +136,17 @@
         <div v-else class="media-grid-grouped">
           <div class="date-group">
             <div class="media-grid">
-              <media-item 
-                v-for="item in albumFiles" 
-                :key="item._id"
-                :item="item" 
-                :select-mode="inSelectionMode"
-                :selected="selectedItems.includes(item._id)"
-                :selection-index="selectedItems.indexOf(item._id)"
-                @click="handleItemClick(item)"
-                @select="toggleSelect(item)"
-                @delete="removeFromAlbum(item)"
-              />
+          <media-item 
+            v-for="item in albumFiles" 
+            :key="item._id"
+            :item="item" 
+            :select-mode="inSelectionMode"
+            :selected="selectedItems.includes(item._id)"
+            :selection-index="selectedItems.indexOf(item._id)"
+            @click="handleItemClick(item)"
+            @select="toggleSelect(item)"
+            @delete="removeFromAlbum(item)"
+          />
             </div>
           </div>
         </div>

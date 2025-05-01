@@ -519,33 +519,65 @@ export default {
 }
 
 .create-album-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: var(--color-primary);
+  background: var(--lumia-gradient);
   color: white;
   border: none;
   border-radius: 8px;
+  box-shadow: var(--lumia-shadow);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
   padding: 10px 18px;
-  font-size: 15px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.create-album-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.create-album-btn:hover:before {
+  opacity: 1;
+}
+
+.create-album-btn .btn-icon {
+  stroke: currentColor;
+  width: 20px;
+  height: 20px;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease;
 }
 
 .create-album-btn:hover {
-  opacity: 0.8;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.4);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
 }
 
-.create-album-btn:active {
-  transform: translateY(0);
+.create-album-btn:hover .btn-icon {
+  transform: translateY(-2px);
 }
 
-.btn-icon {
-  stroke: currentColor;
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .create-album-btn {
+    box-shadow: 0 4px 15px rgba(156, 106, 222, 0.4);
+  }
+  
+  .create-album-btn:hover {
+    box-shadow: 0 6px 20px rgba(156, 106, 222, 0.5);
+  }
 }
 
 .albums-grid {

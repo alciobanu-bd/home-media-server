@@ -294,25 +294,98 @@ export default {
 }
 
 .create-album-btn {
-  padding: 8px 12px;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 4px;
-  background-color: var(--color-primary, #4f46e5);
+  background: var(--lumia-gradient);
   color: white;
   border: none;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
+  border-radius: 8px;
+  box-shadow: var(--lumia-shadow);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  padding: 8px 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.create-album-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.create-album-btn:hover:before {
+  opacity: 1;
+}
+
+.create-album-btn .btn-icon {
+  stroke: currentColor;
+  width: 18px;
+  height: 18px;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease;
 }
 
 .create-album-btn:hover {
-  opacity: 0.8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
 }
 
-.btn-icon {
-  margin-right: 2px;
+.create-album-btn:hover .btn-icon {
+  transform: translateY(-2px);
+}
+
+.submit-btn {
+  background: var(--lumia-gradient);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: var(--lumia-shadow);
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.submit-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.submit-btn:hover:before {
+  opacity: 1;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
+}
+
+.submit-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .album-items {
@@ -416,5 +489,16 @@ export default {
   font-size: 14px;
   color: var(--color-primary);
   font-weight: 500;
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .create-album-btn, .submit-btn {
+    box-shadow: 0 4px 15px rgba(156, 106, 222, 0.4);
+  }
+  
+  .create-album-btn:hover, .submit-btn:hover {
+    box-shadow: 0 6px 20px rgba(156, 106, 222, 0.5);
+  }
 }
 </style> 

@@ -26,6 +26,7 @@
   align-items: center;
   overflow: hidden;
   background-color: var(--color-bg-tertiary);
+  border-radius: var(--border-radius-lg);
 }
 
 .media-thumbnail img {
@@ -242,14 +243,32 @@
 }
 
 .media-item.select-mode.selected {
-  border-color: var(--color-primary);
-  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .media-item.select-mode.selected::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 4px solid var(--lumia-purple);
+  border-radius: var(--border-radius-lg);
+  background: transparent;
+  box-sizing: border-box;
   opacity: 1;
-  background-color: rgba(var(--color-primary-rgb), 0.15);
-  box-shadow: inset 0 0 0 3px var(--color-primary);
+  pointer-events: none;
+  box-shadow: none;
+  border-image: none;
+}
+
+.media-item.select-mode .checkbox-container.checked {
+  background: var(--lumia-purple);
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.media-item.select-mode .checkbox-container.checked:hover {
+  filter: brightness(1.1);
+  transform: none;
 }
 
 /* Selection checkbox trigger - shows before entering select mode */
@@ -257,7 +276,7 @@
   position: absolute;
   top: 10px;
   left: 10px;
-  z-index: 3; /* Higher than regular select checkbox */
+  z-index: 3;
   opacity: 0;
   transform: scale(0.8);
   transition: opacity var(--transition-speed) ease-in-out, transform var(--transition-speed) ease-in-out;
@@ -301,4 +320,4 @@
 
 .select-checkbox-trigger:hover img {
   opacity: 1;
-} 
+}
