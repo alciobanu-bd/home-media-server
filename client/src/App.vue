@@ -229,6 +229,12 @@ export default {
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
+  /* Lumia brand colors */
+  --lumia-purple: #9c6ade;
+  --lumia-green: #1dd1a1;
+  --lumia-gradient: linear-gradient(45deg, var(--lumia-purple), var(--lumia-green));
+  --lumia-shadow: 0 4px 12px rgba(156, 106, 222, 0.25);
+  
   /* Primary colors - Slightly softer blue */
   --color-primary: #4f8ff7; /* Adjusted from #3b82f6 */
   --color-primary-dark: #3a7bd5; /* Adjusted */

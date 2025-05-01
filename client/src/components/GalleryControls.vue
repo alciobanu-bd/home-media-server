@@ -194,18 +194,41 @@ export default {
   height: 20px;
 }
 
+.action-btn {
+  height: 40px;
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
 /* --- Upload Button (matching Lumia theme) --- */
 .upload-btn {
-  background-color: var(--color-primary);
+  background: var(--lumia-gradient);
   color: white;
   border: none;
   min-width: 180px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
+  box-shadow: var(--lumia-shadow);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
   padding: 10px 18px;
+  font-weight: 600;
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
 }
 
 .upload-btn:before {
@@ -215,45 +238,41 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
   opacity: 0;
   transition: opacity 0.3s ease;
-}
-
-.upload-btn .upload-icon {
-  width: 20px;
-  height: 20px;
-  transition: transform 0.3s ease;
-}
-
-.upload-btn .btn-text {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  font-size: 13px;
-  color: white;
-}
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(var(--color-primary-rgb), 0); }
-  100% { box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0); }
-}
-
-.upload-btn:hover {
-  background-color: var(--color-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.4);
-  animation: pulse 1.5s infinite;
+  z-index: 1;
 }
 
 .upload-btn:hover:before {
   opacity: 1;
 }
 
+.upload-btn .upload-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
 .upload-btn:hover .upload-icon {
   transform: translateY(-2px);
+}
+
+.upload-btn .btn-text {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 14px;
+  color: white;
+  position: relative;
+  z-index: 2;
+}
+
+.upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
 }
 
 .upload-btn:active {
@@ -280,17 +299,6 @@ export default {
   color: var(--color-primary);
 }
 
-.btn-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-content img {
-  width: 20px;
-  height: 20px;
-}
-
 @media (max-width: 768px) {
   .selection-controls {
     padding: 12px 16px;
@@ -308,6 +316,27 @@ export default {
   .control-btn {
     font-size: 13px;
     padding: 6px 12px;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .upload-btn {
+    box-shadow: 0 4px 15px rgba(156, 106, 222, 0.4);
+  }
+  
+  .upload-btn:hover {
+    box-shadow: 0 6px 20px rgba(156, 106, 222, 0.5);
+  }
+  
+  .control-btn {
+    background-color: #2a2a2a;
+    color: #bbbbbb;
+  }
+  
+  .control-btn:hover {
+    background-color: #333333;
+    color: #f5f5f5;
   }
 }
 </style> 
