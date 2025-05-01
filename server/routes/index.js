@@ -21,8 +21,15 @@ const deleteAlbumRoute = require('./albums/deleteAlbum');
 const addMediaToAlbumRoute = require('./albums/addMediaToAlbum');
 const removeMediaFromAlbumRoute = require('./albums/removeMediaFromAlbum');
 const getAlbumFilesRoute = require('./albums/getAlbumFiles');
-// Import Circles routes
-const circlesRoutes = require('./circles');
+// Import individual Circles routes
+const createCircleRoute = require('./circles/createCircle');
+const getUserCirclesRoute = require('./circles/getUserCircles');
+const getCircleByIdRoute = require('./circles/getCircleById');
+const inviteToCircleRoute = require('./circles/inviteToCircle');
+const acceptInvitationRoute = require('./circles/acceptInvitation');
+const makeAdminRoute = require('./circles/makeAdmin');
+const removeFromCircleRoute = require('./circles/removeFromCircle');
+const deleteCircleRoute = require('./circles/deleteCircle');
 
 // Import dependencies
 const path = require('path');
@@ -62,9 +69,16 @@ module.exports = function(fastify, opts, done) {
     fastify.register(removeMediaFromAlbumRoute, { prefix: '/api' });
     fastify.register(getAlbumFilesRoute, { prefix: '/api' });
     
-    // Register circles routes (already has /api prefix handled internally)
-    fastify.register(circlesRoutes);
-    
+    // Register individual circles routes with the /api prefix
+    fastify.register(createCircleRoute, { prefix: '/api' });
+    fastify.register(getUserCirclesRoute, { prefix: '/api' });
+    fastify.register(getCircleByIdRoute, { prefix: '/api' });
+    fastify.register(inviteToCircleRoute, { prefix: '/api' });
+    fastify.register(acceptInvitationRoute, { prefix: '/api' });
+    fastify.register(makeAdminRoute, { prefix: '/api' });
+    fastify.register(removeFromCircleRoute, { prefix: '/api' });
+    fastify.register(deleteCircleRoute, { prefix: '/api' });
+
     // Root route for API health check
     fastify.get('/api', async (request, reply) => {
         return { status: 'OK', message: 'API is running' };

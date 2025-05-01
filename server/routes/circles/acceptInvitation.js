@@ -77,6 +77,6 @@ const acceptInvitation = async (request, reply) => {
 };
 
 module.exports = function(fastify, opts, done) {
-    fastify.get('/api/circles/accept-invite/:token', acceptInvitation);
+    fastify.get('/circles/accept-invite/:token', acceptInvitation);
     done();
 }; 

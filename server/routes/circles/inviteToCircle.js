@@ -110,6 +110,6 @@ const inviteToCircle = async (request, reply) => {
 };
 
 module.exports = function(fastify, opts, done) {
-    fastify.post('/api/circles/:id/invite', inviteToCircle);
+    fastify.post('/circles/:id/invite', inviteToCircle);
     done();
 }; 

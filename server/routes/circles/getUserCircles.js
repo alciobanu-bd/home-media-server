@@ -48,6 +48,6 @@ const getUserCircles = async (request, reply) => {
 };
 
 module.exports = function(fastify, opts, done) {
-    fastify.get('/api/circles', getUserCircles);
+    fastify.get('/circles', getUserCircles);
     done();
 }; 

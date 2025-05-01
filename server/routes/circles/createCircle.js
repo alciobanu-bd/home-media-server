@@ -56,6 +56,6 @@ const createCircle = async (request, reply) => {
 };
 
 module.exports = function(fastify, opts, done) {
-    fastify.post('/api/circles', createCircle);
+    fastify.post('/circles', createCircle);
     done();
 }; 

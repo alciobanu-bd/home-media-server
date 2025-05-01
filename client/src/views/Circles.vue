@@ -1,7 +1,7 @@
 <template>
   <div class="circles-container">
     <div class="circles-header">
-      <h1>Trusted Circles</h1>
+      <h1>Your Trusted Circles</h1>
       <button class="create-circle-btn" @click="showCreateModal = true">
         <i class="fas fa-plus-circle"></i> Create Circle
       </button>
@@ -196,8 +196,6 @@ export default {
         // Reload circles
         await this.loadCircles();
         
-        // Show success message (could use a toast notification system)
-        alert('Circle created successfully!');
       } catch (error) {
         console.error('Error creating circle:', error);
         alert('Failed to create circle. Please try again.');

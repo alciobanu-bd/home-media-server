@@ -94,6 +94,6 @@ const removeFromCircle = async (request, reply) => {
 };
 
 module.exports = function(fastify, opts, done) {
-    fastify.delete('/api/circles/:id/members/:userId', removeFromCircle);
+    fastify.delete('/circles/:id/members/:userId', removeFromCircle);
     done();
 }; 

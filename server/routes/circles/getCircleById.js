@@ -84,6 +84,6 @@ const getCircleById = async (request, reply) => {
 };
 
 module.exports = function(fastify, opts, done) {
-    fastify.get('/api/circles/:id', getCircleById);
+    fastify.get('/circles/:id', getCircleById);
     done();
 }; 

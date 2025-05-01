@@ -93,6 +93,6 @@ const makeAdmin = async (request, reply) => {
 };
 
 module.exports = function(fastify, opts, done) {
-    fastify.post('/api/circles/:id/make-admin', makeAdmin);
+    fastify.post('/circles/:id/make-admin', makeAdmin);
     done();
 }; 

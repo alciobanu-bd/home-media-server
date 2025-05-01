@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 
 /**
  * Service for managing Trusted Circles (user groups)
@@ -10,7 +10,7 @@ const circlesService = {
    */
   getUserCircles: async () => {
     try {
-      const response = await axios.get('/api/circles');
+      const response = await api.get('/circles');
       return response.data;
     } catch (error) {
       console.error('Error fetching circles:', error);
@@ -25,7 +25,7 @@ const circlesService = {
    */
   getCircleById: async (id) => {
     try {
-      const response = await axios.get(`/api/circles/${id}`);
+      const response = await api.get(`/circles/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching circle ${id}:`, error);
@@ -40,7 +40,7 @@ const circlesService = {
    */
   createCircle: async (circleData) => {
     try {
-      const response = await axios.post('/api/circles', circleData);
+      const response = await api.post('/circles', circleData);
       return response.data;
     } catch (error) {
       console.error('Error creating circle:', error);
@@ -56,7 +56,7 @@ const circlesService = {
    */
   inviteUser: async (id, email) => {
     try {
-      const response = await axios.post(`/api/circles/${id}/invite`, { email });
+      const response = await api.post(`/circles/${id}/invite`, { email });
       return response.data;
     } catch (error) {
       console.error('Error inviting user:', error);
@@ -71,7 +71,7 @@ const circlesService = {
    */
   acceptInvitation: async (token) => {
     try {
-      const response = await axios.get(`/api/circles/accept-invite/${token}`);
+      const response = await api.get(`/circles/accept-invite/${token}`);
       return response.data;
     } catch (error) {
       console.error('Error accepting invitation:', error);
@@ -87,7 +87,7 @@ const circlesService = {
    */
   makeAdmin: async (circleId, userId) => {
     try {
-      const response = await axios.post(`/api/circles/${circleId}/make-admin`, { userId });
+      const response = await api.post(`/circles/${circleId}/make-admin`, { userId });
       return response.data;
     } catch (error) {
       console.error('Error making user admin:', error);
@@ -103,7 +103,7 @@ const circlesService = {
    */
   removeUser: async (circleId, userId) => {
     try {
-      const response = await axios.delete(`/api/circles/${circleId}/members/${userId}`);
+      const response = await api.delete(`/circles/${circleId}/members/${userId}`);
       return response.data;
     } catch (error) {
       console.error('Error removing user:', error);
@@ -118,7 +118,7 @@ const circlesService = {
    */
   deleteCircle: async (id) => {
     try {
-      const response = await axios.delete(`/api/circles/${id}`);
+      const response = await api.delete(`/circles/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error deleting circle:', error);
