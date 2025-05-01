@@ -1,58 +1,21 @@
 <template>
-  <div class="circle-view-container">
-    <div v-if="loading" class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>Loading circle details...</p>
-    </div>
-    
-    <div v-else-if="error" class="error-container">
-      <div class="error-icon">
-        <i class="fas fa-exclamation-circle"></i>
-      </div>
-      <h3>Error Loading Circle</h3>
-      <p>{{ error }}</p>
-      <button class="secondary-btn" @click="$router.push('/circles')">
-        Back to Circles
-      </button>
-    </div>
-    
-    <div v-else class="circle-details">
-      <div class="circle-header">
-        <div class="title-section">
-          <h1>{{ circle.name }}</h1>
-          <div class="description-container">
-            <div class="description-text">
-              <p v-if="circle.description" class="description">
-                {{ circle.description }}
-                <button v-if="circle.isAdmin" class="edit-icon-btn" @click="openEditDescriptionModal" title="Edit Description">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                  </svg>
-                </button>
-              </p>
-              <p v-else class="no-description">
-                No description provided
-                <button v-if="circle.isAdmin" class="edit-icon-btn" @click="openEditDescriptionModal" title="Edit Description">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                  </svg>
-                </button>
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="actions">
-          <button v-if="circle.isAdmin" class="invite-btn" @click="showInviteModal = true">
+  <div class="page-layout">
+    <!-- Left sidebar for members and invitations -->
+    <div class="members-sidebar" v-if="!loading && !error">
+      <!-- Admin Actions -->
+      <div v-if="circle.isAdmin" class="sidebar-section admin-actions">
+        <div class="sidebar-actions">
+          <button class="invite-btn" @click="showInviteModal = true">
             <i class="fas fa-user-plus"></i> Invite Members
           </button>
-          <button v-if="circle.isAdmin" class="delete-btn" @click="confirmDelete">
+          <button class="delete-btn" @click="confirmDelete">
             <i class="fas fa-trash-alt"></i> Delete Circle
           </button>
         </div>
       </div>
       
-      <div class="members-section">
+      <!-- Members Section -->
+      <div class="sidebar-section members-section">
         <h2>Members ({{ circle.members.length }})</h2>
         
         <div class="members-list">
@@ -118,7 +81,8 @@
         </div>
       </div>
       
-      <div v-if="circle.isAdmin && circle.invitations && circle.invitations.length > 0" class="pending-invitations">
+      <!-- Pending Invitations Section -->
+      <div v-if="circle.isAdmin && circle.invitations && circle.invitations.length > 0" class="sidebar-section pending-invitations">
         <h2>Pending Invitations</h2>
         
         <div class="invitations-list">
@@ -143,6 +107,82 @@
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
               </svg>
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main content -->
+    <div class="circle-view-container">
+      <div v-if="loading" class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Loading circle details...</p>
+      </div>
+      
+      <div v-else-if="error" class="error-container">
+        <div class="error-icon">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h3>Error Loading Circle</h3>
+        <p>{{ error }}</p>
+        <button class="secondary-btn" @click="$router.push('/circles')">
+          Back to Circles
+        </button>
+      </div>
+      
+      <div v-else class="circle-details">
+        <div class="circle-header">
+          <div class="title-section">
+            <h1>{{ circle.name }}</h1>
+            <div class="description-container">
+              <div class="description-text">
+                <p v-if="circle.description" class="description">
+                  {{ circle.description }}
+                  <button v-if="circle.isAdmin" class="edit-icon-btn" @click="openEditDescriptionModal" title="Edit Description">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                    </svg>
+                  </button>
+                </p>
+                <p v-else class="no-description">
+                  No description provided
+                  <button v-if="circle.isAdmin" class="edit-icon-btn" @click="openEditDescriptionModal" title="Edit Description">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                    </svg>
+                  </button>
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Circle content actions -->
+          <div class="circle-actions">
+            <button class="action-button upload-button">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Upload
+            </button>
+            <button class="action-button share-button">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+              Share Album
+            </button>
+          </div>
+        </div>
+        
+        <div class="circle-content">
+          <div class="welcome-message">
+            <h3>Welcome to {{ circle.name }}</h3>
+            <p>This is a private circle where you can connect and share with trusted members.</p>
           </div>
         </div>
       </div>
@@ -256,6 +296,7 @@
 <script>
 import circlesService from '../services/circlesService';
 import { format } from 'date-fns';
+import authStore from '../store/authStore';
 
 export default {
   name: 'CircleView',
@@ -371,9 +412,12 @@ export default {
     },
     
     isCurrentUser(userId) {
-      // In a real app, we'd compare to the current user's ID from auth store
-      // For now, we'll just check if the user is admin of this circle as a proxy
-      return this.circle.members.find(m => m.id === userId && m.isAdmin);
+      // Get the current user from auth store
+      const currentUser = authStore.state.user;
+      if (!currentUser) return false;
+      
+      // Compare the member ID with the current user's ID
+      return userId === currentUser.id;
     },
     
     canLeaveCircle() {
@@ -586,10 +630,29 @@ export default {
 </script>
 
 <style scoped>
-.circle-view-container {
-  max-width: 1200px;
+/* Page-level layout */
+.page-layout {
+  display: flex;
+  gap: 2rem;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+/* Left sidebar styles */
+.members-sidebar {
+  flex: 0 0 380px;
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+/* Main container styles */
+.circle-view-container {
+  flex: 1;
+  min-width: 0; /* Prevent flex items from overflowing */
+  max-width: 1100px;
 }
 
 .loading-container, .error-container {
@@ -643,7 +706,7 @@ export default {
 
 .title-section {
   flex: 1;
-  padding-right: 30px;
+  padding-right: 100px;
 }
 
 .title-section h1 {
@@ -743,26 +806,64 @@ export default {
   background: rgba(231, 76, 60, 0.1);
 }
 
-.members-section, .pending-invitations {
-  margin-bottom: 2.5rem;
+/* Content area */
+.circle-content {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.members-section h2, .pending-invitations h2 {
+.welcome-message {
+  text-align: center;
+  padding: 2rem;
+}
+
+.welcome-message h3 {
   font-size: 1.5rem;
-  margin: 0 0 1.5rem 0;
+  margin-bottom: 1rem;
+  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
+.welcome-message p {
+  color: var(--color-text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Sidebar sections */
+.sidebar-section {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-section h2 {
+  font-size: 1.3rem;
+  margin: 0 0 1.2rem 0;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Members list */
 .members-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 
 .member-card {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0.8rem;
   background-color: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: 10px;
@@ -774,8 +875,8 @@ export default {
 }
 
 .member-avatar {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
@@ -847,8 +948,8 @@ export default {
 }
 
 .action-btn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -888,10 +989,11 @@ export default {
   border-radius: 6px;
 }
 
+/* Invitations */
 .invitations-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 
 .invitation-item {
@@ -945,7 +1047,59 @@ export default {
   background-color: rgba(239, 68, 68, 0.1);
 }
 
-/* Modal styling */
+/* Responsive adjustments */
+@media (min-width: 1800px) {
+  .page-layout {
+    max-width: 1800px;
+  }
+  
+  .circle-view-container {
+    max-width: 1300px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .members-sidebar {
+    flex-basis: 340px;
+  }
+}
+
+@media (max-width: 992px) {
+  .page-layout {
+    flex-direction: column-reverse;
+    padding: 1rem;
+  }
+  
+  .members-sidebar {
+    flex-basis: auto;
+    position: static;
+    max-height: none;
+    width: 100%;
+  }
+  
+  .circle-view-container {
+    max-width: 100%;
+  }
+  
+  .circle-header {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .title-section {
+    padding-right: 0;
+    width: 100%;
+  }
+  
+  .actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.8rem;
+  }
+}
+
+/* Modal styling is unchanged */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1119,73 +1273,6 @@ input.error, textarea.error {
   box-shadow: none;
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .circle-view-container {
-    --bg-color: #1a1a1a;
-    --bg-color-light: #2a2a2a;
-    --text-color: #f5f5f5;
-    --text-color-muted: #aaa;
-    --border-color: #444;
-    --input-bg: #333;
-  }
-  
-  .loading-spinner {
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top: 3px solid var(--primary-color);
-  }
-}
-
-/* Light mode */
-@media (prefers-color-scheme: light) {
-  .circle-view-container {
-    --bg-color: #ffffff;
-    --bg-color-light: #f5f5f5;
-    --text-color: #333;
-    --text-color-muted: #777;
-    --border-color: #ddd;
-    --input-bg: #fff;
-  }
-}
-
-/* Media query for mobile */
-@media (max-width: 768px) {
-  .circle-view-container {
-    padding: 1rem;
-  }
-
-  .circle-header {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .title-section {
-    padding-right: 0;
-    width: 100%;
-  }
-
-  .actions {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    gap: 0.8rem;
-  }
-
-  .description-container {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.8rem;
-  }
-
-  .description-text {
-    width: 100%;
-  }
-
-  .invitations-list {
-    grid-template-columns: 1fr;
-  }
-}
-
 .max-chars {
   font-size: 0.8rem;
   font-weight: normal;
@@ -1214,5 +1301,99 @@ input.error, textarea.error {
 
 .char-counter.error {
   color: #ef4444;
+}
+
+/* Admin actions in sidebar */
+.admin-actions {
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, rgba(156, 106, 222, 0.08), rgba(29, 209, 161, 0.08));
+  border: 1px solid rgba(156, 106, 222, 0.2);
+}
+
+.sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.invite-btn, .delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.invite-btn {
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.2);
+}
+
+.invite-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.3);
+}
+
+.delete-btn {
+  background: transparent;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+}
+
+.delete-btn:hover {
+  background: rgba(231, 76, 60, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Circle actions */
+.circle-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-button {
+  background: linear-gradient(45deg, #9c6ade, #1dd1a1);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.25);
+}
+
+.upload-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
+}
+
+.share-button {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.share-button:hover {
+  background: rgba(156, 106, 222, 0.1);
+  border-color: #9c6ade;
+  color: #9c6ade;
+  transform: translateY(-2px);
 }
 </style> 
