@@ -263,7 +263,7 @@ export default {
           console.log('Current item verified:', currentItem.originalName);
         } catch (itemError) {
           console.error('Current item not found:', itemError);
-          this.$router.push('/');
+          this.$router.push('/gallery');
           return;
         }
 
@@ -288,7 +288,7 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching media details:', error);
-        this.$router.push('/');
+        this.$router.push('/gallery');
       } finally {
         this.loading = false;
       }
@@ -407,7 +407,7 @@ export default {
         this.$router.push({ name: 'AlbumView', params: { id: this.albumId } });
       } else {
         // Otherwise go back to the gallery
-        this.$router.push('/');
+        this.$router.push('/gallery');
       }
     },
     formatDate(dateString, includeTime = false) {

@@ -2,8 +2,12 @@
   <div class="circles-container">
     <div class="circles-header">
       <h1>Your Trusted Circles</h1>
-      <button class="create-circle-btn" @click="showCreateModal = true">
-        <i class="fas fa-plus-circle"></i> Create Circle
+      <button class="create-album-btn" @click="showCreateModal = true">
+        <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Create Circle
       </button>
     </div>
 
@@ -236,24 +240,66 @@ export default {
   font-weight: 700;
 }
 
-.create-circle-btn {
-  background: linear-gradient(45deg, #9c6ade, #1dd1a1);
+.create-album-btn {
+  background: var(--lumia-gradient);
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 0.75rem 1.5rem;
+  box-shadow: var(--lumia-shadow);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  padding: 10px 18px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.25);
+  gap: 8px;
 }
 
-.create-circle-btn:hover {
+.create-album-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.create-album-btn:hover:before {
+  opacity: 1;
+}
+
+.create-album-btn .btn-icon {
+  stroke: currentColor;
+  width: 20px;
+  height: 20px;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease;
+}
+
+.create-album-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
+}
+
+.create-album-btn:hover .btn-icon {
+  transform: translateY(-2px);
+}
+
+/* Dark mode enhancements for create-album-btn */
+@media (prefers-color-scheme: dark) {
+  .create-album-btn {
+    box-shadow: 0 4px 15px rgba(156, 106, 222, 0.4);
+  }
+  
+  .create-album-btn:hover {
+    box-shadow: 0 6px 20px rgba(156, 106, 222, 0.5);
+  }
 }
 
 .loading-container {

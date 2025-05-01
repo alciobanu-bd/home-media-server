@@ -1,5 +1,13 @@
 <template>
   <div class="gallery" ref="galleryContainer">
+    <!-- Gallery Header -->
+    <div class="gallery-header">
+      <div>
+        <h1>Your Media Gallery</h1>
+        <p class="gallery-description">Browse all the photos and videos you've uploaded to Lumia</p>
+      </div>
+    </div>
+
     <div v-if="loading && !media.length" class="loading">
       Loading...
     </div>
@@ -373,4 +381,35 @@ export default {
     }
   }
 };
-</script> 
+</script>
+
+<style>
+/* Add styles for the gallery header */
+.gallery-header {
+  padding: 0 24px 24px 24px; /* Match padding of other content */
+  margin-bottom: 16px;
+  /* Remove border-bottom */
+}
+
+.gallery-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  /* Use the Lumia purple-green gradient */
+  background: linear-gradient(90deg, var(--lumia-purple), var(--lumia-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text; /* For better browser compatibility */
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 4px; /* Match Albums page */
+}
+
+.gallery-description {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  max-width: 800px; /* Slightly wider than before */
+}
+
+/* Ensure existing styles are scoped or global */
+</style> 

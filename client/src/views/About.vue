@@ -23,7 +23,7 @@
               </svg>
             </div>
             <h3>Private Sharing</h3>
-            <p>Share your media with only the people you choose, without exposing your content to public platforms.</p>
+            <p>Share your media with complete control through Trusted Circles. Create private groups for family, friends, or colleagues and decide exactly who can see your photos and videos.</p>
           </div>
           
           <div class="feature">
@@ -61,10 +61,11 @@
       
       <section class="about-section">
         <h2>Get Started</h2>
-        <p>Ready to take control of your media sharing experience? Sign in and start uploading your photos and videos today.</p>
+        <p>Ready to take control of your media sharing experience? Explore Lumia's features and start sharing with your trusted circles today.</p>
         <div class="cta-buttons">
-          <router-link to="/" class="cta-button primary">Explore Gallery</router-link>
-          <router-link to="/albums" class="cta-button secondary">View Albums</router-link>
+          <router-link to="/gallery" class="cta-button primary">Browse Your Media</router-link>
+          <router-link to="/circles" class="cta-button secondary">Manage Trusted Circles</router-link>
+          <router-link to="/albums" class="cta-button accent">Explore Albums</router-link>
         </div>
       </section>
     </div>
@@ -218,6 +219,7 @@ export default {
   display: flex;
   gap: 16px;
   margin-top: 30px;
+  flex-wrap: wrap;
 }
 
 .cta-button {
@@ -228,30 +230,43 @@ export default {
   font-size: 1rem;
   text-decoration: none;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .cta-button.primary {
-  background-color: var(--color-primary);
+  background: var(--lumia-gradient);
   color: white;
-  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+  box-shadow: var(--lumia-shadow);
 }
 
 .cta-button.primary:hover {
-  background-color: var(--color-primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(var(--color-primary-rgb), 0.4);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
 }
 
 .cta-button.secondary {
-  background-color: transparent;
+  background-color: rgba(var(--color-primary-rgb), 0.1);
+  color: var(--color-primary);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.2);
+}
+
+.cta-button.secondary:hover {
+  background-color: rgba(var(--color-primary-rgb), 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.cta-button.accent {
+  background-color: var(--color-bg-tertiary);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
 }
 
-.cta-button.secondary:hover {
+.cta-button.accent:hover {
   background-color: var(--color-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: var(--color-primary-light);
 }
 
 @media (max-width: 768px) {

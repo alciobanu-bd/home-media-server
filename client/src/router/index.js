@@ -12,6 +12,12 @@ import authStore from '../store/authStore';
 const routes = [
   {
     path: '/',
+    name: 'Home',
+    component: Gallery,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/gallery',
     name: 'Gallery',
     component: Gallery,
     meta: { requiresAuth: true }

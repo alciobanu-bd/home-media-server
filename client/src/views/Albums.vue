@@ -21,7 +21,10 @@
     
     <div v-else>
       <div class="albums-header">
-        <h1>Albums</h1>
+        <div>
+          <h1>Albums</h1>
+          <p class="albums-description">Organize your media into collections.</p>
+        </div>
         <button @click="showCreateAlbumModal = true" class="create-album-btn">
           <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -516,6 +519,13 @@ export default {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-family: 'Poppins', sans-serif;
+  margin-bottom: 4px;
+}
+
+.albums-description {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  margin: 0;
 }
 
 .create-album-btn {
