@@ -23,6 +23,14 @@ const createCircle = async (request, reply) => {
             message: 'Circle name is required'
         });
     }
+    
+    // Validate description length if provided
+    if (description && description.length > 150) {
+        return reply.code(400).send({
+            error: 'Bad Request',
+            message: 'Circle description cannot exceed 150 characters'
+        });
+    }
 
     try {
         const db = getDb();

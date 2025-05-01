@@ -30,6 +30,7 @@ const acceptInvitationRoute = require('./circles/acceptInvitation');
 const makeAdminRoute = require('./circles/makeAdmin');
 const removeFromCircleRoute = require('./circles/removeFromCircle');
 const deleteCircleRoute = require('./circles/deleteCircle');
+const updateCircleRoute = require('./circles/updateCircle');
 
 // Import dependencies
 const path = require('path');
@@ -78,6 +79,7 @@ module.exports = function(fastify, opts, done) {
     fastify.register(makeAdminRoute, { prefix: '/api' });
     fastify.register(removeFromCircleRoute, { prefix: '/api' });
     fastify.register(deleteCircleRoute, { prefix: '/api' });
+    fastify.register(updateCircleRoute, { prefix: '/api' });
 
     // Root route for API health check
     fastify.get('/api', async (request, reply) => {

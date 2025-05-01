@@ -49,6 +49,22 @@ const circlesService = {
   },
 
   /**
+   * Update an existing circle
+   * @param {string} id Circle ID
+   * @param {Object} updateData Circle data to update (name, description)
+   * @returns {Promise} Promise object with updated circle details
+   */
+  updateCircle: async (id, updateData) => {
+    try {
+      const response = await api.put(`/circles/${id}`, updateData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating circle:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Invite a user to a circle by email
    * @param {string} id Circle ID
    * @param {string} email Email address to invite

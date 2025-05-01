@@ -75,13 +75,21 @@
           </div>
           
           <div class="form-group">
-            <label for="circle-description">Description (Optional)</label>
+            <label for="circle-description">Description (Optional) <span class="max-chars">(Max 150 characters)</span></label>
             <textarea 
               id="circle-description" 
               v-model="newCircle.description" 
               rows="3" 
               placeholder="Describe the purpose of this Circle"
+              :class="{ 'error': validationErrors.description }"
+              @input="validateDescription"
             ></textarea>
+            <div class="form-feedback">
+              <p v-if="validationErrors.description" class="error-text">{{ validationErrors.description }}</p>
+              <p class="char-counter" :class="{ 'warning': newCircle.description.length > 130, 'error': newCircle.description.length > 150 }">
+                {{ newCircle.description.length }}/150
+              </p>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -118,7 +126,8 @@ export default {
         description: ''
       },
       validationErrors: {
-        name: ''
+        name: '',
+        description: ''
       }
     };
   },
@@ -171,14 +180,26 @@ export default {
     },
     validateCircleForm() {
       let isValid = true;
-      this.validationErrors = { name: '' };
+      this.validationErrors = { name: '', description: '' };
       
       if (!this.newCircle.name || this.newCircle.name.trim() === '') {
         this.validationErrors.name = 'Circle name is required';
         isValid = false;
       }
       
+      if (this.newCircle.description.length > 150) {
+        this.validationErrors.description = 'Description exceeds 150 characters';
+        isValid = false;
+      }
+      
       return isValid;
+    },
+    validateDescription() {
+      if (this.newCircle.description.length > 150) {
+        this.validationErrors.description = 'Description exceeds 150 characters';
+      } else {
+        this.validationErrors.description = '';
+      }
     },
     async createNewCircle() {
       if (!this.validateCircleForm()) {
@@ -642,5 +663,35 @@ input.error, textarea.error {
   .secondary-btn {
     border-color: rgba(156, 106, 222, 0.3);
   }
+}
+
+.max-chars {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: var(--color-text-secondary);
+  opacity: 0.8;
+  margin-left: 0.5rem;
+}
+
+.form-feedback {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.char-counter {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-align: right;
+}
+
+.char-counter.warning {
+  color: #f59e0b;
+}
+
+.char-counter.error {
+  color: #ef4444;
 }
 </style> 

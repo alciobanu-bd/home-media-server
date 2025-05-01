@@ -20,7 +20,13 @@
       <div class="circle-header">
         <div class="title-section">
           <h1>{{ circle.name }}</h1>
-          <p v-if="circle.description" class="description">{{ circle.description }}</p>
+          <div class="description-container">
+            <p v-if="circle.description" class="description">{{ circle.description }}</p>
+            <p v-else class="no-description">No description provided</p>
+            <button v-if="circle.isAdmin" class="edit-description-btn" @click="openEditDescriptionModal">
+              <i class="fas fa-edit"></i> Edit Description
+            </button>
+          </div>
         </div>
         
         <div class="actions">
@@ -147,6 +153,52 @@
       </div>
     </div>
     
+    <!-- Edit Description Modal -->
+    <div v-if="showEditDescriptionModal" class="modal-overlay" @click.self="showEditDescriptionModal = false">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Edit Circle Description</h2>
+          <button class="close-btn" @click="showEditDescriptionModal = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="circle-description">Description <span class="max-chars">(Max 150 characters)</span></label>
+            <textarea 
+              id="circle-description" 
+              v-model="editedDescription" 
+              rows="5" 
+              placeholder="Describe the purpose of this circle"
+              :class="{ 'error': editedDescription.length > 150 }"
+              @input="validateDescription"
+              @focus="console.log('Textarea focused')"
+              @blur="console.log('Textarea blur, length:', editedDescription.length)"
+            ></textarea>
+            <div class="form-feedback">
+              <p v-if="editedDescription.length > 150" class="error-text">Description must be 150 characters or less</p>
+              <p class="char-counter" :class="{ 'warning': editedDescription.length > 130, 'error': editedDescription.length > 150 }">
+                {{ editedDescription.length }}/150
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="secondary-btn" @click="showEditDescriptionModal = false">Cancel</button>
+          <button 
+            class="primary-btn" 
+            @click="updateDescription"
+            :disabled="updatingDescription || editedDescription.length > 150"
+          >
+            <span v-if="updatingDescription">Updating...</span>
+            <span v-else>Save Changes</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
     <!-- Confirmation Modal -->
     <div v-if="showConfirmModal" class="modal-overlay" @click.self="cancelConfirmation">
       <div class="modal-content confirmation-modal">
@@ -207,6 +259,12 @@ export default {
       inviteError: '',
       inviting: false,
       
+      // Edit description modal
+      showEditDescriptionModal: false,
+      editedDescription: '',
+      updatingDescription: false,
+      descriptionError: '',
+      
       // Confirmation modal
       showConfirmModal: false,
       confirmTitle: '',
@@ -231,6 +289,44 @@ export default {
     async loadCircleDetails() {
       const response = await circlesService.getCircleById(this.id);
       this.circle = response;
+      
+      // Initialize editedDescription with current description
+      this.editedDescription = this.circle.description || '';
+      
+      // Make sure descriptionError is reset
+      this.descriptionError = '';
+    },
+    
+    async updateDescription() {
+      // Validate description length
+      if (this.editedDescription.length > 150) {
+        alert('Description cannot exceed 150 characters');
+        return;
+      }
+      
+      try {
+        this.updatingDescription = true;
+        
+        await circlesService.updateCircle(this.id, {
+          description: this.editedDescription.trim()
+        });
+        
+        // Update the local circle object
+        this.circle.description = this.editedDescription.trim();
+        
+        // Close modal
+        this.showEditDescriptionModal = false;
+      } catch (error) {
+        console.error('Error updating circle description:', error);
+        // Check for specific error messages from API
+        if (error.response && error.response.data && error.response.data.message) {
+          alert(error.response.data.message);
+        } else {
+          alert('Failed to update circle description. Please try again.');
+        }
+      } finally {
+        this.updatingDescription = false;
+      }
     },
     
     getInitials(name) {
@@ -392,7 +488,75 @@ export default {
       this.showConfirmModal = false;
       this.confirmAction = null;
       this.confirmData = null;
+    },
+    
+    handleEscKey(event) {
+      if (event.key === 'Escape') {
+        if (this.showEditDescriptionModal) {
+          this.showEditDescriptionModal = false;
+        } else if (this.showInviteModal) {
+          this.showInviteModal = false;
+        } else if (this.showConfirmModal) {
+          this.cancelConfirmation();
+        }
+      }
+    },
+    handleModalVisibilityChange(newValue) {
+      if (newValue) {
+        // Add event listener when modal is opened
+        document.addEventListener('keydown', this.handleEscKey);
+      } else {
+        // Remove event listener when modal is closed
+        document.removeEventListener('keydown', this.handleEscKey);
+      }
+    },
+    validateDescription() {
+      if (this.editedDescription.length > 150) {
+        this.descriptionError = 'Description must be 150 characters or less';
+      } else {
+        this.descriptionError = '';
+      }
+      console.log('Description validation state:', {
+        length: this.editedDescription.length,
+        hasError: Boolean(this.descriptionError),
+        buttonDisabled: this.updatingDescription || Boolean(this.descriptionError)
+      });
+    },
+    openEditDescriptionModal() {
+      // Reset to current circle description
+      this.editedDescription = this.circle.description || '';
+      // Reset error state
+      this.descriptionError = '';
+      // Console log to debug
+      console.log('Opening edit description modal', {
+        description: this.editedDescription,
+        length: this.editedDescription.length
+      });
+      // Show modal
+      this.showEditDescriptionModal = true;
     }
+  },
+  watch: {
+    showEditDescriptionModal(newValue) {
+      this.handleModalVisibilityChange(newValue);
+      
+      // Reset error when opening the modal
+      if (newValue) {
+        this.descriptionError = '';
+        // Also validate description on modal open
+        this.validateDescription();
+      }
+    },
+    showInviteModal(newValue) {
+      this.handleModalVisibilityChange(newValue);
+    },
+    showConfirmModal(newValue) {
+      this.handleModalVisibilityChange(newValue);
+    }
+  },
+  beforeUnmount() {
+    // Clean up event listener if component is unmounted while modal is open
+    document.removeEventListener('keydown', this.handleEscKey);
   }
 };
 </script>
@@ -414,9 +578,9 @@ export default {
 }
 
 .loading-spinner {
-  border: 3px solid rgba(0, 0, 0, 0.1);
+  border: 3px solid rgba(156, 106, 222, 0.1);
   border-radius: 50%;
-  border-top: 3px solid var(--primary-color);
+  border-top: 3px solid #9c6ade;
   width: 40px;
   height: 40px;
   animation: spin 1s linear infinite;
@@ -450,17 +614,66 @@ export default {
   align-items: flex-start;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title-section {
+  flex: 1;
 }
 
 .title-section h1 {
   margin: 0 0 0.5rem 0;
   font-size: 2rem;
+  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
 }
 
-.description {
+.description-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.description, .no-description {
   margin: 0;
-  color: var(--text-color-muted);
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  flex: 1;
+}
+
+.no-description {
+  font-style: italic;
+  opacity: 0.7;
+  color: var(--color-text-secondary);
+}
+
+.edit-description-btn {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-description-btn:hover {
+  background-color: rgba(156, 106, 222, 0.1);
+  border-color: #9c6ade;
+  color: #9c6ade;
+  transform: translateY(-1px);
+}
+
+.edit-description-btn i {
+  font-size: 0.9rem;
 }
 
 .actions {
@@ -676,6 +889,7 @@ export default {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -683,11 +897,12 @@ export default {
 }
 
 .modal-content {
-  background-color: var(--bg-color);
-  border-radius: 8px;
+  background-color: var(--color-bg-primary);
+  border-radius: 12px;
   width: 100%;
   max-width: 500px;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
 .confirmation-modal {
@@ -698,13 +913,19 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(90deg, rgba(156, 106, 222, 0.05), rgba(29, 209, 161, 0.05));
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 1.5rem;
+  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
 }
 
 .close-btn {
@@ -712,112 +933,146 @@ export default {
   border: none;
   font-size: 1.25rem;
   cursor: pointer;
-  color: var(--text-color-muted);
+  color: var(--color-text-secondary);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background-color: rgba(156, 106, 222, 0.1);
+  color: #9c6ade;
 }
 
 .modal-body {
   padding: 1.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color);
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--color-border);
   gap: 1rem;
+  background: linear-gradient(90deg, rgba(156, 106, 222, 0.05), rgba(29, 209, 161, 0.05));
 }
 
 .form-group {
   margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: bold;
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 .required {
-  color: #e74c3c;
+  color: #ef4444;
 }
 
 input, textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: var(--input-bg);
-  color: var(--text-color);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 input:focus, textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: #9c6ade;
+  box-shadow: 0 0 0 3px rgba(156, 106, 222, 0.2);
 }
 
 input.error, textarea.error {
-  border-color: #e74c3c;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
 
 .error-text {
-  color: #e74c3c;
+  color: #ef4444;
   font-size: 0.875rem;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
 }
 
 .primary-btn {
-  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  background: linear-gradient(45deg, #9c6ade, #1dd1a1);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 0.75rem 1.5rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.25);
 }
 
 .primary-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
 }
 
 .primary-btn:disabled {
-  background: #ccc;
+  background: #cbd5e1;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .secondary-btn {
   background: transparent;
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
   padding: 0.75rem 1.5rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.25s ease;
 }
 
 .secondary-btn:hover {
-  background: var(--bg-color-light);
+  background: rgba(156, 106, 222, 0.1);
+  border-color: #9c6ade;
+  color: #9c6ade;
 }
 
 .danger-btn {
-  background: #e74c3c;
+  background: #ef4444;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 0.75rem 1.5rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
 
 .danger-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
 }
 
 .danger-btn:disabled {
-  background: #e57373;
+  background: #f87171;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Dark mode support */
@@ -847,5 +1102,64 @@ input.error, textarea.error {
     --border-color: #ddd;
     --input-bg: #fff;
   }
+}
+
+/* Media query for mobile */
+@media (max-width: 768px) {
+  .circle-view-container {
+    padding: 1rem;
+  }
+
+  .circle-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+
+  .description-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .edit-description-btn {
+    align-self: flex-start;
+  }
+}
+
+.max-chars {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: var(--color-text-secondary);
+  opacity: 0.8;
+  margin-left: 0.5rem;
+}
+
+.form-feedback {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.char-counter {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-align: right;
+}
+
+.char-counter.warning {
+  color: #f59e0b;
+}
+
+.char-counter.error {
+  color: #ef4444;
 }
 </style> 
