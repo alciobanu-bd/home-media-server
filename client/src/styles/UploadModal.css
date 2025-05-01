@@ -188,17 +188,71 @@
   background-color: transparent;
   border: 1px solid var(--color-border);
   color: var(--color-text);
+  transition: all 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background-color: var(--color-hover);
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
 }
 
 .upload-btn {
-  background-color: var(--color-button-background);
-  color: var(--color-button-text);
+  background: var(--lumia-gradient);
+  color: white;
   border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--lumia-shadow);
+}
+
+.upload-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
+}
+
+.upload-btn:hover:before {
+  opacity: 1;
+}
+
+.upload-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(156, 106, 222, 0.2);
 }
 
 .upload-btn:disabled {
-  background-color: var(--color-button-disabled);
+  background: #cbd5e1;
+  color: #f8fafc;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  opacity: 0.7;
+}
+
+.upload-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.upload-btn:disabled:before {
+  display: none;
 }
 
 /* Ensure selected-files list adapts to the Lumia theme */

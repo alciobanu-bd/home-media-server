@@ -21,11 +21,24 @@
         <div class="title-section">
           <h1>{{ circle.name }}</h1>
           <div class="description-container">
-            <p v-if="circle.description" class="description">{{ circle.description }}</p>
-            <p v-else class="no-description">No description provided</p>
-            <button v-if="circle.isAdmin" class="edit-description-btn" @click="openEditDescriptionModal">
-              <i class="fas fa-edit"></i> Edit Description
-            </button>
+            <div class="description-text">
+              <p v-if="circle.description" class="description">
+                {{ circle.description }}
+                <button v-if="circle.isAdmin" class="edit-icon-btn" @click="openEditDescriptionModal" title="Edit Description">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                  </svg>
+                </button>
+              </p>
+              <p v-else class="no-description">
+                No description provided
+                <button v-if="circle.isAdmin" class="edit-icon-btn" @click="openEditDescriptionModal" title="Edit Description">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                  </svg>
+                </button>
+              </p>
+            </div>
           </div>
         </div>
         
@@ -51,45 +64,54 @@
               </div>
             </div>
             
-            <div class="member-info">
-              <div class="member-name">
-                {{ member.name }}
-                <span v-if="member.isAdmin" class="admin-badge">
-                  <i class="fas fa-crown" title="Circle Admin"></i>
+            <div class="member-details">
+              <div class="member-name-wrapper">
+                <span class="member-name">{{ member.name }}</span>
+                <span v-if="member.isAdmin" class="admin-badge" title="Circle Admin">
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                  </svg>
                 </span>
               </div>
               <div class="member-email">{{ member.email }}</div>
             </div>
             
-            <div v-if="circle.isAdmin && !isCurrentUser(member.id)" class="member-actions">
+            <!-- Member actions -->
+            <div class="member-actions" v-if="circle.isAdmin && !isCurrentUser(member.id)">
               <button 
                 v-if="!member.isAdmin" 
-                class="make-admin-btn" 
+                class="action-btn make-admin-btn" 
                 @click="makeAdmin(member.id)"
                 title="Make Admin"
               >
-                <i class="fas fa-user-shield"></i>
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
               </button>
               
               <button 
-                class="remove-btn" 
+                class="action-btn remove-btn" 
                 @click="confirmRemoveMember(member)"
                 title="Remove from Circle"
               >
-                <i class="fas fa-user-minus"></i>
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
               </button>
             </div>
             
-            <div v-else-if="isCurrentUser(member.id)" class="member-actions">
+            <div class="member-actions self-actions" v-else-if="isCurrentUser(member.id)">
               <span class="self-label">You</span>
               
               <button 
                 v-if="canLeaveCircle()" 
-                class="leave-btn" 
+                class="action-btn leave-btn" 
                 @click="confirmLeave()"
                 title="Leave Circle"
               >
-                <i class="fas fa-sign-out-alt"></i>
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                   <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+                </svg>
               </button>
             </div>
           </div>
@@ -101,14 +123,25 @@
         
         <div class="invitations-list">
           <div v-for="(invitation, index) in circle.invitations" :key="index" class="invitation-item">
-            <div class="invitation-info">
-              <i class="fas fa-envelope"></i>
-              <span>{{ invitation.email }}</span>
-              <small>Invited {{ formatDate(invitation.invitedAt) }}</small>
+            <div class="invitation-icon">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+            </div>
+            <div class="invitation-details">
+              <span class="invitation-email">{{ invitation.email }}</span>
+              <small class="invitation-date">Invited {{ formatDate(invitation.invitedAt) }}</small>
             </div>
             
-            <button class="cancel-invite-btn" @click="cancelInvitation(invitation)" title="Cancel Invitation">
-              <i class="fas fa-times"></i>
+            <button 
+              class="action-btn cancel-invite-btn" 
+              @click="cancelInvitation(invitation)" 
+              title="Cancel Invitation"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
             </button>
           </div>
         </div>
@@ -120,9 +153,6 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2>Invite to {{ circle.name }}</h2>
-          <button class="close-btn" @click="showInviteModal = false">
-            <i class="fas fa-times"></i>
-          </button>
         </div>
         
         <div class="modal-body">
@@ -158,9 +188,6 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2>Edit Circle Description</h2>
-          <button class="close-btn" @click="showEditDescriptionModal = false">
-            <i class="fas fa-times"></i>
-          </button>
         </div>
         
         <div class="modal-body">
@@ -204,9 +231,6 @@
       <div class="modal-content confirmation-modal">
         <div class="modal-header">
           <h2>{{ confirmTitle }}</h2>
-          <button class="close-btn" @click="cancelConfirmation">
-            <i class="fas fa-times"></i>
-          </button>
         </div>
         
         <div class="modal-body">
@@ -619,6 +643,7 @@ export default {
 
 .title-section {
   flex: 1;
+  padding-right: 30px;
 }
 
 .title-section h1 {
@@ -633,16 +658,20 @@ export default {
 
 .description-container {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.description-text {
+  width: 100%;
 }
 
 .description, .no-description {
+  position: relative;
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 1rem;
-  flex: 1;
+  display: inline;
 }
 
 .no-description {
@@ -651,29 +680,31 @@ export default {
   color: var(--color-text-secondary);
 }
 
-.edit-description-btn {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  display: flex;
+.edit-icon-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
+  padding: 0;
+  margin-left: 8px;
+  font-size: 0.7rem;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
 }
 
-.edit-description-btn:hover {
+.edit-icon-btn:hover {
   background-color: rgba(156, 106, 222, 0.1);
   border-color: #9c6ade;
   color: #9c6ade;
   transform: translateY(-1px);
-}
-
-.edit-description-btn i {
-  font-size: 0.9rem;
 }
 
 .actions {
@@ -730,10 +761,16 @@ export default {
 .member-card {
   display: flex;
   align-items: center;
+  gap: 1rem;
   padding: 1rem;
-  background-color: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  transition: box-shadow 0.2s ease;
+}
+
+.member-card:hover {
+  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.1);
 }
 
 .member-avatar {
@@ -741,7 +778,7 @@ export default {
   height: 50px;
   border-radius: 50%;
   overflow: hidden;
-  margin-right: 1rem;
+  flex-shrink: 0;
 }
 
 .member-avatar img {
@@ -756,31 +793,46 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  background: var(--lumia-gradient);
   color: white;
-  font-weight: bold;
+  font-weight: 600;
 }
 
-.member-info {
+.member-details {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2px;
 }
 
 .member-name {
-  font-weight: bold;
-  margin-bottom: 0.25rem;
-  display: flex;
-  align-items: center;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-badge {
-  margin-left: 0.5rem;
   color: #f6b93b;
-  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.admin-badge svg {
+  display: block;
 }
 
 .member-email {
-  color: var(--text-color-muted);
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;
@@ -791,94 +843,106 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-left: auto;
 }
 
-.make-admin-btn, .remove-btn, .leave-btn {
-  width: 36px;
-  height: 36px;
+.action-btn {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid var(--border-color);
+  border: none;
   cursor: pointer;
   transition: all 0.2s;
+  color: var(--color-text-secondary);
 }
 
-.make-admin-btn {
-  color: #f6b93b;
+.action-btn:hover {
+  background-color: var(--color-hover);
+  color: var(--color-text-primary);
 }
 
 .make-admin-btn:hover {
-  background: rgba(246, 185, 59, 0.1);
-  border-color: #f6b93b;
-}
-
-.remove-btn, .leave-btn {
-  color: #e74c3c;
+  color: #f6b93b;
+  background-color: rgba(246, 185, 59, 0.1);
 }
 
 .remove-btn:hover, .leave-btn:hover {
-  background: rgba(231, 76, 60, 0.1);
-  border-color: #e74c3c;
+  color: var(--color-error);
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.self-actions {
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
 .self-label {
   font-size: 0.875rem;
-  color: var(--text-color-muted);
-  background: var(--bg-color-light);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  margin-right: 0.5rem;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-tertiary);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
 }
 
 .invitations-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
 .invitation-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0.75rem 1rem;
-  background-color: var(--bg-color-light);
-  border-radius: 4px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
 }
 
-.invitation-info {
+.invitation-item:hover {
+  background-color: var(--color-hover);
+}
+
+.invitation-icon {
+  flex-shrink: 0;
+  margin-right: 0.75rem;
+  color: var(--lumia-purple);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
 }
 
-.invitation-info i {
-  color: var(--primary-color);
+.invitation-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.invitation-info small {
-  color: var(--text-color-muted);
+.invitation-email {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.invitation-date {
+  color: var(--color-text-secondary);
   font-size: 0.75rem;
 }
 
 .cancel-invite-btn {
-  background: transparent;
-  border: none;
-  color: #e74c3c;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background 0.2s;
+  margin-left: auto;
 }
 
 .cancel-invite-btn:hover {
-  background: rgba(231, 76, 60, 0.1);
+  color: var(--color-error);
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
 /* Modal styling */
@@ -926,26 +990,6 @@ export default {
   background-clip: text;
   color: transparent;
   font-weight: 700;
-}
-
-.close-btn {
-  background: transparent;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
-}
-
-.close-btn:hover {
-  background-color: rgba(156, 106, 222, 0.1);
-  color: #9c6ade;
 }
 
 .modal-body {
@@ -1112,24 +1156,33 @@ input.error, textarea.error {
 
   .circle-header {
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
+  }
+
+  .title-section {
+    padding-right: 0;
+    width: 100%;
   }
 
   .actions {
     width: 100%;
     display: flex;
     justify-content: flex-start;
-    gap: 0.5rem;
+    gap: 0.8rem;
   }
 
   .description-container {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 0.8rem;
   }
 
-  .edit-description-btn {
-    align-self: flex-start;
+  .description-text {
+    width: 100%;
+  }
+
+  .invitations-list {
+    grid-template-columns: 1fr;
   }
 }
 

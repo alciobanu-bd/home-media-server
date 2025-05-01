@@ -1,7 +1,7 @@
 <template>
   <div>
-    <!-- Top controls - always visible when not in selection mode -->
-    <div v-if="showControls && !isSelecting" class="gallery-controls top-controls">
+    <!-- Top controls - always visible -->
+    <div v-if="showControls" class="gallery-controls top-controls">
       <button 
         @click="uploadMedia" 
         class="action-btn upload-btn" 
@@ -77,7 +77,7 @@ export default {
   name: 'GalleryControls',
   setup() {
     const route = useRoute();
-    const showControls = computed(() => route.path === '/' && galleryControlsStore.state.galleryInstance);
+    const showControls = computed(() => (route.path === '/' || route.path === '/gallery') && galleryControlsStore.state.galleryInstance);
     const baseUrl = process.env.BASE_URL || '/';
 
     // Use computed properties to access store state
@@ -85,6 +85,11 @@ export default {
     const selectedCount = computed(() => galleryControlsStore.state.selectedCount);
 
     const uploadMedia = () => {
+      // If in selection mode, cancel it first
+      if (isSelecting.value) {
+        galleryControlsStore.toggleSelectMode();
+      }
+      // Then open upload modal
       galleryControlsStore.openUploadModal();
     };
 
