@@ -17,7 +17,7 @@ const updateCircle = async (request, reply) => {
 
     const userId = new ObjectId(request.user._id);
     const circleId = request.params.id;
-    const { description } = request.body;
+    const { name, description } = request.body;
     
     // Validate circleId format
     if (!ObjectId.isValid(circleId)) {
@@ -25,6 +25,23 @@ const updateCircle = async (request, reply) => {
             error: 'Invalid Circle ID',
             message: 'The provided Circle ID is not valid'
         });
+    }
+    
+    // Validate name if provided
+    if (name !== undefined) {
+        if (typeof name !== 'string' || name.trim() === '') {
+            return reply.code(400).send({
+                error: 'Bad Request',
+                message: 'Circle name cannot be empty'
+            });
+        }
+        
+        if (name.length > 50) {
+            return reply.code(400).send({
+                error: 'Bad Request',
+                message: 'Circle name cannot exceed 50 characters'
+            });
+        }
     }
     
     // Validate description length if provided
@@ -56,6 +73,10 @@ const updateCircle = async (request, reply) => {
         const updateData = {
             updatedAt: new Date()
         };
+        
+        if (name !== undefined) {
+            updateData.name = name.trim();
+        }
         
         if (description !== undefined) {
             updateData.description = description;

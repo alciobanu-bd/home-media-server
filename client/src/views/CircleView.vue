@@ -133,24 +133,22 @@
       <div v-else class="circle-details">
         <div class="circle-header">
           <div class="title-section">
-            <h1>{{ circle.name }}</h1>
+            <h1>
+              {{ circle.name }}
+              <button v-if="circle.isAdmin" class="edit-circle-btn" @click="openEditCircleModal" title="Edit Circle Name & Description">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+                <span class="edit-label">Edit Circle</span>
+              </button>
+            </h1>
             <div class="description-container">
               <div class="description-text">
                 <p v-if="circle.description" class="description">
                   {{ circle.description }}
-                  <button v-if="circle.isAdmin" class="edit-icon-btn" @click="openEditDescriptionModal" title="Edit Description">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                    </svg>
-                  </button>
                 </p>
                 <p v-else class="no-description">
                   No description provided
-                  <button v-if="circle.isAdmin" class="edit-icon-btn" @click="openEditDescriptionModal" title="Edit Description">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-                    </svg>
-                  </button>
                 </p>
               </div>
             </div>
@@ -223,14 +221,32 @@
       </div>
     </div>
     
-    <!-- Edit Description Modal -->
-    <div v-if="showEditDescriptionModal" class="modal-overlay" @click.self="showEditDescriptionModal = false">
+    <!-- Edit Circle Modal -->
+    <div v-if="showEditCircleModal" class="modal-overlay" @click.self="showEditCircleModal = false">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>Edit Circle Description</h2>
+          <h2>Edit Circle Details</h2>
         </div>
         
         <div class="modal-body">
+          <div class="form-group">
+            <label for="circle-name">Name <span class="required">*</span> <span class="max-chars">(Max 50 characters)</span></label>
+            <input 
+              id="circle-name" 
+              v-model="editedName" 
+              type="text" 
+              placeholder="Enter circle name"
+              :class="{ 'error': nameError || editedName.length > 50 }"
+              @input="validateName"
+            >
+            <div class="form-feedback">
+              <p v-if="nameError" class="error-text">{{ nameError }}</p>
+              <p class="char-counter" :class="{ 'warning': editedName.length > 40, 'error': editedName.length > 50 }">
+                {{ editedName.length }}/50
+              </p>
+            </div>
+          </div>
+          
           <div class="form-group">
             <label for="circle-description">Description <span class="max-chars">(Max 150 characters)</span></label>
             <textarea 
@@ -240,11 +256,9 @@
               placeholder="Describe the purpose of this circle"
               :class="{ 'error': editedDescription.length > 150 }"
               @input="validateDescription"
-              @focus="console.log('Textarea focused')"
-              @blur="console.log('Textarea blur, length:', editedDescription.length)"
             ></textarea>
             <div class="form-feedback">
-              <p v-if="editedDescription.length > 150" class="error-text">Description must be 150 characters or less</p>
+              <p v-if="descriptionError" class="error-text">{{ descriptionError }}</p>
               <p class="char-counter" :class="{ 'warning': editedDescription.length > 130, 'error': editedDescription.length > 150 }">
                 {{ editedDescription.length }}/150
               </p>
@@ -253,13 +267,13 @@
         </div>
         
         <div class="modal-footer">
-          <button class="secondary-btn" @click="showEditDescriptionModal = false">Cancel</button>
+          <button class="secondary-btn" @click="showEditCircleModal = false">Cancel</button>
           <button 
             class="primary-btn" 
-            @click="updateDescription"
-            :disabled="updatingDescription || editedDescription.length > 150"
+            @click="updateCircleDetails"
+            :disabled="updating || editedDescription.length > 150 || !editedName.trim() || editedName.length > 50"
           >
-            <span v-if="updatingDescription">Updating...</span>
+            <span v-if="updating">Updating...</span>
             <span v-else>Save Changes</span>
           </button>
         </div>
@@ -324,11 +338,13 @@ export default {
       inviteError: '',
       inviting: false,
       
-      // Edit description modal
-      showEditDescriptionModal: false,
+      // Edit circle modal
+      showEditCircleModal: false,
+      editedName: '',
+      nameError: '',
       editedDescription: '',
-      updatingDescription: false,
       descriptionError: '',
+      updating: false,
       
       // Confirmation modal
       showConfirmModal: false,
@@ -355,43 +371,88 @@ export default {
       const response = await circlesService.getCircleById(this.id);
       this.circle = response;
       
-      // Initialize editedDescription with current description
+      // Initialize edited values with current circle details
+      this.editedName = this.circle.name || '';
       this.editedDescription = this.circle.description || '';
       
-      // Make sure descriptionError is reset
+      // Reset error states
+      this.nameError = '';
       this.descriptionError = '';
     },
     
-    async updateDescription() {
-      // Validate description length
+    async updateCircleDetails() {
+      // Validate inputs
+      if (!this.editedName.trim()) {
+        this.nameError = 'Circle name is required';
+        return;
+      }
+      
+      if (this.editedName.length > 50) {
+        this.nameError = 'Name must be 50 characters or less';
+        return;
+      }
+      
       if (this.editedDescription.length > 150) {
-        alert('Description cannot exceed 150 characters');
+        this.descriptionError = 'Description must be 150 characters or less';
         return;
       }
       
       try {
-        this.updatingDescription = true;
+        this.updating = true;
         
         await circlesService.updateCircle(this.id, {
+          name: this.editedName.trim(),
           description: this.editedDescription.trim()
         });
         
         // Update the local circle object
+        this.circle.name = this.editedName.trim();
         this.circle.description = this.editedDescription.trim();
         
         // Close modal
-        this.showEditDescriptionModal = false;
+        this.showEditCircleModal = false;
       } catch (error) {
-        console.error('Error updating circle description:', error);
+        console.error('Error updating circle details:', error);
         // Check for specific error messages from API
         if (error.response && error.response.data && error.response.data.message) {
           alert(error.response.data.message);
         } else {
-          alert('Failed to update circle description. Please try again.');
+          alert('Failed to update circle details. Please try again.');
         }
       } finally {
-        this.updatingDescription = false;
+        this.updating = false;
       }
+    },
+    
+    validateName() {
+      if (!this.editedName.trim()) {
+        this.nameError = 'Circle name is required';
+      } else if (this.editedName.length > 50) {
+        this.nameError = 'Name must be 50 characters or less';
+      } else {
+        this.nameError = '';
+      }
+    },
+    
+    validateDescription() {
+      if (this.editedDescription.length > 150) {
+        this.descriptionError = 'Description must be 150 characters or less';
+      } else {
+        this.descriptionError = '';
+      }
+    },
+    
+    openEditCircleModal() {
+      // Reset to current circle details
+      this.editedName = this.circle.name || '';
+      this.editedDescription = this.circle.description || '';
+      
+      // Reset error states
+      this.nameError = '';
+      this.descriptionError = '';
+      
+      // Show modal
+      this.showEditCircleModal = true;
     },
     
     getInitials(name) {
@@ -560,8 +621,8 @@ export default {
     
     handleEscKey(event) {
       if (event.key === 'Escape') {
-        if (this.showEditDescriptionModal) {
-          this.showEditDescriptionModal = false;
+        if (this.showEditCircleModal) {
+          this.showEditCircleModal = false;
         } else if (this.showInviteModal) {
           this.showInviteModal = false;
         } else if (this.showConfirmModal) {
@@ -577,43 +638,11 @@ export default {
         // Remove event listener when modal is closed
         document.removeEventListener('keydown', this.handleEscKey);
       }
-    },
-    validateDescription() {
-      if (this.editedDescription.length > 150) {
-        this.descriptionError = 'Description must be 150 characters or less';
-      } else {
-        this.descriptionError = '';
-      }
-      console.log('Description validation state:', {
-        length: this.editedDescription.length,
-        hasError: Boolean(this.descriptionError),
-        buttonDisabled: this.updatingDescription || Boolean(this.descriptionError)
-      });
-    },
-    openEditDescriptionModal() {
-      // Reset to current circle description
-      this.editedDescription = this.circle.description || '';
-      // Reset error state
-      this.descriptionError = '';
-      // Console log to debug
-      console.log('Opening edit description modal', {
-        description: this.editedDescription,
-        length: this.editedDescription.length
-      });
-      // Show modal
-      this.showEditDescriptionModal = true;
     }
   },
   watch: {
-    showEditDescriptionModal(newValue) {
+    showEditCircleModal(newValue) {
       this.handleModalVisibilityChange(newValue);
-      
-      // Reset error when opening the modal
-      if (newValue) {
-        this.descriptionError = '';
-        // Also validate description on modal open
-        this.validateDescription();
-      }
     },
     showInviteModal(newValue) {
       this.handleModalVisibilityChange(newValue);
@@ -717,6 +746,9 @@ export default {
   background-clip: text;
   color: transparent;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .description-container {
@@ -743,31 +775,39 @@ export default {
   color: var(--color-text-secondary);
 }
 
-.edit-icon-btn {
-  width: 30px;
-  height: 30px;
+.edit-circle-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
+  background: rgba(156, 106, 222, 0.1);
+  border: 1px solid rgba(156, 106, 222, 0.3);
+  border-radius: 30px;
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
-  padding: 0;
-  margin-left: 8px;
-  font-size: 0.7rem;
+  padding: 6px 12px;
+  font-size: 0.8rem;
   vertical-align: middle;
-  position: relative;
-  top: -1px;
+  margin-left: 8px;
+  gap: 6px;
 }
 
-.edit-icon-btn:hover {
-  background-color: rgba(156, 106, 222, 0.1);
+.edit-circle-btn:hover {
+  background-color: rgba(156, 106, 222, 0.2);
   border-color: #9c6ade;
   color: #9c6ade;
   transform: translateY(-1px);
+}
+
+.edit-circle-btn svg {
+  color: #9c6ade;
+}
+
+.edit-label {
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: inherit;
+  font-family: inherit;
 }
 
 .actions {
