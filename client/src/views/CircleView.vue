@@ -46,9 +46,10 @@
                 class="action-btn make-admin-btn" 
                 @click="makeAdmin(member.id)"
                 title="Make Admin"
+                aria-label="Make this member an admin of the circle"
               >
-                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
+                  <path d="M12 1l3.22 6.52 7.2.62-5.2 5.07 1.22 7.13L12 16.77l-6.44 3.57 1.22-7.13-5.2-5.07 7.2-.62L12 1z"/>
                 </svg>
               </button>
               
@@ -56,8 +57,9 @@
                 class="action-btn remove-btn" 
                 @click="confirmRemoveMember(member)"
                 title="Remove from Circle"
+                aria-label="Remove this member from the circle"
               >
-                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                 </svg>
               </button>
@@ -71,8 +73,9 @@
                 class="action-btn leave-btn" 
                 @click="confirmLeave()"
                 title="Leave Circle"
+                aria-label="Leave this circle"
               >
-                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
                    <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
                 </svg>
               </button>
@@ -102,8 +105,9 @@
               class="action-btn cancel-invite-btn" 
               @click="cancelInvitation(invitation)" 
               title="Cancel Invitation"
+              aria-label="Cancel invitation for this email address"
             >
-              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
               </svg>
             </button>
@@ -178,9 +182,44 @@
         </div>
         
         <div class="circle-content">
-          <div class="welcome-message">
+          <div v-if="sharedAlbums.length === 0" class="welcome-message">
             <h3>Welcome to {{ circle.name }}</h3>
             <p>This is a private circle where you can connect and share with trusted members.</p>
+            <p>No albums have been shared with this circle yet.</p>
+          </div>
+          
+          <div v-else class="albums-container">
+            <h3 class="section-title">Shared Albums</h3>
+            <div class="albums-grid">
+              <div 
+                v-for="album in sharedAlbums" 
+                :key="album._id"
+                class="album-card"
+                @click="viewAlbum(album._id)"
+              >
+                <div class="album-thumbnail">
+                  <div v-if="!album.thumbnailId" class="album-placeholder">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="2" width="20" height="20" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="2.5"></circle>
+                      <path d="m21 15-5-5L5 21"></path>
+                    </svg>
+                  </div>
+                  <img 
+                    v-else 
+                    :src="`${apiBaseUrl}/thumbnails/${album.thumbnailId}.jpg`" 
+                    alt="Album thumbnail" 
+                    class="album-thumbnail-image"
+                  />
+                </div>
+                
+                <div class="album-info">
+                  <h4 class="album-name">{{ album.name }}</h4>
+                  <p class="album-meta">{{ album.fileCount || 0 }} items</p>
+                  <p class="album-owner">Shared by: {{ getOwnerName(album.userId) }}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -311,6 +350,7 @@
 import circlesService from '../services/circlesService';
 import { format } from 'date-fns';
 import authStore from '../store/authStore';
+import albumsService from '../services/albumsService';
 
 export default {
   name: 'CircleView',
@@ -329,6 +369,7 @@ export default {
         isAdmin: false,
         invitations: []
       },
+      sharedAlbums: [],
       loading: true,
       error: null,
       
@@ -353,12 +394,16 @@ export default {
       confirmButtonText: 'Confirm',
       confirmAction: null,
       confirmData: null,
-      processing: false
+      processing: false,
+      
+      // API URL
+      apiBaseUrl: 'http://localhost:3000/api'
     };
   },
   async created() {
     try {
       await this.loadCircleDetails();
+      await this.loadSharedAlbums();
     } catch (error) {
       this.error = 'Failed to load circle details. The circle may not exist or you might not have permission to view it.';
       console.error('Error loading circle:', error);
@@ -378,6 +423,25 @@ export default {
       // Reset error states
       this.nameError = '';
       this.descriptionError = '';
+    },
+    
+    async loadSharedAlbums() {
+      try {
+        // Get all albums shared with this circle using the service
+        this.sharedAlbums = await albumsService.getAlbumsSharedWithCircle(this.id);
+      } catch (error) {
+        console.error('Error loading shared albums:', error);
+      }
+    },
+    
+    getOwnerName(userId) {
+      // Find the member with this userId
+      const member = this.circle.members.find(member => member.id === userId);
+      return member ? member.name : 'Unknown';
+    },
+    
+    viewAlbum(albumId) {
+      this.$router.push(`/albums/${albumId}`);
     },
     
     async updateCircleDetails() {
@@ -1006,9 +1070,14 @@ export default {
   color: var(--color-text-primary);
 }
 
+.make-admin-btn {
+  color: #f6b93b;
+}
+
 .make-admin-btn:hover {
   color: #f6b93b;
   background-color: rgba(246, 185, 59, 0.1);
+  transform: scale(1.1);
 }
 
 .remove-btn:hover, .leave-btn:hover {
@@ -1435,5 +1504,103 @@ input.error, textarea.error {
   border-color: #9c6ade;
   color: #9c6ade;
   transform: translateY(-2px);
+}
+
+/* Albums section */
+.albums-container {
+  margin-top: 2rem;
+}
+
+.section-title {
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.albums-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.album-card {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.album-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: #9c6ade;
+}
+
+.album-thumbnail {
+  height: 150px;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.album-thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.album-card:hover .album-thumbnail-image {
+  transform: scale(1.05);
+}
+
+.album-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+.album-info {
+  padding: 1.2rem;
+}
+
+.album-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-meta {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  margin: 0 0 0.3rem 0;
+}
+
+.album-owner {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin: 0;
 }
 </style> 

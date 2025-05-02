@@ -42,7 +42,7 @@
             </svg>
             {{ groupByDate ? 'Grid View' : 'Group by Day' }}
           </button>
-          <button class="album-action-btn upload-btn" @click="showUploadModal = true">
+          <button v-if="isAlbumOwner" class="album-action-btn upload-btn" @click="showUploadModal = true">
             <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="17 8 12 3 7 8"></polyline>
@@ -50,14 +50,24 @@
             </svg>
             Upload
           </button>
-          <button class="album-action-btn edit-btn" @click="showEditModal = true">
+          <button v-if="isAlbumOwner" class="album-action-btn edit-btn" @click="showEditModal = true">
             <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 20h9"></path>
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
             Rename
           </button>
-          <button class="album-action-btn delete-btn" @click="showDeleteConfirmation = true">
+          <button v-if="isAlbumOwner" class="album-action-btn share-btn" @click="showShareModal = true">
+            <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+            Share to Circle
+          </button>
+          <button v-if="isAlbumOwner" class="album-action-btn delete-btn" @click="showDeleteConfirmation = true">
             <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -88,7 +98,7 @@
       </div>
       
       <div v-else>
-        <div class="selection-controls" v-if="albumFiles.length > 0">
+        <div class="selection-controls" v-if="albumFiles.length > 0 && isAlbumOwner">
           <button class="control-btn" @click="toggleSelectMode">
             {{ inSelectionMode ? 'Cancel Selection' : 'Select Items' }}
           </button>
@@ -107,7 +117,7 @@
             <h2 class="date-header">
               {{ formatDate(date) }}
               <button
-                v-if="date !== 'ungrouped'"
+                v-if="date !== 'ungrouped' && isAlbumOwner"
                 class="day-select-btn"
                 @click.prevent="handleDaySelect(date)"
                 title="Select all items from this day"
@@ -121,12 +131,13 @@
                 v-for="item in group" 
                 :key="item._id"
                 :item="item" 
-                :select-mode="inSelectionMode"
+                :select-mode="isAlbumOwner && inSelectionMode"
                 :selected="selectedItems.includes(item._id)"
                 :selection-index="selectedItems.indexOf(item._id)"
+                :can-modify="isAlbumOwner"
                 @click="handleItemClick(item)"
-                @select="toggleSelect(item)"
-                @delete="removeFromAlbum(item)"
+                @select="isAlbumOwner ? toggleSelect(item) : null"
+                @delete="isAlbumOwner ? removeFromAlbum(item) : null"
               />
             </div>
           </div>
@@ -140,12 +151,13 @@
             v-for="item in albumFiles" 
             :key="item._id"
             :item="item" 
-            :select-mode="inSelectionMode"
+            :select-mode="isAlbumOwner && inSelectionMode"
             :selected="selectedItems.includes(item._id)"
             :selection-index="selectedItems.indexOf(item._id)"
+            :can-modify="isAlbumOwner"
             @click="handleItemClick(item)"
-            @select="toggleSelect(item)"
-            @delete="removeFromAlbum(item)"
+            @select="isAlbumOwner ? toggleSelect(item) : null"
+            @delete="isAlbumOwner ? removeFromAlbum(item) : null"
           />
             </div>
           </div>
@@ -184,15 +196,27 @@
       @close="showUploadModal = false"
       @upload-complete="refreshAlbumFiles"
     />
+    
+    <!-- Share to Circle Modal -->
+    <circle-selector-modal
+      v-if="showShareModal"
+      :album-id="$route.params.id"
+      :album-name="album?.name"
+      :shared-circle-ids="album?.circleIds || []"
+      @close="showShareModal = false"
+      @shared="handleAlbumShared"
+    />
   </div>
 </template>
 
 <script>
-import api from '../services/api';
+import albumsService from '../services/albumsService';
 import MediaItem from '../components/MediaItem.vue';
 import ConfirmationDialog from '../components/ConfirmationDialog.vue';
 import UploadModal from '../components/UploadModal.vue';
 import RenameModal from '../components/RenameModal.vue';
+import CircleSelectorModal from '../components/CircleSelectorModal.vue';
+import authStore from '../store/authStore';
 
 export default {
   name: 'AlbumView',
@@ -200,7 +224,8 @@ export default {
     MediaItem,
     ConfirmationDialog,
     UploadModal,
-    RenameModal
+    RenameModal,
+    CircleSelectorModal
   },
   data() {
     // Load view preference from localStorage
@@ -221,6 +246,7 @@ export default {
       showEditModal: false,
       showDeleteConfirmation: false,
       showUploadModal: false,
+      showShareModal: false,
       editAlbumName: '',
       updating: false,
       inSelectionMode: false,
@@ -231,6 +257,12 @@ export default {
   },
   created() {
     this.fetchAlbum();
+    // Add ESC key handler for modals
+    document.addEventListener('keydown', this.handleKeydown);
+  },
+  beforeUnmount() {
+    // Remove event listener when component is destroyed
+    document.removeEventListener('keydown', this.handleKeydown);
   },
   watch: {
     // Watch for route param changes to reload album when navigating between albums
@@ -243,6 +275,24 @@ export default {
     }
   },
   methods: {
+    // Handle ESC key to close modals
+    handleKeydown(event) {
+      if (event.key === 'Escape') {
+        // Close modals based on their state
+        if (this.showEditModal) {
+          this.showEditModal = false;
+        }
+        if (this.showDeleteConfirmation) {
+          this.showDeleteConfirmation = false;
+        }
+        if (this.showUploadModal) {
+          this.showUploadModal = false;
+        }
+        if (this.showShareModal) {
+          this.showShareModal = false;
+        }
+      }
+    },
     // Method to save view preference to localStorage
     saveViewPreference(value) {
       try {
@@ -257,12 +307,10 @@ export default {
         const albumId = this.$route.params.id;
         
         // Fetch album details first
-        const albumResponse = await api.get(`/albums/${albumId}`);
-        this.album = albumResponse.data;
+        this.album = await albumsService.getAlbumById(albumId);
         
         // Then fetch album files separately
-        const filesResponse = await api.get(`/albums/${albumId}/files`);
-        this.albumFiles = filesResponse.data.files;
+        this.albumFiles = await albumsService.getAlbumFiles(albumId);
         
         // Set document title
         document.title = `${this.album.name} | Lumia`;
@@ -314,9 +362,7 @@ export default {
       
       try {
         this.updating = true;
-        await api.put(`/albums/${this.album._id}`, {
-          name: newName
-        });
+        await albumsService.updateAlbum(this.album._id, newName);
         
         // Update local album name
         this.album.name = newName;
@@ -336,7 +382,7 @@ export default {
     },
     async deleteAlbum() {
       try {
-        await api.delete(`/albums/${this.album._id}`);
+        await albumsService.deleteAlbum(this.album._id);
         this.$router.push({ name: 'Albums' });
       } catch (error) {
         console.error('Error deleting album:', error);
@@ -347,7 +393,7 @@ export default {
     },
     async removeFromAlbum(item) {
       try {
-        await api.delete(`/albums/${this.album._id}/media/${item._id}`);
+        await albumsService.removeMediaFromAlbum(this.album._id, item._id);
         // Remove the item from the local albumFiles array
         const index = this.albumFiles.findIndex(file => file._id === item._id);
         if (index !== -1) {
@@ -370,7 +416,7 @@ export default {
         
         // Create array of promises for all delete operations
         const deletePromises = this.selectedItems.map(itemId => 
-          api.delete(`/albums/${this.album._id}/media/${itemId}`)
+          albumsService.removeMediaFromAlbum(this.album._id, itemId)
         );
         
         // Execute all delete operations
@@ -387,6 +433,16 @@ export default {
         console.error('Error removing items from album:', error);
         alert('Failed to remove some items from album. Please try again.');
       }
+    },
+    handleAlbumShared(data) {
+      // Update the local album object with the new circleIds
+      if (!this.album.circleIds) {
+        this.album.circleIds = [];
+      }
+      this.album.circleIds = data.circleIds;
+      
+      // Show a success message
+      alert('Album has been shared successfully!');
     },
     refreshAlbumFiles() {
       this.fetchAlbum();
@@ -427,6 +483,10 @@ export default {
     }
   },
   computed: {
+    // Check if the current user is the album owner
+    isAlbumOwner() {
+      return this.album && authStore.state.user && this.album.userId === authStore.state.user.id;
+    },
     // Computed property to group media by date when groupByDate is true
     groupedAlbumFiles() {
       if (!this.groupByDate) {
@@ -598,13 +658,13 @@ export default {
 
 .upload-btn {
   background-color: var(--color-bg-tertiary);
-  color: var(--color-text-secondary);
+  color: white;
   border: none;
 }
 
 .upload-btn:hover {
   background-color: var(--color-hover-dark);
-  color: var(--color-text-primary);
+  color: white;
 }
 
 .edit-btn {
@@ -616,6 +676,17 @@ export default {
 .edit-btn:hover {
   background-color: var(--color-hover-dark);
   color: var(--color-text-primary);
+}
+
+.share-btn {
+  background-color: rgba(156, 106, 222, 0.2);
+  color: #9c6ade;
+  border: none;
+}
+
+.share-btn:hover {
+  background-color: rgba(156, 106, 222, 0.3);
+  color: #7c4dae;
 }
 
 .delete-btn {

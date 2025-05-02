@@ -121,7 +121,11 @@ export default {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 20px;
-  color: var(--color-text-primary);
+  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  background-clip: text;
 }
 
 .form-group {
@@ -179,25 +183,58 @@ export default {
   background-color: transparent;
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
+  transition: all 0.3s ease;
 }
 
 .cancel-btn:hover {
-  background-color: var(--color-hover);
+  background-color: rgba(156, 106, 222, 0.1);
+  transform: translateY(-2px);
+  border-color: #9c6ade;
+  color: #9c6ade;
 }
 
 .submit-btn {
-  background-color: var(--color-primary);
+  background: var(--lumia-gradient);
   color: white;
   border: none;
   font-weight: 600;
+  box-shadow: var(--lumia-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.submit-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
 }
 
 .submit-btn:hover {
-  opacity: 0.8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
+}
+
+.submit-btn:hover:before {
+  opacity: 1;
+}
+
+.submit-btn span {
+  position: relative;
+  z-index: 2;
 }
 
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 </style> 

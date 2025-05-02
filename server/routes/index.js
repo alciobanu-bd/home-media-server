@@ -21,6 +21,8 @@ const deleteAlbumRoute = require('./albums/deleteAlbum');
 const addMediaToAlbumRoute = require('./albums/addMediaToAlbum');
 const removeMediaFromAlbumRoute = require('./albums/removeMediaFromAlbum');
 const getAlbumFilesRoute = require('./albums/getAlbumFiles');
+const shareAlbumRoute = require('./albums/shareAlbum');
+const getCircleSharedAlbumsRoute = require('./albums/getCircleSharedAlbums');
 // Import individual Circles routes
 const createCircleRoute = require('./circles/createCircle');
 const getUserCirclesRoute = require('./circles/getUserCircles');
@@ -69,6 +71,8 @@ module.exports = function(fastify, opts, done) {
     fastify.register(addMediaToAlbumRoute, { prefix: '/api' });
     fastify.register(removeMediaFromAlbumRoute, { prefix: '/api' });
     fastify.register(getAlbumFilesRoute, { prefix: '/api' });
+    fastify.register(shareAlbumRoute, { prefix: '/api' });
+    fastify.register(getCircleSharedAlbumsRoute, { prefix: '/api' });
     
     // Register individual circles routes with the /api prefix
     fastify.register(createCircleRoute, { prefix: '/api' });

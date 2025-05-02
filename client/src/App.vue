@@ -52,7 +52,7 @@
       </div>
     </header>
     <div class="router-view-container">
-      <router-view v-if="appReady" />
+    <router-view v-if="appReady" />
     </div>
     <div v-if="!appReady" class="app-loading">
       <div class="loading-spinner"></div>

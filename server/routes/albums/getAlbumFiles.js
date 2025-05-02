@@ -3,7 +3,7 @@ const { getDb, getCollection } = require('../utils/db');
 const { verifyToken } = require('../auth/authMiddleware');
 
 /**
- * Route handler for getting files in an album
+ * Route handler for getting all files in an album
  * GET /api/albums/:id/files
  */
 const getAlbumFilesHandler = async (request, reply) => {
@@ -30,31 +30,50 @@ const getAlbumFilesHandler = async (request, reply) => {
         const db = getDb();
         const albumsCollection = getCollection(db, 'albums');
         const filesCollection = getCollection(db, 'files');
+        const circlesCollection = getCollection(db, 'circles');
         
-        // Verify album exists and belongs to user
+        // First get circles the user is a member of
+        const userObjectId = new ObjectId(userId);
+        const userCircles = await circlesCollection.find({
+            memberIds: userObjectId
+        }).toArray();
+        
+        const userCircleIds = userCircles.map(circle => circle._id.toString());
+        
+        // Find the album that either belongs to the user or is shared with a circle they're in
         const album = await albumsCollection.findOne({
             _id: new ObjectId(albumId),
-            userId: userId
+            $or: [
+                { userId: userId },
+                { circleIds: { $in: userCircleIds } }
+            ]
         });
         
         if (!album) {
             return reply.code(404).send({
                 error: 'Not found',
-                message: 'Album not found'
+                message: 'Album not found or you do not have permission to access it'
             });
         }
         
-        // Find all files in this album
-        const files = await filesCollection
-            .find({ 
+        // If album belongs to the user, get all files in it
+        if (album.userId.toString() === userId.toString()) {
+            // Get all files in this album
+            const files = await filesCollection.find({
                 userId: userId,
                 albums: albumId
-            })
-            .sort({ _id: -1 }) // Sort by _id in descending order (newer first)
-            .toArray();
-        
-        // Return the files array
-        return { files };
+            }).toArray();
+            
+            return { files };
+        } else {
+            // If accessing a shared album, get files from album owner
+            const files = await filesCollection.find({
+                userId: album.userId,
+                albums: albumId
+            }).toArray();
+            
+            return { files };
+        }
     } catch (err) {
         console.error('Error getting album files:', err);
         return reply.code(500).send({ error: 'Failed to get album files' });

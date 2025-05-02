@@ -31,16 +31,30 @@ const getAlbumHandler = async (request, reply) => {
         const albumsCollection = getCollection(db, 'albums');
         const filesCollection = getCollection(db, 'files');
         
-        // Find the album
+        // Find the album that either belongs to the user or is shared with a circle they're in
+        const userObjectId = new ObjectId(userId);
+        const circlesCollection = getCollection(db, 'circles');
+        
+        // First get circles the user is a member of
+        const userCircles = await circlesCollection.find({
+            memberIds: userObjectId
+        }).toArray();
+        
+        const userCircleIds = userCircles.map(circle => circle._id.toString());
+        
+        // Find the album that either belongs to the user or is shared with one of their circles
         const album = await albumsCollection.findOne({
             _id: new ObjectId(albumId),
-            userId: userId
+            $or: [
+                { userId: userId },
+                { circleIds: { $in: userCircleIds } }
+            ]
         });
         
         if (!album) {
             return reply.code(404).send({
                 error: 'Not found',
-                message: 'Album not found'
+                message: 'Album not found or you do not have permission to access it'
             });
         }
         

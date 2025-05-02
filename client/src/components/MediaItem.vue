@@ -18,13 +18,13 @@
     </div>
     
     <!-- Selection checkbox - visible on hover -->
-    <div class="select-checkbox-trigger" @click.stop="startSelection">
+    <div class="select-checkbox-trigger" v-if="canModify" @click.stop="startSelection">
       <div class="checkbox-container" :title="'Select'">
         <img :src="baseUrl + 'img/checkbox-icon.svg'" alt="Select" />
       </div>
     </div>
     
-    <div class="media-actions" v-if="!selectMode">
+    <div class="media-actions" v-if="!selectMode && canModify">
       <button class="action-btn delete-btn" type="button" @click.stop="$emit('delete', item)">
         <img :src="baseUrl + 'img/delete-icon.svg'" alt="Delete" />
       </button>
@@ -72,6 +72,10 @@ export default {
     selectionIndex: {
       type: Number,
       default: -1 // -1 indicates not selected
+    },
+    canModify: {
+      type: Boolean,
+      default: true
     }
   },
   data() {

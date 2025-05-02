@@ -25,16 +25,33 @@
           <h1>Albums</h1>
           <p class="albums-description">Organize your media into collections.</p>
         </div>
-        <button @click="showCreateAlbumModal = true" class="create-album-btn">
-          <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Create Album
-        </button>
+        <div class="header-actions">
+          <div class="view-toggle">
+            <button
+              @click="showSharedAlbums = false"
+              :class="['toggle-btn', !showSharedAlbums ? 'active' : '']"
+            >
+              My Albums
+            </button>
+            <button
+              @click="showSharedAlbums = true"
+              :class="['toggle-btn', showSharedAlbums ? 'active' : '']"
+            >
+              Shared with Me
+            </button>
+          </div>
+          <button @click="showCreateAlbumModal = true" class="create-album-btn">
+            <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create Album
+          </button>
+        </div>
       </div>
       
-      <div class="albums-grid">
+      <!-- Personal Albums -->
+      <div v-if="!showSharedAlbums" class="albums-grid">
         <div 
           v-for="album in albums" 
           :key="album._id"
@@ -121,6 +138,53 @@
           </div>
         </div>
       </div>
+      
+      <!-- Shared Albums -->
+      <div v-else>
+        <div v-if="sharedAlbums.length === 0" class="empty-shared">
+          <img :src="baseUrl + 'img/empty-circle.svg'" alt="No Shared Albums" class="empty-icon" />
+          <h3>No Shared Albums</h3>
+          <p>You don't have any albums shared with you from your circles yet.</p>
+          <button @click="$router.push('/circles')" class="view-circles-btn">View My Circles</button>
+        </div>
+        <div v-else class="albums-grid">
+          <div 
+            v-for="album in sharedAlbums" 
+            :key="album._id"
+            class="album-card shared"
+            @click="navigateToAlbum(album._id)"
+          >
+            <div class="album-content">
+              <div class="album-thumbnail">
+                <div class="album-thumbnail-container">
+                  <!-- Album thumbnail logic -->
+                  <div v-if="!album.thumbnailId" class="album-placeholder">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="2" width="20" height="20" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="2.5"></circle>
+                      <path d="m21 15-5-5L5 21"></path>
+                    </svg>
+                  </div>
+                  <img 
+                    v-else-if="album.thumbnailId" 
+                    :src="`${apiBaseUrl}/thumbnails/${album.thumbnailId}.jpg`" 
+                    alt="Album thumbnail" 
+                    class="album-thumbnail-image"
+                  />
+                </div>
+              </div>
+              <div class="album-info">
+                <h3 class="album-name">{{ album.name }}</h3>
+                <p class="album-count">{{ album.fileCount || 0 }} items</p>
+                <div class="shared-info">
+                  <span class="shared-badge">Shared</span>
+                  <span class="owner-name">by {{ getOwnerName(album.userId) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Create Album Modal -->
@@ -153,65 +217,21 @@
       @submit="renameAlbum"
     />
     
-    <!-- Select Thumbnail Modal -->
-    <div v-if="showSetThumbnailModal" class="modal-overlay" @click.self="showSetThumbnailModal = false">
-      <div class="modal-content thumbnail-modal">
-        <h2>Select Album Thumbnail</h2>
-        
-        <!-- Content section -->
-        <div class="modal-body">
-          <div v-if="thumbnailLoading" class="loading">
-            Loading thumbnails...
-          </div>
-          <div v-else-if="!albumFiles.length" class="empty-thumbnails">
-            <p>No images in this album to set as thumbnail.</p>
-          </div>
-          <div v-else class="thumbnail-grid">
-            <div 
-              v-for="file in albumFiles" 
-              :key="file._id"
-              class="thumbnail-option"
-              :class="{ 'selected': currentThumbnailId === file._id }"
-              @click="selectThumbnail(file._id)"
-            >
-              <img :src="`${apiBaseUrl}/thumbnails/${file._id}.jpg`" alt="Thumbnail option" />
-            </div>
-          </div>
-        </div>
-        
-        <!-- Always visible buttons section -->
-        <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="showSetThumbnailModal = false">Cancel</button>
-          <button 
-            class="submit-btn" 
-            @click="setAlbumThumbnail" 
-            :disabled="!currentThumbnailId || updating"
-          >
-            <span v-if="updating">Updating...</span>
-            <span v-else>Save</span>
-          </button>
-        </div>
-      </div>
-    </div>
-    
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteConfirmation" class="modal-overlay" @click.self="showDeleteConfirmation = false">
-      <div class="modal-content">
-        <h2>Delete Album</h2>
-        <p class="delete-message">Are you sure you want to delete this album? This action cannot be undone.</p>
-        <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="showDeleteConfirmation = false">Cancel</button>
-          <button 
-            class="delete-btn" 
-            @click="deleteAlbum" 
-            :disabled="deleting"
-          >
-            <span v-if="deleting">Deleting...</span>
-            <span v-else>Delete</span>
-          </button>
-        </div>
-      </div>
-    </div>
+    <confirmation-dialog
+      v-if="showDeleteConfirmation"
+      message="Are you sure you want to delete this album? This action cannot be undone."
+      @confirm="deleteAlbum"
+      @cancel="showDeleteConfirmation = false"
+    />
+    
+    <!-- Thumbnail Selector Modal -->
+    <thumbnail-selector-modal
+      v-if="showSetThumbnailModal && selectedAlbum"
+      :album-id="selectedAlbum._id"
+      @close="showSetThumbnailModal = false"
+      @thumbnail-updated="refreshAlbumThumbnail"
+    />
   </div>
 </template>
 
@@ -219,15 +239,22 @@
 import api from '../services/api';
 import { format } from 'date-fns';
 import RenameModal from '../components/RenameModal.vue';
+import ConfirmationDialog from '../components/ConfirmationDialog.vue';
+import ThumbnailSelectorModal from '../components/ThumbnailSelectorModal.vue';
+import circlesService from '../services/circlesService';
 
 export default {
   name: 'Albums',
   components: {
-    RenameModal
+    RenameModal,
+    ConfirmationDialog,
+    ThumbnailSelectorModal
   },
   data() {
     return {
       albums: [],
+      sharedAlbums: [],
+      showSharedAlbums: false,
       loading: true,
       showCreateAlbumModal: false,
       showRenameAlbumModal: false,
@@ -244,11 +271,13 @@ export default {
       thumbnailLoading: false,
       currentThumbnailId: null,
       baseUrl: process.env.BASE_URL || '/',
-      apiBaseUrl: 'http://localhost:3000/api'
+      apiBaseUrl: 'http://localhost:3000/api',
+      albumOwners: {}
     };
   },
-  created() {
-    this.fetchAlbums();
+  async created() {
+    await this.loadAlbums();
+    await this.loadSharedAlbums();
     // Add global click handler to close menus
     document.addEventListener('click', this.closeMenus);
     // Add ESC key handler for modals
@@ -285,16 +314,76 @@ export default {
         }
       }
     },
-    async fetchAlbums() {
+    async loadAlbums() {
       try {
         this.loading = true;
         const response = await api.get('/albums');
-        this.albums = response.data.albums;
+        this.albums = response.data.albums || [];
       } catch (error) {
-        console.error('Error fetching albums:', error);
+        console.error('Error loading albums:', error);
       } finally {
         this.loading = false;
       }
+    },
+    async loadSharedAlbums() {
+      try {
+        // Load user's circles
+        const circlesResponse = await circlesService.getUserCircles();
+        if (!circlesResponse.circles || circlesResponse.circles.length === 0) {
+          return;
+        }
+        
+        // Get all circle IDs that the user is a member of
+        const circleIds = circlesResponse.circles.map(circle => circle.id);
+        
+        // Load all albums
+        const albumsResponse = await api.get('/albums');
+        if (!albumsResponse.data.albums) {
+          return;
+        }
+        
+        // Filter albums that are shared with one of the user's circles
+        // and don't belong to the user
+        const currentUserId = localStorage.getItem('userId');
+        this.sharedAlbums = albumsResponse.data.albums.filter(album => 
+          album.userId !== currentUserId && 
+          album.circleIds && 
+          album.circleIds.some(id => circleIds.includes(id))
+        );
+        
+        // Load owner details for each shared album
+        await this.loadAlbumOwners();
+      } catch (error) {
+        console.error('Error loading shared albums:', error);
+      }
+    },
+    async loadAlbumOwners() {
+      try {
+        // Create a set of unique owner IDs
+        const ownerIds = new Set();
+        this.sharedAlbums.forEach(album => ownerIds.add(album.userId));
+        
+        // For each owner ID, try to get details from circles
+        const circlesResponse = await circlesService.getUserCircles();
+        const userCircles = circlesResponse.circles || [];
+        
+        // For each circle, get circle details (which includes member details)
+        for (const circle of userCircles) {
+          const circleDetails = await circlesService.getCircleById(circle.id);
+          
+          // For each member, check if they are an owner of an album
+          circleDetails.members.forEach(member => {
+            if (ownerIds.has(member.id)) {
+              this.albumOwners[member.id] = member.name;
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error loading album owners:', error);
+      }
+    },
+    getOwnerName(ownerId) {
+      return this.albumOwners[ownerId] || 'Unknown User';
     },
     formatDate(dateStr) {
       const date = new Date(dateStr);
@@ -443,6 +532,18 @@ export default {
       } finally {
         this.updating = false;
       }
+    },
+    navigateToAlbum(albumId) {
+      this.$router.push({ name: 'AlbumView', params: { id: albumId } });
+    },
+    refreshAlbumThumbnail(data) {
+      if (this.selectedAlbum) {
+        // Update the album's thumbnail ID in the local albums array
+        const index = this.albums.findIndex(a => a._id === this.selectedAlbum._id);
+        if (index !== -1) {
+          this.albums[index].thumbnailId = data.thumbnailId;
+        }
+      }
     }
   }
 };
@@ -526,6 +627,40 @@ export default {
   font-size: 15px;
   color: var(--color-text-secondary);
   margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.view-toggle {
+  display: flex;
+  background-color: var(--color-bg-tertiary);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.toggle-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.toggle-btn.active {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.toggle-btn:hover:not(.active) {
+  background-color: var(--color-hover);
 }
 
 .create-album-btn {

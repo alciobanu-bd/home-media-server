@@ -31,8 +31,40 @@ const getMediaItemHandler = async (request, reply) => {
             return reply.code(404).send({ error: 'File not found' });
         }
     
-        // Check if the file belongs to the authenticated user
-        if (!file.userId || file.userId.toString() !== userId.toString()) {
+        // Check permissions: either the file belongs to the user OR
+        // the file is in an album that's shared with a circle the user is in
+        let hasAccess = false;
+
+        // Direct ownership check
+        if (file.userId && file.userId.toString() === userId.toString()) {
+            hasAccess = true;
+        } 
+        // Circle sharing check
+        else if (file.albums && file.albums.length > 0) {
+            // Get circles the user is a member of
+            const circlesCollection = getCollection(db, 'circles');
+            const userObjectId = new ObjectId(userId);
+            const userCircles = await circlesCollection.find({
+                memberIds: userObjectId
+            }).toArray();
+            
+            const userCircleIds = userCircles.map(circle => circle._id.toString());
+            
+            // Check if any of the file's albums are shared with user's circles
+            const albumsCollection = getCollection(db, 'albums');
+            const sharedAlbums = await albumsCollection.find({
+                _id: { $in: file.albums.map(albumId => {
+                    return ObjectId.isValid(albumId) ? new ObjectId(albumId) : null;
+                }).filter(id => id !== null) },
+                circleIds: { $in: userCircleIds }
+            }).toArray();
+            
+            if (sharedAlbums.length > 0) {
+                hasAccess = true;
+            }
+        }
+        
+        if (!hasAccess) {
             return reply.code(403).send({ 
                 error: 'Forbidden',
                 message: 'You do not have permission to access this media item'
