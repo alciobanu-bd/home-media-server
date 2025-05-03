@@ -1,64 +1,75 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal-content">
+  <div class="modal-overlay">
+    <div class="modal-container">
       <div class="modal-header">
-        <h2>Share "{{ albumName }}" with Circles</h2>
+        <h2>Share with Circles</h2>
+        <button @click="close" class="close-button">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
       </div>
       
       <div class="modal-body">
-        <p class="instruction-text">Select the circles you want to share this album with:</p>
+        <p class="modal-description">
+          <template v-if="albumId || albumName">
+            Share "{{ albumName }}" with your trusted circles
+          </template>
+          <template v-else>
+            Share {{ mediaIds.length }} selected item(s) with your trusted circles
+          </template>
+        </p>
         
-        <div v-if="loading" class="loading-indicator">
+        <div v-if="loading" class="loading-container">
           <div class="loading-spinner"></div>
           <p>Loading your circles...</p>
         </div>
         
-        <div v-else-if="error" class="error-message">
-          <p>{{ error }}</p>
-          <button class="retry-btn" @click="loadCircles">Try Again</button>
+        <div v-else-if="error" class="error-container">
+          <p class="error-message">{{ error }}</p>
+          <button @click="fetchCircles" class="retry-button">Try Again</button>
         </div>
         
-        <div v-else-if="!circles.length" class="empty-circles">
+        <div v-else-if="circles.length === 0" class="no-circles-message">
           <p>You don't have any circles yet.</p>
-          <p>Create a circle first to share this album.</p>
-          <button class="primary-btn" @click="goToCircles">Go to Circles</button>
+          <button @click="goToCircles" class="secondary-button">Create a Circle</button>
         </div>
         
         <div v-else class="circles-list">
           <div 
             v-for="circle in circles" 
-            :key="circle.id" 
+            :key="circle._id" 
             class="circle-item"
-            :class="{ 'selected': selectedCircleIds.includes(circle.id) }"
-            @click="toggleCircleSelection(circle.id)"
+            :class="{ 'selected': selectedCircles.includes(circle._id) }"
+            @click="toggleCircle(circle._id)"
           >
-            <div class="circle-checkbox">
-              <input 
-                type="checkbox" 
-                :id="'circle-' + circle.id" 
-                :checked="selectedCircleIds.includes(circle.id)"
-                @click.stop
-                @change="toggleCircleSelection(circle.id)"
-              />
+            <div class="circle-icon">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <circle cx="12" cy="10" r="3"></circle>
+                <path d="M6.5 18.2c1.2-1.5 3.3-2.5 5.5-2.5s4.3 1 5.5 2.5"></path>
+              </svg>
             </div>
             
             <div class="circle-details">
               <div class="circle-name">{{ circle.name }}</div>
-              <div class="circle-meta">{{ circle.memberCount }} members</div>
+              <div class="circle-members">{{ circle.memberCount || 0 }} member{{ circle.memberCount !== 1 ? 's' : '' }}</div>
             </div>
+            
+
           </div>
         </div>
       </div>
       
-      <div class="modal-footer">
-        <button class="secondary-btn" @click="$emit('close')">Cancel</button>
+      <div class="modal-actions">
+        <button @click="close" class="cancel-button">Cancel</button>
         <button 
-          class="primary-btn" 
-          @click="shareAlbum"
-          :disabled="processing || !selectedCircleIds.length"
+          @click="saveSharing" 
+          class="save-button"
+          :disabled="selectedCircles.length === 0 || saving"
         >
-          <span v-if="processing">Sharing...</span>
-          <span v-else>Share with {{ selectedCircleIds.length }} {{ selectedCircleIds.length === 1 ? 'Circle' : 'Circles' }}</span>
+          <span v-if="saving">Sharing...</span>
+          <span v-else>Share</span>
         </button>
       </div>
     </div>
@@ -66,19 +77,22 @@
 </template>
 
 <script>
-import circlesService from '../services/circlesService';
-import albumsService from '../services/albumsService';
+import api from '../services/api';
 
 export default {
   name: 'CircleSelectorModal',
   props: {
+    mediaIds: {
+      type: Array,
+      default: () => []
+    },
     albumId: {
       type: String,
-      required: true
+      default: null
     },
     albumName: {
       type: String,
-      required: true
+      default: null
     },
     sharedCircleIds: {
       type: Array,
@@ -88,76 +102,145 @@ export default {
   data() {
     return {
       circles: [],
-      selectedCircleIds: [...this.sharedCircleIds], // Start with already shared circles
+      selectedCircles: [...this.sharedCircleIds],
       loading: true,
-      processing: false,
+      saving: false,
       error: null
     };
   },
   created() {
-    this.loadCircles();
+    this.fetchCircles();
   },
   methods: {
-    async loadCircles() {
+    async getUserCircles() {
       try {
-        this.loading = true;
-        this.error = null;
+        const response = await api.get('/circles');
         
-        const response = await circlesService.getUserCircles();
-        this.circles = response.circles || [];
+        if (response && response.data) {
+          if (Array.isArray(response.data)) {
+            return response.data;
+          } else if (response.data.circles && Array.isArray(response.data.circles)) {
+            return response.data.circles;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            return response.data.data;
+          }
+        }
+        
+        const userCirclesResponse = await api.get('/user/circles');
+        
+        if (userCirclesResponse && userCirclesResponse.data) {
+          if (Array.isArray(userCirclesResponse.data)) {
+            return userCirclesResponse.data;
+          } else if (userCirclesResponse.data.circles && Array.isArray(userCirclesResponse.data.circles)) {
+            return userCirclesResponse.data.circles;
+          }
+        }
+        
+        return [];
       } catch (error) {
-        console.error('Error loading circles:', error);
-        this.error = 'Failed to load your circles. Please try again.';
+        console.error('Error fetching user circles:', error);
+        throw error;
+      }
+    },
+    
+    async fetchCircles() {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const circlesData = await this.getUserCircles();
+        
+        this.circles = circlesData.map(circle => {
+          return {
+            _id: circle._id || circle.id,
+            name: circle.name || 'Unnamed Circle',
+            memberCount: circle.memberCount || circle.members?.length || 0,
+          };
+        });
+      } catch (err) {
+        console.error('Error fetching circles:', err);
+        this.error = `Failed to load circles: ${err.message}`;
       } finally {
         this.loading = false;
       }
     },
     
-    toggleCircleSelection(circleId) {
-      const index = this.selectedCircleIds.indexOf(circleId);
+    toggleCircle(circleId) {
+      const index = this.selectedCircles.indexOf(circleId);
+      
       if (index === -1) {
-        this.selectedCircleIds.push(circleId);
+        this.selectedCircles.push(circleId);
       } else {
-        this.selectedCircleIds.splice(index, 1);
+        this.selectedCircles.splice(index, 1);
       }
     },
     
-    async shareAlbum() {
-      if (this.selectedCircleIds.length === 0) return;
+    async saveSharing() {
+      if (this.selectedCircles.length === 0) return;
+      
+      this.saving = true;
       
       try {
-        this.processing = true;
-        
-        // Call albumsService to share album with selected circles
-        const response = await albumsService.shareAlbumWithCircles(
-          this.albumId, 
-          this.selectedCircleIds
-        );
-        
-        // Emit event to notify parent component
-        this.$emit('shared', {
-          circleIds: this.selectedCircleIds,
-          result: response
-        });
-        
-        // Close the modal
-        this.$emit('close');
-      } catch (error) {
-        console.error('Error sharing album with circles:', error);
-        
-        let errorMessage = 'Failed to share album. Please try again.';
-        if (error.response?.data?.message) {
-          errorMessage = error.response.data.message;
+        if (this.albumId) {
+          const response = await api.put(`/albums/${this.albumId}/share`, {
+            circleIds: this.selectedCircles
+          });
+          
+          this.$emit('saved', {
+            albumId: this.albumId,
+            circleIds: this.selectedCircles,
+            success: response.data.success
+          });
+          this.$emit('shared', {
+            circleIds: this.selectedCircles,
+            result: response.data
+          });
+        } else {
+          const successResults = [];
+          const failedIds = [];
+          
+          await Promise.all(
+            this.mediaIds.map(async (mediaId) => {
+              try {
+                const response = await api.put(`/files/${mediaId}/share`, {
+                  circleIds: this.selectedCircles
+                });
+                
+                if (response.data.success) {
+                  successResults.push(mediaId);
+                } else {
+                  failedIds.push(mediaId);
+                }
+              } catch (err) {
+                console.error(`Error sharing media item ${mediaId}:`, err);
+                failedIds.push(mediaId);
+              }
+            })
+          );
+          
+          this.$emit('saved', {
+            mediaIds: this.mediaIds,
+            successCount: successResults.length,
+            failedCount: failedIds.length,
+            circleIds: this.selectedCircles
+          });
         }
         
-        alert(errorMessage);
+        this.close();
+      } catch (err) {
+        console.error('Error while sharing with circles:', err);
+        this.error = 'An error occurred while sharing. Please try again.';
       } finally {
-        this.processing = false;
+        this.saving = false;
       }
     },
     
     goToCircles() {
       this.$router.push('/circles');
+      this.close();
+    },
+    
+    close() {
       this.$emit('close');
     }
   }
@@ -169,178 +252,157 @@ export default {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   z-index: 1000;
 }
 
-.modal-content {
-  background-color: var(--color-bg-primary);
+.modal-container {
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  background-color: var(--color-background);
   border-radius: 12px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 80vh;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
+  border: 1px solid var(--color-border);
 }
 
 .modal-header {
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(90deg, rgba(156, 106, 222, 0.05), rgba(29, 209, 161, 0.05));
+  background-color: var(--color-background-light, var(--color-background));
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1.5rem;
-  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-weight: 700;
+  font-size: 20px;
+  color: var(--color-text-primary);
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  background-color: var(--color-background-hover);
+  color: var(--color-text-primary);
 }
 
 .modal-body {
-  padding: 1.5rem;
+  padding: 20px;
   overflow-y: auto;
-  flex: 1;
+  flex-grow: 1;
 }
 
-.instruction-text {
+.modal-description {
   margin-top: 0;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
   color: var(--color-text-secondary);
 }
 
 .circles-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: 10px;
 }
 
 .circle-item {
   display: flex;
   align-items: center;
-  padding: 0.9rem 1rem;
+  padding: 12px;
   border-radius: 8px;
-  background-color: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border);
   cursor: pointer;
   transition: all 0.2s ease;
+  border: 1px solid transparent;
+  position: relative;
 }
 
 .circle-item:hover {
-  background-color: var(--color-hover);
+  background-color: var(--color-background-hover);
   transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-border);
 }
 
 .circle-item.selected {
-  background-color: rgba(156, 106, 222, 0.1);
-  border-color: #9c6ade;
+  background-color: var(--lumia-purple-light);
+  border-color: var(--lumia-purple);
 }
 
-.circle-checkbox {
-  margin-right: 1rem;
+.circle-icon {
+  color: var(--lumia-purple);
+  margin-right: 12px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--lumia-purple-light, rgba(145, 95, 255, 0.1));
+  transition: all 0.2s ease;
 }
 
-.circle-checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
+.circle-item:hover .circle-icon {
+  transform: scale(1.05);
+  background-color: var(--lumia-purple-light, rgba(145, 95, 255, 0.2));
+}
+
+.circle-item.selected .circle-icon {
+  background-color: var(--lumia-purple);
+  color: white;
 }
 
 .circle-details {
-  flex: 1;
+  flex-grow: 1;
 }
 
 .circle-name {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text-primary);
-  margin-bottom: 0.2rem;
+  margin-bottom: 4px;
 }
 
-.circle-meta {
-  font-size: 0.85rem;
+.circle-members {
+  font-size: 0.9em;
   color: var(--color-text-secondary);
 }
 
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 1.25rem 1.5rem;
-  border-top: 1px solid var(--color-border);
-  gap: 1rem;
-  background: linear-gradient(90deg, rgba(156, 106, 222, 0.05), rgba(29, 209, 161, 0.05));
-}
 
-.secondary-btn {
-  background: transparent;
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
 
-.secondary-btn:hover {
-  background: rgba(156, 106, 222, 0.1);
-  border-color: #9c6ade;
-  color: #9c6ade;
-}
-
-.primary-btn {
-  background: linear-gradient(45deg, #9c6ade, #1dd1a1);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.25);
-}
-
-.primary-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
-}
-
-.primary-btn:disabled {
-  background: #cbd5e1;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.loading-indicator {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
+.loading-container, .error-container, .no-circles-message {
+  padding: 30px;
+  text-align: center;
+  color: var(--color-text-secondary);
 }
 
 .loading-spinner {
-  border: 3px solid rgba(156, 106, 222, 0.1);
+  border: 3px solid var(--color-border);
+  border-top: 3px solid var(--lumia-purple);
   border-radius: 50%;
-  border-top: 3px solid #9c6ade;
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  margin: 0 auto 16px;
 }
 
 @keyframes spin {
@@ -349,42 +411,70 @@ export default {
 }
 
 .error-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 2rem;
-}
-
-.error-message p {
   color: var(--color-error);
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 
-.retry-btn {
-  background: transparent;
-  color: var(--color-text-primary);
+.retry-button, .secondary-button {
+  background-color: transparent;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
+  color: var(--color-text-primary);
+  padding: 8px 16px;
+  border-radius: 20px;
   cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
-.empty-circles {
+.retry-button:hover, .secondary-button:hover {
+  background-color: var(--color-background-hover);
+}
+
+.modal-actions {
+  padding: 16px 20px;
+  border-top: 1px solid var(--color-border);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 2rem;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
-.empty-circles p {
-  color: var(--color-text-secondary);
-  margin-bottom: 0.5rem;
+.cancel-button {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.empty-circles .primary-btn {
-  margin-top: 1rem;
+.cancel-button:hover {
+  background-color: var(--color-background-hover);
+  transform: translateY(-1px);
+}
+
+.save-button {
+  background-color: var(--lumia-purple);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(145, 95, 255, 0.3);
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: var(--lumia-purple-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(145, 95, 255, 0.4);
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 </style> 

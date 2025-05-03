@@ -8,6 +8,7 @@ const metadataRoute = require('./media/getMetadata');
 const serveFilesRoute = require('./files/serveFiles');
 const uploadFileRoute = require('./files/uploadFile');
 const deleteFileRoute = require('./files/deleteFile');
+const shareFileRoute = require('./files/shareFile');
 const authRoutes = require('./auth');
 // Add user quota route
 const userQuotaRoute = require('./auth/userQuota');
@@ -35,6 +36,7 @@ const deleteCircleRoute = require('./circles/deleteCircle');
 const updateCircleRoute = require('./circles/updateCircle');
 const getUserInvitationsRoute = require('./circles/getUserInvitations');
 const declineInvitationRoute = require('./circles/declineInvitation');
+const getCircleSharedFilesRoute = require('./circles/getCircleSharedFiles');
 
 // Import dependencies
 const path = require('path');
@@ -56,6 +58,7 @@ module.exports = function(fastify, opts, done) {
     fastify.register(serveFilesRoute, { prefix: '/api' });
     fastify.register(uploadFileRoute, { prefix: '/api' });
     fastify.register(deleteFileRoute, { prefix: '/api' });
+    fastify.register(shareFileRoute, { prefix: '/api' });
   
     // Register auth routes with /api prefix
     fastify.register(authRoutes, { prefix: '/api' });
@@ -88,6 +91,7 @@ module.exports = function(fastify, opts, done) {
     fastify.register(updateCircleRoute, { prefix: '/api' });
     fastify.register(getUserInvitationsRoute, { prefix: '/api' });
     fastify.register(declineInvitationRoute, { prefix: '/api' });
+    fastify.register(getCircleSharedFilesRoute, { prefix: '/api' });
 
     // Root route for API health check
     fastify.get('/api', async (request, reply) => {

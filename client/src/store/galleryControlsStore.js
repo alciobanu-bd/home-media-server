@@ -12,6 +12,7 @@ let openUploadModalCallback = null;
 let toggleSelectModeCallback = null;
 let deleteSelectedCallback = null;
 let addToAlbumCallback = null;
+let shareToCirclesCallback = null;
 
 // Actions
 const actions = {
@@ -23,6 +24,7 @@ const actions = {
     toggleSelectModeCallback = callbacks.toggleSelectMode;
     deleteSelectedCallback = callbacks.deleteSelected;
     addToAlbumCallback = callbacks.addToAlbum;
+    shareToCirclesCallback = callbacks.shareToCircles;
     state.galleryInstance = true;
   },
 
@@ -34,6 +36,7 @@ const actions = {
     toggleSelectModeCallback = null;
     deleteSelectedCallback = null;
     addToAlbumCallback = null;
+    shareToCirclesCallback = null;
     state.galleryInstance = null;
     state.isSelecting = false;
     state.selectedCount = 0;
@@ -81,6 +84,15 @@ const actions = {
     console.log('galleryControlsStore - addToAlbum called', !!addToAlbumCallback);
     if (addToAlbumCallback) {
       addToAlbumCallback();
+    }
+  },
+  
+  /**
+   * Call the shareToCircles method on the gallery
+   */
+  shareToCircles() {
+    if (shareToCirclesCallback) {
+      shareToCirclesCallback();
     }
   }
 };

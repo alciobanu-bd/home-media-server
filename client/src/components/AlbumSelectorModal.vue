@@ -26,6 +26,41 @@
               </svg>
             Create New Album
           </button>
+          
+          <div v-if="showCreateAlbumForm" class="new-album-input-container">
+            <input
+              v-model="newAlbumName"
+              type="text"
+              placeholder="Enter album name"
+              required
+              class="form-control"
+              autofocus
+              @keyup.enter="createAlbum"
+            />
+            <div class="new-album-actions">
+              <button 
+                type="button" 
+                class="icon-btn cancel-icon-btn" 
+                @click="showCreateAlbumForm = false"
+                :disabled="saving"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+              <button 
+                type="button" 
+                class="icon-btn save-icon-btn" 
+                @click="createAlbum"
+                :disabled="!newAlbumName.trim() || saving"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
         
         <div v-else class="albums-list">
@@ -71,7 +106,7 @@
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
-            </button>
+              </button>
             </div>
           </div>
           
@@ -96,9 +131,13 @@
         <div class="selection-info" v-if="selectedAlbums.length > 0">
           Selected {{ selectedAlbums.length }} album{{ selectedAlbums.length !== 1 ? 's' : '' }}
         </div>
+        <div v-if="albums.length === 0 && showCreateAlbumForm" class="selection-info">
+          Creating a new album
+        </div>
         <div class="modal-actions">
           <button type="button" class="cancel-btn" @click="cancel" :disabled="saving">Cancel</button>
           <button 
+            v-if="albums.length > 0 || !showCreateAlbumForm"
             type="button" 
             class="submit-btn" 
             @click="save" 
@@ -106,6 +145,16 @@
           >
             <span v-if="saving">Saving...</span>
             <span v-else>Add to Albums</span>
+          </button>
+          <button 
+            v-if="albums.length === 0 && showCreateAlbumForm" 
+            type="button" 
+            class="submit-btn" 
+            @click="createAlbum" 
+            :disabled="!newAlbumName.trim() || saving"
+          >
+            <span v-if="saving">Creating...</span>
+            <span v-else>Create Album</span>
           </button>
         </div>
       </div>
@@ -472,17 +521,22 @@ export default {
 }
 
 .empty-albums {
+  padding: 30px 20px;
   text-align: center;
-  padding: 24px;
-}
-
-.empty-albums p {
-  margin-bottom: 16px;
-  color: var(--color-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
 .empty-albums .create-album-btn {
-  margin: 0 auto;
+  margin-top: 10px;
+}
+
+.empty-albums .new-album-input-container {
+  width: 100%;
+  max-width: 350px;
+  margin-top: 15px;
 }
 
 .selection-info {

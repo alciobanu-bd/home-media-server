@@ -39,6 +39,21 @@
         
         <button 
           v-if="selectedCount > 0" 
+          @click="shareToCircles" 
+          class="control-btn circles-btn"
+          title="Share to Circles"
+        >
+          <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          Share to Circles
+        </button>
+        
+        <button 
+          v-if="selectedCount > 0" 
           @click="deleteSelected" 
           class="control-btn delete-btn"
           title="Delete Selected"
@@ -105,6 +120,11 @@ export default {
       console.log('GalleryControls - addToAlbum called');
       galleryControlsStore.addToAlbum();
     };
+    
+    const shareToCircles = () => {
+      console.log('GalleryControls - shareToCircles called');
+      galleryControlsStore.shareToCircles();
+    };
 
     return {
       baseUrl,
@@ -114,7 +134,8 @@ export default {
       uploadMedia,
       deleteSelected,
       cancelSelection,
-      addToAlbum
+      addToAlbum,
+      shareToCircles
     };
   }
 };
@@ -374,6 +395,14 @@ export default {
     color: #f5f5f5;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   }
+  
+  .circles-btn {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+  
+  .circles-btn:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  }
 }
 
 /* Album Button - Lumia themed */
@@ -409,6 +438,43 @@ export default {
 }
 
 .album-btn .btn-icon {
+  position: relative;
+  z-index: 2;
+}
+
+/* Circles Button - Trusted Circles themed */
+.circles-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.circles-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.circles-btn:hover:before {
+  opacity: 0;
+}
+
+.circles-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.circles-btn .btn-icon {
   position: relative;
   z-index: 2;
 }

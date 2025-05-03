@@ -63,6 +63,13 @@
       @close="closeAlbumSelector"
       @saved="handleAddToAlbumSuccess"
     />
+    
+    <circle-selector-modal
+      v-if="showCircleSelector"
+      :mediaIds="selectedItems"
+      @close="closeCircleSelector"
+      @saved="handleShareToCirclesSuccess"
+    />
   </div>
 </template>
 
@@ -73,6 +80,7 @@ import MediaItem from '../components/MediaItem.vue';
 import UploadModal from '../components/UploadModal.vue';
 import ConfirmationDialog from '../components/ConfirmationDialog.vue';
 import AlbumSelectorModal from '../components/AlbumSelectorModal.vue';
+import CircleSelectorModal from '../components/CircleSelectorModal.vue';
 import '../styles/Gallery.css';
 import '../styles/theme.css';
 import galleryControlsStore from '../store/galleryControlsStore';
@@ -83,7 +91,8 @@ export default {
     MediaItem,
     UploadModal,
     ConfirmationDialog,
-    AlbumSelectorModal
+    AlbumSelectorModal,
+    CircleSelectorModal
   },
   data() {
     return {
@@ -100,7 +109,8 @@ export default {
       observer: null,
       observerThreshold: 0.3, // Load more when 30% of the loading indicator is visible
       baseUrl: process.env.BASE_URL || '/',
-      showAlbumSelector: false
+      showAlbumSelector: false,
+      showCircleSelector: false
     };
   },
   computed: {
@@ -132,7 +142,8 @@ export default {
       openUploadModal: this.openUploadModal,
       toggleSelectMode: this.toggleSelectMode,
       deleteSelected: this.deleteSelected,
-      addToAlbum: this.addToAlbum
+      addToAlbum: this.addToAlbum,
+      shareToCircles: this.shareToCircles
     });
     
     // Set document title
@@ -334,9 +345,6 @@ export default {
       if (this.selectedItems.length === 0) return;
       console.log('Setting showAlbumSelector to true');
       
-      // Add debugger to help trace the issue
-      debugger;
-      
       // Force a refresh of the flag if it's already true in case of stale state
       if (this.showAlbumSelector) {
         this.showAlbumSelector = false;
@@ -360,6 +368,36 @@ export default {
       
       // Show toast notification (if you have a notification system)
       alert(`Added ${result.mediaIds.length} items to ${result.albumIds.length} album(s).`);
+    },
+    shareToCircles() {
+      if (this.selectedItems.length === 0) return;
+      
+      // Force a refresh of the flag if it's already true in case of stale state
+      if (this.showCircleSelector) {
+        this.showCircleSelector = false;
+        this.$nextTick(() => {
+          this.showCircleSelector = true;
+        });
+      } else {
+        this.showCircleSelector = true;
+      }
+    },
+    closeCircleSelector() {
+      this.showCircleSelector = false;
+    },
+    handleShareToCirclesSuccess(result) {
+      console.log('Circle sharing success:', result);
+      this.showCircleSelector = false;
+      
+      // Exit select mode or show a success message
+      this.toggleSelectMode();
+      
+      // Show toast notification
+      const successMessage = result.failedCount > 0 
+        ? `Shared ${result.successCount} out of ${result.mediaIds.length} items with ${result.circleIds.length} circle(s). ${result.failedCount} failed.`
+        : `Shared ${result.mediaIds.length} items with ${result.circleIds.length} circle(s).`;
+      
+      alert(successMessage);
     }
   },
   watch: {
