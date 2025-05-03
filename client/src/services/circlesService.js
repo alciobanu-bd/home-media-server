@@ -87,10 +87,39 @@ const circlesService = {
    */
   acceptInvitation: async (token) => {
     try {
-      const response = await api.get(`/circles/accept-invite/${token}`);
+      const response = await api.post(`/circles/invitations/${token}/accept`);
       return response.data;
     } catch (error) {
       console.error('Error accepting invitation:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all pending circle invitations for the current user
+   * @returns {Promise} Promise object with invitations data
+   */
+  getUserInvitations: async () => {
+    try {
+      const response = await api.get('/circles/invitations');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching invitations:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Decline a circle invitation
+   * @param {string} token Invitation token
+   * @returns {Promise} Promise object with decline result
+   */
+  declineInvitation: async (token) => {
+    try {
+      const response = await api.delete(`/circles/invitations/${token}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error declining invitation:', error);
       throw error;
     }
   },

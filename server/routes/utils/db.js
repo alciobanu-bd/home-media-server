@@ -84,7 +84,7 @@ const connectToMongo = async () => {
         await circlesCollection.createIndex({ createdAt: -1 });
         await circlesCollection.createIndex({ adminIds: 1 });
         await circlesCollection.createIndex({ memberIds: 1 });
-        await circlesCollection.createIndex({ invitedEmails: 1 });
+        await circlesCollection.createIndex({ 'invitations.email': 1 });
     
         return db;
     } catch (err) {

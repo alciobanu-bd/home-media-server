@@ -43,7 +43,6 @@ const createCircle = async (request, reply) => {
             createdBy: new ObjectId(request.user._id),
             adminIds: [new ObjectId(request.user._id)],
             memberIds: [new ObjectId(request.user._id)],
-            invitedEmails: [],
             invitations: []
         };
         

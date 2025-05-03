@@ -24,11 +24,17 @@ const removeFromCircle = async (request, reply) => {
         });
     }
     
-    if (!targetUserId || !ObjectId.isValid(targetUserId)) {
+    let targetId;
+    // Special case: if userId is 'me', it means the current user is leaving the circle
+    if (targetUserId === 'me') {
+        targetId = new ObjectId(request.user._id);
+    } else if (!targetUserId || !ObjectId.isValid(targetUserId)) {
         return reply.code(400).send({
             error: 'Bad Request',
             message: 'Invalid User ID'
         });
+    } else {
+        targetId = new ObjectId(targetUserId);
     }
 
     try {
@@ -36,7 +42,6 @@ const removeFromCircle = async (request, reply) => {
         const circlesCollection = getCollection(db, 'circles');
         const userId = new ObjectId(request.user._id);
         const circleId = new ObjectId(id);
-        const targetId = new ObjectId(targetUserId);
         
         // Find the circle
         const circle = await circlesCollection.findOne({ _id: circleId });
@@ -82,7 +87,7 @@ const removeFromCircle = async (request, reply) => {
         
         return {
             success: true,
-            message: 'User removed from Circle successfully'
+            message: isSelfRemoval ? 'You have left the Circle' : 'User removed from Circle successfully'
         };
     } catch (error) {
         request.log.error(`Error removing user from circle: ${error.message}`);

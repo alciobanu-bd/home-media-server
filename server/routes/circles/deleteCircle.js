@@ -27,6 +27,7 @@ const deleteCircle = async (request, reply) => {
     try {
         const db = getDb();
         const circlesCollection = getCollection(db, 'circles');
+        const albumsCollection = getCollection(db, 'albums');
         const userId = new ObjectId(request.user._id);
         const circleId = new ObjectId(id);
         
@@ -48,12 +49,41 @@ const deleteCircle = async (request, reply) => {
             });
         }
         
-        // Delete the circle
-        await circlesCollection.deleteOne({ _id: circleId });
+        // Find all albums that reference this circle
+        const affectedAlbums = await albumsCollection.find({ 
+            circleIds: id 
+        }).toArray();
+        
+        // Begin a session for the transaction
+        const session = db.client.startSession();
+        
+        try {
+            await session.withTransaction(async () => {
+                // Remove the circle ID from all albums that reference it
+                if (affectedAlbums.length > 0) {
+                    await albumsCollection.updateMany(
+                        { circleIds: id },
+                        { $pull: { circleIds: id } },
+                        { session }
+                    );
+                    
+                    request.log.info(`Removed circle ${id} from ${affectedAlbums.length} albums`);
+                }
+                
+                // Delete the circle
+                await circlesCollection.deleteOne(
+                    { _id: circleId },
+                    { session }
+                );
+            });
+        } finally {
+            await session.endSession();
+        }
         
         return {
             success: true,
-            message: 'Circle deleted successfully'
+            message: 'Circle deleted successfully',
+            affectedAlbums: affectedAlbums.length
         };
     } catch (error) {
         request.log.error(`Error deleting circle: ${error.message}`);

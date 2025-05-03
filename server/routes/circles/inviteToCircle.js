@@ -69,8 +69,8 @@ const inviteToCircle = async (request, reply) => {
             });
         }
         
-        // Check if already invited
-        if (circle.invitedEmails.includes(email)) {
+        // Check if already invited (by checking invitations array)
+        if (circle.invitations && circle.invitations.some(inv => inv.email === email)) {
             return reply.code(400).send({
                 error: 'Bad Request',
                 message: 'This email has already been invited'
@@ -85,12 +85,11 @@ const inviteToCircle = async (request, reply) => {
             token: crypto.randomBytes(32).toString('hex')
         };
         
-        // Add to circle invitations
+        // Add to circle invitations (no longer adding to invitedEmails)
         await circlesCollection.updateOne(
             { _id: circleId },
             { 
-                $push: { invitations: invitation },
-                $addToSet: { invitedEmails: email }
+                $push: { invitations: invitation }
             }
         );
         
