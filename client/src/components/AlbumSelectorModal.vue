@@ -1,9 +1,9 @@
 <template>
-  <div class="upload-modal-overlay" @click.self="cancel">
-    <div class="upload-modal">
+  <div class="modal-overlay" @click.self="cancel">
+    <div class="modal-container">
       <div class="modal-header">
         <h2>Add to Album</h2>
-        <button class="close-btn" @click="cancel">
+        <button @click="cancel" class="close-button">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -12,7 +12,11 @@
       </div>
       
       <div class="modal-body">
-        <div v-if="loading" class="loading-indicator">
+        <p class="modal-description">
+          Add {{ mediaIds.length }} selected item(s) to your albums
+        </p>
+        
+        <div v-if="loading" class="loading-container">
           <div class="loading-spinner"></div>
           <p>Loading albums...</p>
         </div>
@@ -111,35 +115,42 @@
           </div>
           
           <div class="album-items">
-            <label v-for="album in albums" :key="album._id" class="album-item">
-              <input 
-                type="checkbox"
-                :value="album._id"
-                v-model="selectedAlbums"
-                :disabled="saving"
-              >
-              <div class="album-details">
-                <span class="album-name">{{ album.name }}</span>
-                <span class="album-count">{{ album.fileCount || 0 }} items</span>
+            <div 
+              v-for="album in albums" 
+              :key="album._id" 
+              class="album-item"
+              :class="{ 'selected': selectedAlbums.includes(album._id) }"
+              @click="toggleAlbum(album._id)"
+            >
+              <div class="album-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
               </div>
-            </label>
+              <div class="album-details">
+                <div class="album-name">{{ album.name }}</div>
+                <div class="album-count">{{ album.fileCount || 0 }} item{{ album.fileCount !== 1 ? 's' : '' }}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       
-      <div class="modal-footer">
+      <div class="modal-actions">
         <div class="selection-info" v-if="selectedAlbums.length > 0">
           Selected {{ selectedAlbums.length }} album{{ selectedAlbums.length !== 1 ? 's' : '' }}
         </div>
         <div v-if="albums.length === 0 && showCreateAlbumForm" class="selection-info">
           Creating a new album
         </div>
-        <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="cancel" :disabled="saving">Cancel</button>
+        <div class="buttons-container">
+          <button type="button" class="cancel-button" @click="cancel" :disabled="saving">Cancel</button>
           <button 
             v-if="albums.length > 0 || !showCreateAlbumForm"
             type="button" 
-            class="submit-btn" 
+            class="save-button" 
             @click="save" 
             :disabled="selectedAlbums.length === 0 || saving"
           >
@@ -149,7 +160,7 @@
           <button 
             v-if="albums.length === 0 && showCreateAlbumForm" 
             type="button" 
-            class="submit-btn" 
+            class="save-button" 
             @click="createAlbum" 
             :disabled="!newAlbumName.trim() || saving"
           >
@@ -164,8 +175,6 @@
 
 <script>
 import api from '../services/api';
-// Add modal-specific styles to ensure proper display
-import '../styles/UploadModal.css'; // Reuse the existing modal styles
 
 export default {
   name: 'AlbumSelectorModal',
@@ -241,6 +250,15 @@ export default {
         this.saving = false;
       }
     },
+    toggleAlbum(albumId) {
+      const index = this.selectedAlbums.indexOf(albumId);
+      
+      if (index === -1) {
+        this.selectedAlbums.push(albumId);
+      } else {
+        this.selectedAlbums.splice(index, 1);
+      }
+    },
     cancel() {
       console.log('AlbumSelectorModal - cancel() called');
       this.$emit('close');
@@ -277,9 +295,82 @@ export default {
 </script>
 
 <style scoped>
-/* Extend the modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  background-color: var(--color-background);
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.modal-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-background-light, var(--color-background));
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--color-text-primary);
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  background-color: var(--color-background-hover);
+  color: var(--color-text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.modal-description {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--color-text-secondary);
+}
+
 .albums-list {
-  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .albums-header {
@@ -293,7 +384,76 @@ export default {
   margin: 0;
   font-size: 16px;
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--color-text-primary);
+}
+
+.album-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.album-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  position: relative;
+}
+
+.album-item:hover {
+  background-color: var(--color-background-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-border);
+}
+
+.album-item.selected {
+  background-color: var(--lumia-purple-light);
+  border-color: var(--lumia-purple);
+}
+
+.album-icon {
+  color: var(--lumia-purple);
+  margin-right: 12px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--lumia-purple-light, rgba(145, 95, 255, 0.1));
+  transition: all 0.2s ease;
+}
+
+.album-item:hover .album-icon {
+  transform: scale(1.05);
+  background-color: var(--lumia-purple-light, rgba(145, 95, 255, 0.2));
+}
+
+.album-item.selected .album-icon {
+  background-color: var(--lumia-purple);
+  color: white;
+}
+
+.album-details {
+  flex-grow: 1;
+}
+
+.album-name {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.album-count {
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
 }
 
 .new-album-input-container {
@@ -342,149 +502,6 @@ export default {
   color: var(--color-success, #28a745);
 }
 
-.create-album-btn {
-  background: var(--lumia-gradient);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  box-shadow: var(--lumia-shadow);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  padding: 8px 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.create-album-btn:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1;
-}
-
-.create-album-btn:hover:before {
-  opacity: 1;
-}
-
-.create-album-btn .btn-icon {
-  stroke: currentColor;
-  width: 18px;
-  height: 18px;
-  position: relative;
-  z-index: 2;
-  transition: transform 0.3s ease;
-}
-
-.create-album-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
-}
-
-.create-album-btn:hover .btn-icon {
-  transform: translateY(-2px);
-}
-
-.submit-btn {
-  background: var(--lumia-gradient);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  box-shadow: var(--lumia-shadow);
-  padding: 8px 16px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.submit-btn:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.submit-btn:hover:before {
-  opacity: 1;
-}
-
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
-}
-
-.submit-btn:disabled {
-  background: #cbd5e1;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.album-items {
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background-color: var(--color-card-background);
-}
-
-.album-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.album-item:last-child {
-  border-bottom: none;
-}
-
-.album-item:hover {
-  background-color: var(--color-hover);
-}
-
-.album-item input[type="checkbox"] {
-  margin-right: 12px;
-  cursor: pointer;
-  width: 18px;
-  height: 18px;
-}
-
-.album-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.album-name {
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.album-count {
-  font-size: 12px;
-  color: var(--color-secondary);
-  margin-top: 2px;
-}
-
 .form-control {
   width: 100%;
   padding: 10px 12px;
@@ -495,29 +512,25 @@ export default {
   font-size: 14px;
 }
 
-.loading-indicator {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
+.loading-container {
+  padding: 30px;
+  text-align: center;
+  color: var(--color-text-secondary);
 }
 
 .loading-spinner {
-  display: inline-block;
+  border: 3px solid var(--color-border);
+  border-top: 3px solid var(--lumia-purple);
+  border-radius: 50%;
   width: 30px;
   height: 30px;
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  border-top-color: var(--color-primary);
   animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  margin: 0 auto 16px;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .empty-albums {
@@ -539,19 +552,104 @@ export default {
   margin-top: 15px;
 }
 
+.create-album-btn {
+  background-color: var(--lumia-purple);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  padding: 8px 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(145, 95, 255, 0.3);
+}
+
+.create-album-btn:hover {
+  background-color: var(--lumia-purple-dark, #7549d4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(145, 95, 255, 0.4);
+  color: white;
+}
+
+.create-album-btn .btn-icon {
+  stroke: currentColor;
+  width: 18px;
+  height: 18px;
+}
+
+.modal-actions {
+  padding: 16px 20px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .selection-info {
   font-size: 14px;
-  color: var(--color-primary);
+  color: var(--lumia-purple);
   font-weight: 500;
+}
+
+.buttons-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-button {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.cancel-button:hover {
+  background-color: var(--color-background-hover);
+  transform: translateY(-1px);
+}
+
+.save-button {
+  background-color: var(--lumia-purple);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(145, 95, 255, 0.3);
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: var(--lumia-purple-dark, #7549d4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(145, 95, 255, 0.4);
+  color: white;
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Dark mode enhancements */
 @media (prefers-color-scheme: dark) {
-  .create-album-btn, .submit-btn {
+  .create-album-btn, .save-button {
     box-shadow: 0 4px 15px rgba(156, 106, 222, 0.4);
   }
   
-  .create-album-btn:hover, .submit-btn:hover {
+  .create-album-btn:hover, .save-button:hover:not(:disabled) {
     box-shadow: 0 6px 20px rgba(156, 106, 222, 0.5);
   }
 }

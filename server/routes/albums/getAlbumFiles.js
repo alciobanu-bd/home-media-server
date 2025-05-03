@@ -62,7 +62,7 @@ const getAlbumFilesHandler = async (request, reply) => {
             const files = await filesCollection.find({
                 userId: userId,
                 albums: albumId
-            }).toArray();
+            }).sort({ createdAt: -1 }).toArray();
             
             return { files };
         } else {
@@ -70,7 +70,7 @@ const getAlbumFilesHandler = async (request, reply) => {
             const files = await filesCollection.find({
                 userId: album.userId,
                 albums: albumId
-            }).toArray();
+            }).sort({ createdAt: -1 }).toArray();
             
             return { files };
         }
