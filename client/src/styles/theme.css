@@ -2,8 +2,8 @@
   /* Light Theme (Default) */
   --color-background: #f8fafc;
   --color-text: #1e293b;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
+  --color-primary: #9c6ade;
+  --color-primary-hover: #8456c5;
   --color-secondary: #64748b;
   --color-border: #e2e8f0;
   
@@ -37,8 +37,8 @@
   /* Dark Theme */
   --color-background: #0f172a;
   --color-text: #e2e8f0;
-  --color-primary: #60a5fa;
-  --color-primary-hover: #93c5fd;
+  --color-primary: #b388e5;
+  --color-primary-hover: #c6a5ee;
   --color-secondary: #94a3b8;
   --color-border: #334155;
   
@@ -79,7 +79,7 @@
   --color-focus: #475569;
 
   /* Re-calculate RGBs if needed, using approximations for now */
-  --color-primary-rgb: 96, 165, 250;
+  --color-primary-rgb: 179, 136, 229;
   --color-hover-rgb: 51, 65, 85;
   --color-focus-rgb: 71, 85, 105;
   --color-bg-tertiary-rgb: 51, 65, 85;

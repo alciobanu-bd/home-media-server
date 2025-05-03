@@ -6,16 +6,6 @@
       </svg>
       <img v-else :src="baseUrl + 'img/moon.svg'" alt="Switch to dark mode" />
     </button>
-    <button class="color-picker-btn" @click="showPalette = !showPalette" title="Pick primary color">🎨</button>
-    <div v-if="showPalette" class="color-palette">
-      <span
-        v-for="color in themeColors"
-        :key="color"
-        class="color-swatch"
-        :style="{ backgroundColor: color }"
-        @click="selectThemeColor(color)"
-      ></span>
-    </div>
   </div>
 </template>
 
@@ -25,22 +15,7 @@ export default {
   data() {
     return {
       isDarkMode: false,
-      baseUrl: process.env.BASE_URL || '/',
-      showPalette: false,
-      themeColors: [
-        '#1dd1a1',
-        '#96be25',
-        '#1e81b0',
-        '#9c6ade',
-        '#7b58ed',
-        '#cfcc30',
-        '#f0932b',
-        '#873a1a',
-        '#ff9fca',
-        '#c90a5a',
-        '#c75687',
-        '#eb3853',
-      ]
+      baseUrl: process.env.BASE_URL || '/'
     };
   },
   computed: {
@@ -51,7 +26,8 @@ export default {
   mounted() {
     // Check localStorage and system preference on mount
     this.initializeTheme();
-    this.applySavedPrimaryColor();
+    // Set Lumia purple as primary color
+    this.setLumiaColors();
   },
   methods: {
     initializeTheme() {
@@ -72,9 +48,20 @@ export default {
         this.isDarkMode ? 'dark' : 'light'
       );
     },
-    applySavedPrimaryColor() {
-      const savedColor = localStorage.getItem('themeColor');
-      if (savedColor) this.setPrimaryColor(savedColor);
+    setLumiaColors() {
+      // Set Lumia purple as the primary color
+      const lumiaPurple = '#9c6ade';
+      document.documentElement.style.setProperty('--color-primary', lumiaPurple);
+      document.documentElement.style.setProperty('--color-button-background', lumiaPurple);
+      
+      // Set RGB version
+      const rgb = this.hexToRgb(lumiaPurple);
+      if (rgb) {
+        document.documentElement.style.setProperty('--color-primary-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+      }
+      
+      // Remove any saved color preference
+      localStorage.removeItem('themeColor');
     },
     toggleTheme() {
       // Toggle dark mode
@@ -88,20 +75,6 @@ export default {
       
       // Save to localStorage
       localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
-    },
-    setPrimaryColor(color) {
-      // Update primary color for theme and ensure buttons use it in light mode
-      document.documentElement.style.setProperty('--color-primary', color);
-      document.documentElement.style.setProperty('--color-button-background', color);
-      const rgb = this.hexToRgb(color);
-      if (rgb) {
-        document.documentElement.style.setProperty('--color-primary-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
-      }
-    },
-    selectThemeColor(color) {
-      this.setPrimaryColor(color);
-      localStorage.setItem('themeColor', color);
-      this.showPalette = false;
     },
     hexToRgb(hex) {
       const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -136,48 +109,10 @@ export default {
   color: var(--color-text);
 }
 
-/* New colorful picker styles */
 .theme-toggle-container {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-}
-.color-picker-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-.color-picker-btn:hover {
-  background-color: var(--color-hover);
-}
-.color-palette {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  display: grid;
-  grid-template-columns: repeat(6, auto);
-  gap: 4px;
-  padding: 8px;
-  background: var(--color-card-background);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  margin-top: 4px;
-  z-index: 100;
-}
-.color-swatch {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1px solid var(--color-border);
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.color-swatch:hover {
-  transform: scale(1.1);
 }
 
 /* Color the sun icon yellow in dark mode by filling its path */
