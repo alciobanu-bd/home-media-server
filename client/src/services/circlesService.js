@@ -169,6 +169,21 @@ const circlesService = {
       console.error('Error deleting circle:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get all files shared with a circle
+   * @param {string} id Circle ID
+   * @returns {Promise} Promise object with shared files
+   */
+  getCircleSharedFiles: async (id) => {
+    try {
+      const response = await api.get(`/circles/${id}/files`);
+      return response.data.files;
+    } catch (error) {
+      console.error('Error fetching shared files:', error);
+      throw error;
+    }
   }
 };
 

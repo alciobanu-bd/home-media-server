@@ -182,13 +182,13 @@
         </div>
         
         <div class="circle-content">
-          <div v-if="sharedAlbums.length === 0" class="welcome-message">
+          <div v-if="sharedAlbums.length === 0 && sharedFiles.length === 0" class="welcome-message">
             <h3>Welcome to {{ circle.name }}</h3>
             <p>This is a private circle where you can connect and share with trusted members.</p>
-            <p>No albums have been shared with this circle yet.</p>
+            <p>No content has been shared with this circle yet.</p>
           </div>
           
-          <div v-else class="albums-container">
+          <div v-if="sharedAlbums.length > 0" class="albums-container">
             <h3 class="section-title">Shared Albums</h3>
             <div class="albums-grid">
               <div 
@@ -217,6 +217,37 @@
                   <h4 class="album-name">{{ album.name }}</h4>
                   <p class="album-meta">{{ album.fileCount || 0 }} items</p>
                   <p class="album-owner">Shared by: {{ getOwnerName(album.userId) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shared Files Section -->
+          <div v-if="sharedFiles.length > 0" class="files-container">
+            <h3 class="section-title">Shared Files</h3>
+            <div v-if="loadingFiles" class="loading-indicator">
+              <div class="loading-spinner"></div>
+              <p>Loading shared files...</p>
+            </div>
+            <div v-else class="files-grid">
+              <div 
+                v-for="file in sharedFiles" 
+                :key="file._id"
+                class="file-card"
+                @click="viewFile(file._id)"
+              >
+                <div class="file-thumbnail">
+                  <img 
+                    :src="`${apiBaseUrl}/thumbnails/${file._id}.jpg`" 
+                    :alt="file.originalName" 
+                    class="file-thumbnail-image"
+                  />
+                </div>
+                
+                <div class="file-info">
+                  <h4 class="file-name" :title="file.originalName">{{ file.originalName }}</h4>
+                  <p class="file-meta">{{ formattedFileSize(file.size) }} · {{ fileTypeFormatted(file.mimetype) }}</p>
+                  <p class="file-owner">Shared by: {{ getOwnerName(file.userId) }}</p>
                 </div>
               </div>
             </div>
@@ -373,6 +404,10 @@ export default {
       loading: true,
       error: null,
       
+      // Shared files related data
+      sharedFiles: [],
+      loadingFiles: false,
+      
       // Invite modal
       showInviteModal: false,
       inviteEmail: '',
@@ -400,10 +435,43 @@ export default {
       apiBaseUrl: 'http://localhost:3000/api'
     };
   },
+  computed: {
+    formattedFileSize() {
+      return (bytes) => {
+        if (!bytes) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      };
+    },
+    fileTypeFormatted() {
+      return (mimetype) => {
+        if (!mimetype) return 'File';
+        
+        if (mimetype.startsWith('image/')) {
+          return 'Image';
+        } else if (mimetype.startsWith('video/')) {
+          return 'Video';
+        } else if (mimetype.startsWith('audio/')) {
+          return 'Audio';
+        } else if (mimetype.includes('pdf')) {
+          return 'PDF';
+        } else if (mimetype.includes('document') || mimetype.includes('word')) {
+          return 'Document';
+        } else if (mimetype.includes('spreadsheet') || mimetype.includes('excel')) {
+          return 'Spreadsheet';
+        } else {
+          return 'File';
+        }
+      };
+    }
+  },
   async created() {
     try {
       await this.loadCircleDetails();
       await this.loadSharedAlbums();
+      await this.loadSharedFiles();
     } catch (error) {
       this.error = 'Failed to load circle details. The circle may not exist or you might not have permission to view it.';
       console.error('Error loading circle:', error);
@@ -434,6 +502,18 @@ export default {
       }
     },
     
+    async loadSharedFiles() {
+      try {
+        this.loadingFiles = true;
+        // Get all files shared with this circle using the service
+        this.sharedFiles = await circlesService.getCircleSharedFiles(this.id);
+      } catch (error) {
+        console.error('Error loading shared files:', error);
+      } finally {
+        this.loadingFiles = false;
+      }
+    },
+    
     getOwnerName(userId) {
       // Find the member with this userId
       const member = this.circle.members.find(member => member.id === userId);
@@ -442,6 +522,10 @@ export default {
     
     viewAlbum(albumId) {
       this.$router.push(`/albums/${albumId}`);
+    },
+    
+    viewFile(fileId) {
+      this.$router.push(`/view/${fileId}`);
     },
     
     async updateCircleDetails() {
@@ -1599,6 +1683,81 @@ input.error, textarea.error {
 }
 
 .album-owner {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Shared Files Section */
+.files-container {
+  margin-top: 2rem;
+}
+
+.files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.file-card {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.file-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: #9c6ade;
+}
+
+.file-thumbnail {
+  height: 150px;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.file-card:hover .file-thumbnail-image {
+  transform: scale(1.05);
+}
+
+.file-info {
+  padding: 1.2rem;
+}
+
+.file-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-meta {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  margin: 0 0 0.3rem 0;
+}
+
+.file-owner {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   margin: 0;
