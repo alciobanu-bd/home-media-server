@@ -1,80 +1,87 @@
 <template>
-  <div class="members-sidebar">
+  <div class="members-sidebar-component">
     <!-- Admin Actions -->
-    <div v-if="isAdmin" class="sidebar-section admin-actions">
-      <div class="sidebar-actions">
-        <button class="invite-btn" @click="$emit('invite')">
-          <i class="fas fa-user-plus"></i> Invite Members
-        </button>
-        <button class="delete-btn" @click="$emit('delete-circle')">
-          <i class="fas fa-trash-alt"></i> Delete Circle
-        </button>
-      </div>
+    <div v-if="isAdmin" class="sidebar-section admin-actions-section">
+      <button class="btn btn-primary invite-btn" @click="$emit('invite')">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="8.5" cy="7" r="4"></circle>
+          <line x1="20" y1="8" x2="20" y2="14"></line>
+          <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+        Invite Members
+      </button>
+      <button class="btn btn-danger delete-circle-btn" @click="$emit('delete-circle')">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+        Delete Circle
+      </button>
     </div>
     
     <!-- Members Section -->
-    <div class="sidebar-section members-section">
-      <h2>Members ({{ members.length }})</h2>
-      
-      <div class="members-list">
-        <div v-for="member in members" :key="member.id" class="member-card">
-          <div class="member-avatar">
-            <img v-if="member.picture" :src="member.picture" :alt="member.name">
-            <div v-else class="default-avatar">
+    <div class="sidebar-section members-list-section">
+      <h2 class="section-title">Members ({{ members.length }})</h2>
+      <div v-if="members.length === 0" class="empty-list-message">
+        <p>No members in this circle yet.</p>
+      </div>
+      <div v-else class="list-items-container">
+        <div v-for="member in members" :key="member.id" class="member-item">
+          <div class="item-avatar-wrapper">
+            <img v-if="member.picture" :src="member.picture" :alt="member.name" class="item-avatar-img">
+            <div v-else class="item-avatar-default">
               {{ getInitials(member.name) }}
             </div>
           </div>
           
-          <div class="member-details">
-            <div class="member-name-wrapper">
-              <span class="member-name">{{ member.name }}</span>
-              <span v-if="member.isAdmin" class="admin-badge" title="Circle Admin">
-                <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+          <div class="item-details">
+            <div class="item-name-line">
+              <span class="item-name">{{ member.name }}</span>
+              <span v-if="member.isAdmin" class="admin-status-badge" title="Circle Admin">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                    <path d="M12 2L9.16 8.65L2 9.24L7.29 14.1L5.82 21L12 17.31L18.18 21L16.71 14.1L22 9.24L14.84 8.65L12 2Z"></path>            
                 </svg>
               </span>
             </div>
-            <div class="member-email">{{ member.email }}</div>
+            <div class="item-subtext">{{ member.email }}</div>
           </div>
           
-          <!-- Member actions -->
-          <div class="member-actions" v-if="isAdmin && !isCurrentUser(member.id)">
+          <div class="item-actions" v-if="isAdmin && !isCurrentUser(member.id)">
             <button 
               v-if="!member.isAdmin" 
-              class="action-btn make-admin-btn" 
+              class="btn-icon-action make-admin-action" 
               @click="$emit('make-admin', member.id)"
               title="Make Admin"
-              aria-label="Make this member an admin of the circle"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
-                <path d="M12 1l3.22 6.52 7.2.62-5.2 5.07 1.22 7.13L12 16.77l-6.44 3.57 1.22-7.13-5.2-5.07 7.2-.62L12 1z"/>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path> <path d="M12 2L9.16 8.65L2 9.24L7.29 14.1L5.82 21L12 17.31L18.18 21L16.71 14.1L22 9.24L14.84 8.65L12 2Z"></path>
               </svg>
             </button>
-            
             <button 
-              class="action-btn remove-btn" 
+              class="btn-icon-action remove-member-action" 
               @click="$emit('remove-member', member)"
               title="Remove from Circle"
-              aria-label="Remove this member from the circle"
             >
-              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"></path>
               </svg>
             </button>
           </div>
-          
-          <div class="member-actions self-actions" v-else-if="isCurrentUser(member.id)">
-            <span class="self-label">You</span>
-            
+          <div class="item-actions self-tag" v-else-if="isCurrentUser(member.id)">
+            <span class="current-user-label">You</span>
             <button 
               v-if="canLeaveCircle()" 
-              class="action-btn leave-btn" 
+              class="btn-icon-action leave-circle-action" 
               @click="$emit('leave-circle')"
               title="Leave Circle"
-              aria-label="Leave this circle"
             >
-              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
-                <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
               </svg>
             </button>
           </div>
@@ -82,31 +89,27 @@
       </div>
     </div>
     
-    <!-- Pending Invitations Section -->
-    <div v-if="isAdmin && invitations && invitations.length > 0" class="sidebar-section pending-invitations">
-      <h2>Pending Invitations</h2>
-      
-      <div class="invitations-list">
-        <div v-for="(invitation, index) in invitations" :key="index" class="invitation-item">
-          <div class="invitation-icon">
-            <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20">
-              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+    <div v-if="isAdmin && invitations && invitations.length > 0" class="sidebar-section invitations-list-section">
+      <h2 class="section-title">Pending Invitations ({{ invitations.length }})</h2>
+      <div class="list-items-container">
+        <div v-for="(invitation, index) in invitations" :key="index" class="invitation-item-card">
+          <div class="item-avatar-wrapper invitation-icon-wrapper">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
             </svg>
           </div>
-          <div class="invitation-details">
-            <span class="invitation-email">{{ invitation.email }}</span>
-            <small class="invitation-date">Invited {{ formatDate(invitation.invitedAt) }}</small>
+          <div class="item-details">
+            <span class="item-name">{{ invitation.email }}</span>
+            <small class="item-subtext date-text">Invited {{ formatDate(invitation.invitedAt) }}</small>
           </div>
-          
           <button 
-            class="action-btn cancel-invite-btn" 
+            class="btn-icon-action cancel-invitation-action" 
             @click="$emit('cancel-invitation', invitation)" 
             title="Cancel Invitation"
-            aria-label="Cancel invitation for this email address"
           >
-            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
         </div>
@@ -180,128 +183,183 @@ export default {
 </script>
 
 <style scoped>
-/* Sidebar styles */
-.members-sidebar {
-  flex: 0 0 380px;
-  max-height: calc(100vh - 4rem);
+.members-sidebar-component {
+  flex: 0 0 360px; /* Slightly adjusted width */
+  max-height: calc(100vh - 48px); /* Adjust based on page padding / header */
   overflow-y: auto;
-}
-
-/* Sidebar sections */
-.sidebar-section {
-  background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.sidebar-section h2 {
-  font-size: 1.3rem;
-  margin: 0 0 1.2rem 0;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* Members list */
-.members-list {
+  padding-right: 1.5rem; /* Space between sidebar and main content if gap on parent is not enough */
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1.5rem; /* Space between sections */
 }
 
-.member-card {
+.sidebar-section {
+  background-color: var(--color-bg-secondary); /* Lighter background for sections */
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.section-title {
+  font-size: 1.2rem; /* Consistent section title size */
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.admin-actions-section {
+  background: var(--color-gradient-light, linear-gradient(135deg, rgba(156, 106, 222, 0.05), rgba(29, 209, 161, 0.05)));
+  border-color: var(--color-border-accent, rgba(156, 106, 222, 0.15));
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.8rem;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.7rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--lumia-gradient, linear-gradient(45deg, #9c6ade, #1dd1a1));
+  color: white;
+  box-shadow: var(--lumia-shadow-sm, 0 2px 8px rgba(156, 106, 222, 0.2));
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--lumia-shadow-hover, 0 4px 12px rgba(156, 106, 222, 0.3));
+}
+
+.btn-danger {
+  background-color: var(--color-error-light, #fee2e2);
+  color: var(--color-error, #ef4444);
+  border: 1px solid var(--color-error-border, #fecaca);
+}
+.btn-danger:hover {
+  background-color: var(--color-error-lighter, #fce8e6);
+  border-color: var(--color-error, #ef4444);
+  color: var(--color-error-dark, #dc2626);
+}
+
+/* Member and Invitation Item Styling */
+.list-items-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.member-item, .invitation-item-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
   background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  transition: box-shadow 0.2s ease;
+  border: 1px solid var(--color-border-extra-light);
+  border-radius: 8px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.member-card:hover {
-  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.1);
+.member-item:hover, .invitation-item-card:hover {
+  background-color: var(--color-hover-light);
+  border-color: var(--color-border-medium);
 }
 
-.member-avatar {
-  width: 40px;
-  height: 40px;
+.item-avatar-wrapper {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.member-avatar img {
+.invitation-icon-wrapper {
+  background-color: var(--color-bg-tertiary);
+  color: var(--lumia-accent, #1dd1a1);
+}
+
+.item-avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.default-avatar {
+.item-avatar-default {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--lumia-gradient);
+  background: var(--lumia-gradient-soft, linear-gradient(45deg, rgba(156, 106, 222, 0.7), rgba(29, 209, 161, 0.7)));
   color: white;
   font-weight: 600;
+  font-size: 0.85rem;
 }
 
-.member-details {
+.item-details {
   flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+  min-width: 0; /* Prevent overflow */
 }
 
-.member-name-wrapper {
+.item-name-line {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   margin-bottom: 2px;
 }
 
-.member-name {
-  font-weight: 600;
+.item-name {
+  font-weight: 500;
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.admin-badge {
-  color: #f6b93b;
-  display: flex;
+.admin-status-badge {
+  color: var(--lumia-primary, #9c6ade);
+  display: flex; /* For SVG alignment */
   align-items: center;
-  flex-shrink: 0;
+}
+.admin-status-badge svg {
+  display:block; /* Remove extra space below svg */
 }
 
-.admin-badge svg {
-  display: block;
-}
-
-.member-email {
+.item-subtext {
   color: var(--color-text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.member-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-left: auto;
+.item-subtext.date-text {
+  font-size: 0.75rem;
 }
 
-.action-btn {
-  width: 28px;
-  height: 28px;
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem; /* Smaller gap for icon buttons */
+  margin-left: auto; /* Push actions to the right */
+}
+
+.btn-icon-action {
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -309,164 +367,50 @@ export default {
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
-  color: var(--color-text-secondary);
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  color: var(--color-text-tertiary);
 }
 
-.action-btn:hover {
+.btn-icon-action:hover {
   background-color: var(--color-hover);
   color: var(--color-text-primary);
-}
-
-.make-admin-btn {
-  color: #f6b93b;
-}
-
-.make-admin-btn:hover {
-  color: #f6b93b;
-  background-color: rgba(246, 185, 59, 0.1);
   transform: scale(1.1);
 }
 
-.remove-btn:hover, .leave-btn:hover {
-  color: var(--color-error);
-  background-color: rgba(239, 68, 68, 0.1);
+.make-admin-action:hover {
+  color: var(--lumia-accent, #1dd1a1);
+  background-color: rgba(29, 209, 161, 0.1);
 }
 
-.self-actions {
-  justify-content: flex-end;
-  gap: 0.5rem;
+.remove-member-action:hover,
+.leave-circle-action:hover,
+.cancel-invitation-action:hover {
+  color: var(--color-error, #ef4444);
+  background-color: rgba(239, 68, 68, 0.08);
 }
 
-.self-label {
-  font-size: 0.875rem;
+.current-user-label {
+  font-size: 0.8rem;
   color: var(--color-text-secondary);
   background-color: var(--color-bg-tertiary);
-  padding: 0.25rem 0.6rem;
+  padding: 3px 8px;
   border-radius: 6px;
-}
-
-/* Invitations */
-.invitations-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.invitation-item {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  background-color: var(--color-bg-tertiary);
-  border-radius: 8px;
-  transition: background-color 0.2s ease;
-}
-
-.invitation-item:hover {
-  background-color: var(--color-hover);
-}
-
-.invitation-icon {
-  flex-shrink: 0;
-  margin-right: 0.75rem;
-  color: var(--lumia-purple);
-  display: flex;
-  align-items: center;
-}
-
-.invitation-details {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.invitation-email {
   font-weight: 500;
-  color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 2px;
 }
 
-.invitation-date {
+.empty-list-message p {
   color: var(--color-text-secondary);
-  font-size: 0.75rem;
+  font-style: italic;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
 }
 
-.cancel-invite-btn {
-  margin-left: auto;
-}
-
-.cancel-invite-btn:hover {
-  color: var(--color-error);
-  background-color: rgba(239, 68, 68, 0.1);
-}
-
-/* Admin actions in sidebar */
-.admin-actions {
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, rgba(156, 106, 222, 0.08), rgba(29, 209, 161, 0.08));
-  border: 1px solid rgba(156, 106, 222, 0.2);
-}
-
-.sidebar-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.invite-btn, .delete-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.invite-btn {
-  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
-  color: white;
-  border: none;
-  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.2);
-}
-
-.invite-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.3);
-}
-
-.delete-btn {
-  background: transparent;
-  color: #e74c3c;
-  border: 1px solid #e74c3c;
-}
-
-.delete-btn:hover {
-  background: rgba(231, 76, 60, 0.1);
-  transform: translateY(-2px);
-}
-
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-  .members-sidebar {
-    flex-basis: 340px;
-  }
-}
-
+/* Responsive */
 @media (max-width: 992px) {
-  .members-sidebar {
-    flex-basis: auto;
-    position: static;
+  .members-sidebar-component {
+    flex-basis: auto; /* Full width on smaller screens */
     max-height: none;
-    width: 100%;
+    padding-right: 0;
   }
 }
 </style> 

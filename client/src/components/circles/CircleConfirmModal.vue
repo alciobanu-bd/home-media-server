@@ -1,32 +1,32 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal-content confirmation-modal">
-      <div class="modal-header">
-        <h2>{{ title }}</h2>
-      </div>
-      
-      <div class="modal-body">
-        <p>{{ message }}</p>
-      </div>
-      
-      <div class="modal-footer">
-        <button class="secondary-btn" @click="$emit('close')">Cancel</button>
-        <button 
-          class="danger-btn" 
-          @click="$emit('confirm')"
-          :disabled="processing"
-        >
-          <span v-if="processing">Processing...</span>
-          <span v-else>{{ buttonText }}</span>
-        </button>
-      </div>
-    </div>
-  </div>
+  <BaseModal 
+    :show="show"
+    :title="title"
+    :is-danger="true"
+    :is-confirmation="true"
+    :loading="processing"
+    @close="$emit('close')"
+    @primary-action="$emit('confirm')"
+  >
+    <template #icon-path>
+      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </template>
+    
+    <template #primary-text>{{ buttonText }}</template>
+    <template #loading-text>Processing...</template>
+    
+    <p>{{ message }}</p>
+  </BaseModal>
 </template>
 
 <script>
+import BaseModal from '../ui/BaseModal.vue';
+
 export default {
   name: 'CircleConfirmModal',
+  components: {
+    BaseModal
+  },
   props: {
     show: {
       type: Boolean,
@@ -52,94 +52,4 @@ export default {
   
   emits: ['close', 'confirm']
 };
-</script>
-
-<style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background-color: var(--color-bg-primary);
-  border-radius: 10px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-}
-
-.confirmation-modal .modal-body {
-  padding: 2rem 1.5rem;
-}
-
-.modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: var(--color-text-primary);
-}
-
-.modal-body p {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--color-text-primary);
-  line-height: 1.5;
-}
-
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--color-border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-.secondary-btn {
-  background-color: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-primary);
-  padding: 0.75rem 1.25rem;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.secondary-btn:hover {
-  background-color: var(--color-bg-tertiary);
-}
-
-.danger-btn {
-  background-color: var(--error-color);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.25rem;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.danger-btn:hover {
-  background-color: var(--error-color-dark, #c0392b);
-}
-
-.danger-btn:disabled {
-  background-color: var(--color-disabled);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-</style> 
+</script> 

@@ -1,118 +1,130 @@
 <template>
-  <div class="timeline-container">
-    <h3 class="section-title">Recent Activity</h3>
+  <div class="timeline-container-component">
+    <h3 class="component-section-title">Recent Activity</h3>
     
-    <div v-if="loading" class="loading-indicator">
-      <div class="loading-spinner"></div>
+    <div v-if="loading && timeline.length === 0" class="loading-state-container">
+      <div class="loading-spinner-animation"></div>
       <p>Loading timeline...</p>
     </div>
     
-    <div v-else-if="timeline.length === 0" class="empty-state">
-      <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 8v4M12 16h.01"/>
+    <div v-else-if="timeline.length === 0" class="empty-state-container">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+        <path d="M12 6v6l4 2"></path>
       </svg>
-      <p>No recent activity in this circle yet</p>
+      <p class="empty-state-message">No recent activity in this circle yet.</p>
+      <p class="empty-state-submessage">Shared files and album updates will appear here.</p>
     </div>
     
-    <div v-else class="timeline">
-      <div v-for="(activity, index) in timeline" :key="index" class="timeline-item">
-        <div class="timeline-header">
-          <div class="user-avatar">
-            <img v-if="activity.owner.picture" :src="activity.owner.picture" :alt="activity.owner.name">
-            <div v-else class="default-avatar">
+    <div v-else class="timeline-feed">
+      <div v-for="(activity, index) in timeline" :key="index" class="timeline-item-card">
+        <div class="timeline-item-header">
+          <div class="user-avatar-container">
+            <img v-if="activity.owner.picture" :src="activity.owner.picture" :alt="activity.owner.name" class="user-avatar-img">
+            <div v-else class="user-avatar-default">
               {{ getInitials(activity.owner.name) }}
             </div>
           </div>
           
-          <div class="activity-info">
-            <div class="activity-title">
-              <span class="username">{{ activity.owner.name }}</span>
-              <span v-if="activity.type === 'file'">
+          <div class="activity-info-block">
+            <div class="activity-summary">
+              <span class="username-text">{{ activity.owner.name }}</span>
+              <span v-if="activity.type === 'file'" class="action-text">
                 shared {{ activity.items.length > 1 ? `${activity.items.length} files` : 'a file' }}
               </span>
-              <span v-else-if="activity.type === 'album'">
-                added new media to {{ activity.items.length > 1 ? 'albums' : 'an album' }}
+              <span v-else-if="activity.type === 'album'" class="action-text">
+                updated {{ activity.items.length > 1 ? 'albums' : 'an album' }}
               </span>
             </div>
-            <div class="activity-time">
+            <div class="timestamp-text">
               {{ formatTimeAgo(activity.createdAt) }}
             </div>
           </div>
         </div>
         
-        <!-- File activity content -->
-        <div v-if="activity.type === 'file'" class="activity-content files-grid">
+        <div v-if="activity.type === 'file'" class="activity-content-block files-display-grid">
           <div 
             v-for="file in activity.items" 
             :key="file.id"
-            class="file-card"
+            class="content-file-card"
             @click="viewFile(file.id)"
+            role="button"
+            tabindex="0"
+            @keydown.enter="viewFile(file.id)"
+            @keydown.space.prevent="viewFile(file.id)"
           >
-            <div class="file-thumbnail">
+            <div class="file-card-thumbnail">
               <img 
+                v-if="file.thumbnailId" 
                 :src="`${apiBaseUrl}/thumbnails/${file.thumbnailId}.jpg`" 
                 :alt="file.originalName" 
-                class="file-thumbnail-image"
+                class="file-thumbnail-actual-image"
               />
+              <div v-else class="file-thumbnail-placeholder">
+                 <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+              </div>
             </div>
-            
-            <div class="file-info">
-              <h4 class="file-name" :title="file.originalName">{{ file.originalName }}</h4>
-              <p class="file-meta">{{ formattedFileSize(file.size) }} · {{ fileTypeFormatted(file.mimetype) }}</p>
+            <div class="file-card-info">
+              <h4 class="file-card-name" :title="file.originalName">{{ file.originalName }}</h4>
+              <p class="file-card-meta">{{ formattedFileSize(file.size) }}</p>
             </div>
           </div>
         </div>
         
-        <!-- Album activity content -->
-        <div v-else-if="activity.type === 'album'" class="activity-content">
+        <div v-else-if="activity.type === 'album'" class="activity-content-block album-display-section">
           <div 
             v-for="album in activity.items" 
             :key="album.id"
-            class="album-activity"
+            class="content-album-card"
           >
-            <div class="album-header">
-              <h4 class="album-name">{{ album.name }}</h4>
-              <span class="album-count">{{ album.fileCount }} items</span>
+            <div class="album-card-header">
+              <h4 class="album-card-name">{{ album.name }}</h4>
+              <span class="album-card-count">{{ album.fileCount }} items</span>
               <button 
-                class="view-album-btn"
+                class="btn btn-secondary btn-sm view-album-action-btn"
                 @click="viewAlbum(album.id)"
               >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 View Album
               </button>
             </div>
-            
-            <div class="album-previews" v-if="album.previewFiles && album.previewFiles.length > 0">
+            <div class="album-card-previews" v-if="album.previewFiles && album.previewFiles.length > 0">
               <div 
-                v-for="preview in album.previewFiles" 
+                v-for="preview in album.previewFiles.slice(0, 5)" 
                 :key="preview.id"
-                class="album-preview-thumbnail"
+                class="album-preview-img-wrapper"
               >
                 <img 
                   :src="`${apiBaseUrl}/thumbnails/${preview.id}.jpg`" 
                   :alt="preview.originalName"
+                  class="album-preview-img"
                 />
               </div>
+              <div v-if="album.previewFiles.length > 5" class="album-preview-more">
+                +{{ album.previewFiles.length - 5 }}
+              </div>
             </div>
-            <div v-else class="album-no-previews">
-              <p>No items in this album yet</p>
+            <div v-else class="album-previews-empty">
+              <p>No previews available for this album.</p>
             </div>
           </div>
         </div>
       </div>
       
-      <!-- Pagination controls -->
-      <div v-if="timeline.length > 0 && nextPageTimestamp" class="pagination">
+      <div v-if="timeline.length > 0 && nextPageTimestamp" class="pagination-controls">
         <button 
-          class="pagination-btn load-more"
+          class="btn btn-secondary load-more-action-btn"
           :disabled="loadingMore"
           @click="loadMore"
         >
-          <span v-if="loadingMore">
-            <div class="loading-spinner-small"></div>
+          <span v-if="loadingMore" class="loading-content-wrapper">
+            <div class="btn-loading-spinner"></div>
             Loading...
           </span>
-          <span v-else>Load More</span>
+          <span v-else>Load More Activity</span>
         </button>
       </div>
     </div>
@@ -216,343 +228,358 @@ export default {
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     },
-    
-    fileTypeFormatted(mimetype) {
-      if (!mimetype) return 'File';
-      
-      if (mimetype.startsWith('image/')) {
-        return 'Image';
-      } else if (mimetype.startsWith('video/')) {
-        return 'Video';
-      } else if (mimetype.startsWith('audio/')) {
-        return 'Audio';
-      } else if (mimetype.includes('pdf')) {
-        return 'PDF';
-      } else if (mimetype.includes('document') || mimetype.includes('word')) {
-        return 'Document';
-      } else if (mimetype.includes('spreadsheet') || mimetype.includes('excel')) {
-        return 'Spreadsheet';
-      } else {
-        return 'File';
-      }
-    }
   }
 };
 </script>
 
 <style scoped>
-/* Timeline Styles */
-.timeline-container {
-  margin-bottom: 2rem;
+.timeline-container-component {
+  /* Container for the whole timeline section */
 }
 
-.section-title {
-  font-size: 1.6rem;
-  margin-bottom: 1.5rem;
+.component-section-title {
+  font-size: 1.5rem; /* Consistent with other section titles */
   font-weight: 600;
   color: var(--color-text-primary);
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
-.timeline {
+.loading-state-container, .empty-state-container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  background-color: var(--color-bg-secondary);
+  border-radius: 10px;
+  min-height: 200px; /* Give it some space */
+  margin-bottom: 1.5rem;
 }
 
-.timeline-item {
+.loading-spinner-animation {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border-alpha, rgba(156, 106, 222, 0.2));
+  border-radius: 50%;
+  border-top-color: var(--lumia-primary, #9c6ade);
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.loading-state-container p, .empty-state-message {
+  font-size: 1.05rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.empty-state-icon {
+  margin-bottom: 1rem;
+  color: var(--color-text-tertiary);
+  opacity: 0.8;
+}
+
+.empty-state-submessage {
+  font-size: 0.9rem;
+  color: var(--color-text-tertiary);
+  margin-top: 0.25rem;
+}
+
+.timeline-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Space between timeline items */
+}
+
+.timeline-item-card {
   background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-border-light);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02));
+  overflow: hidden; /* Ensure child elements conform to border-radius */
 }
 
-.timeline-header {
+.timeline-item-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-bg-tertiary);
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-extra-light);
+  background-color: var(--color-bg-primary); /* Can be slightly different if needed */
 }
 
-.user-avatar {
-  width: 48px;
-  height: 48px;
+.user-avatar-container {
+  width: 40px; /* Standard avatar size */
+  height: 40px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  border: 2px solid var(--primary-color);
+  /* border: 2px solid var(--lumia-primary); Optional accent border */
 }
 
-.user-avatar img {
+.user-avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.default-avatar {
+.user-avatar-default {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--lumia-gradient);
+  background: var(--lumia-gradient-soft, linear-gradient(45deg, rgba(156, 106, 222, 0.7), rgba(29, 209, 161, 0.7)));
   color: white;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
-.activity-info {
+.activity-info-block {
   flex: 1;
 }
 
-.activity-title {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
+.activity-summary {
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
 }
 
-.username {
-  font-weight: 700;
-  color: var(--primary-color);
+.username-text {
+  font-weight: 600;
+  color: var(--color-text-link, var(--lumia-primary, #9c6ade)); /* Make username stand out */
   margin-right: 0.25rem;
 }
 
-.activity-time {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
+.action-text {
+  /* Normal weight, follows username */
 }
 
-.activity-content {
-  padding: 1.5rem;
+.timestamp-text {
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary);
 }
 
-.album-activity {
-  margin-bottom: 1.5rem;
+.activity-content-block {
+  padding: 1.25rem;
+  background-color: var(--color-background); /* Slightly different background for content */
 }
 
-.album-activity:last-child {
-  margin-bottom: 0;
-}
-
-.album-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.album-name {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0;
-  margin-right: 1rem;
-}
-
-.album-count {
-  font-size: 0.875rem;
-  color: var(--primary-color);
-  margin-right: auto;
-}
-
-.view-album-btn {
-  background: linear-gradient(45deg, #9c6ade, #1dd1a1);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.view-album-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.25);
-}
-
-.album-previews {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.album-preview-thumbnail {
-  width: 120px;
-  height: 120px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-
-.album-preview-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.album-preview-thumbnail:hover img {
-  transform: scale(1.05);
-}
-
-.album-no-previews {
-  background-color: var(--color-bg-tertiary);
-  border-radius: 8px;
-  padding: 2rem;
-  text-align: center;
-  color: var(--color-text-secondary);
-}
-
-.files-grid {
+/* File display within timeline */
+.files-display-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Adjust minmax for desired size */
   gap: 1rem;
 }
 
-.file-card {
+.content-file-card {
   background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-light);
   border-radius: 8px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease-in-out;
   cursor: pointer;
 }
 
-.file-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  border-color: var(--primary-color);
+.content-file-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 4px 8px rgba(0,0,0,0.05));
+  border-color: var(--lumia-primary-light, #a881e3);
 }
 
-.file-thumbnail {
-  height: 130px;
+.file-card-thumbnail {
+  height: 100px; /* Adjust height as needed */
+  background-color: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 }
 
-.file-thumbnail-image {
+.file-thumbnail-actual-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+}
+.file-thumbnail-placeholder {
+  color: var(--color-text-tertiary);
 }
 
-.file-card:hover .file-thumbnail-image {
-  transform: scale(1.05);
+.file-card-info {
+  padding: 0.75rem;
 }
 
-.file-info {
-  padding: 0.8rem;
-}
-
-.file-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin: 0 0 0.4rem 0;
+.file-card-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0 0 0.25rem 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.file-meta {
-  font-size: 0.8rem;
+.file-card-meta {
+  font-size: 0.75rem;
   color: var(--color-text-secondary);
   margin: 0;
 }
 
-.pagination {
+/* Album display within timeline */
+.album-display-section {
+  /* General styling for album activities if needed */
+}
+
+.content-album-card {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem; /* Space if multiple albums in one activity */
+}
+.content-album-card:last-child {
+  margin-bottom: 0;
+}
+
+.album-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.album-card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  flex-grow: 1;
+}
+
+.album-card-count {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-tertiary);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.btn {
+  /* General button styles - copy from Circles.vue or global if available */
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  border: none;
+}
+
+.btn-secondary {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  gap: 4px;
+}
+
+.btn-sm svg {
+  width: 14px;
+  height: 14px;
+}
+
+
+.album-card-previews {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.album-preview-img-wrapper {
+  width: 60px; /* Smaller previews for timeline */
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-extra-light);
+  background-color: var(--color-bg-tertiary);
+}
+
+.album-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.album-preview-more {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  background-color: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-extra-light);
+}
+
+.album-previews-empty {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-text-tertiary);
+  background-color: var(--color-bg-tertiary);
+  border-radius: 6px;
+}
+
+/* Pagination */
+.pagination-controls {
   display: flex;
   justify-content: center;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border-light);
 }
 
-.pagination-btn {
-  background-color: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 0.8rem 1.5rem;
-  cursor: pointer;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  transition: all 0.2s ease;
+.load-more-action-btn {
+ /* Uses .btn and .btn-secondary from above */
 }
 
-.pagination-btn:hover:not(:disabled) {
-  background-color: var(--primary-color);
-  color: white;
-  transform: translateY(-2px);
-}
-
-.pagination-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pagination-btn.load-more {
-  display: flex;
+.loading-content-wrapper {
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.loading-spinner-small {
+.btn-loading-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid currentColor; /* Use button text color */
   border-radius: 50%;
-  border-top-color: #fff;
-  animation: spin 1s linear infinite;
-}
-
-.loading-indicator {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-}
-
-.loading-spinner {
-  border: 3px solid rgba(156, 106, 222, 0.1);
-  border-radius: 50%;
-  border-top: 3px solid #9c6ade;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  border-top-color: transparent;
+  border-bottom-color: transparent; /* Or just one transparent side */
+  animation: spin 0.8s linear infinite;
+  opacity: 0.7;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  text-align: center;
-  background-color: var(--color-bg-tertiary);
-  border-radius: 10px;
-  color: var(--color-text-secondary);
-}
-
-.empty-state svg {
-  margin-bottom: 1rem;
-  opacity: 0.6;
-  color: var(--color-text-secondary);
-}
-
-.empty-state p {
-  font-size: 1.1rem;
-  max-width: 300px;
-  margin: 0 auto;
+  to { transform: rotate(360deg); }
 }
 </style> 

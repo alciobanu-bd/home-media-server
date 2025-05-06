@@ -1,48 +1,63 @@
 <template>
-  <div class="albums-container">
-    <h3 class="section-title">Shared Albums</h3>
+  <div class="circle-albums-component">
+    <h3 class="component-section-title">Shared Albums</h3>
     
-    <div v-if="loading" class="loading-indicator">
-      <div class="loading-spinner"></div>
-      <p>Loading albums...</p>
+    <div v-if="loading && albums.length === 0" class="loading-state-container">
+      <div class="loading-spinner-animation"></div>
+      <p>Loading shared albums...</p>
     </div>
     
-    <div v-else-if="albums.length === 0" class="empty-state">
-      <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1">
-        <rect x="2" y="2" width="20" height="20" rx="2"/>
-        <circle cx="8.5" cy="8.5" r="2"/>
-        <path d="M20 15l-4.5-4.5-6.5 6.5"/>
+    <div v-else-if="albums.length === 0" class="empty-state-container">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+        <polyline points="21 15 16 10 5 21"></polyline>
       </svg>
-      <p>No albums have been shared with this circle yet</p>
+      <p class="empty-state-message">No albums have been shared with this circle yet.</p>
+      <p class="empty-state-submessage">When albums are shared, they will appear here.</p>
     </div>
     
-    <div v-else class="albums-grid">
+    <div v-else class="albums-display-grid">
       <div 
         v-for="album in albums" 
         :key="album._id"
-        class="album-card"
+        class="album-item-card"
         @click="viewAlbum(album._id)"
+        role="button"
+        tabindex="0"
+        @keydown.enter="viewAlbum(album._id)"
+        @keydown.space.prevent="viewAlbum(album._id)"
       >
-        <div class="album-thumbnail">
-          <div v-if="!album.thumbnailId" class="album-placeholder">
+        <div class="album-card-thumbnail-section">
+          <div v-if="!album.thumbnailId && (!album.previewFiles || album.previewFiles.length === 0)" class="album-thumbnail-placeholder">
             <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="20" rx="2" ry="2"></rect>
-              <circle cx="8.5" cy="8.5" r="2.5"></circle>
-              <path d="m21 15-5-5L5 21"></path>
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
             </svg>
           </div>
-          <img 
-            v-else 
-            :src="`${apiBaseUrl}/thumbnails/${album.thumbnailId}.jpg`" 
-            alt="Album thumbnail" 
-            class="album-thumbnail-image"
-          />
+          <div v-else-if="album.thumbnailId" class="album-thumbnail-image-wrapper">
+            <img 
+              :src="`${apiBaseUrl}/thumbnails/${album.thumbnailId}.jpg`" 
+              alt="Album thumbnail" 
+              class="album-thumbnail-img"
+            />
+          </div>
+           <div v-else-if="album.previewFiles && album.previewFiles.length > 0" class="album-thumbnail-mosaic">
+            <div 
+              v-for="(preview, index) in album.previewFiles.slice(0, 4)" 
+              :key="preview.id || index"
+              class="album-mosaic-item"
+            >
+              <img :src="`${apiBaseUrl}/thumbnails/${preview.id}.jpg`" alt="Thumbnail preview" />
+            </div>
+          </div>
         </div>
         
-        <div class="album-info">
-          <h4 class="album-name">{{ album.name }}</h4>
-          <p class="album-meta">{{ album.fileCount || 0 }} items</p>
-          <p class="album-owner">Shared by: {{ getOwnerName(album.userId) }}</p>
+        <div class="album-card-info-section">
+          <h4 class="album-card-title">{{ album.name }}</h4>
+          <p class="album-card-meta">{{ album.fileCount || 0 }} items</p>
+          <p class="album-card-owner-info">Shared by: {{ getOwnerName(album.userId) }}</p>
         </div>
       </div>
     </div>
@@ -97,147 +112,163 @@ export default {
 </script>
 
 <style scoped>
-.albums-container {
-  margin-bottom: 2rem;
+.circle-albums-component {
+  /* Main container for this component */
 }
 
-.section-title {
-  font-size: 1.6rem;
-  margin-bottom: 1.5rem;
+.component-section-title {
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--color-text-primary);
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
-.albums-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.album-card {
-  background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
+.loading-state-container, .empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  background-color: var(--color-bg-secondary);
   border-radius: 10px;
+  min-height: 200px;
+}
+
+.loading-spinner-animation {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border-alpha, rgba(156, 106, 222, 0.2));
+  border-radius: 50%;
+  border-top-color: var(--lumia-primary, #9c6ade);
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.loading-state-container p, .empty-state-message {
+  font-size: 1.05rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.empty-state-icon {
+  margin-bottom: 1rem;
+  color: var(--color-text-tertiary);
+  opacity: 0.8;
+}
+
+.empty-state-submessage {
+  font-size: 0.9rem;
+  color: var(--color-text-tertiary);
+  margin-top: 0.25rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.albums-display-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Consistent with Albums.vue */
+  gap: 24px; /* Consistent with Albums.vue */
+}
+
+.album-item-card {
+  background-color: var(--color-card-background);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.05));
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease-in-out;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
 }
 
-.album-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  border-color: #9c6ade;
+.album-item-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg, 0 8px 16px rgba(0, 0, 0, 0.1));
+  border-color: var(--lumia-primary, #9c6ade);
 }
 
-.album-thumbnail {
-  height: 150px;
-  overflow: hidden;
-  position: relative;
+.album-card-thumbnail-section {
+  height: 160px; /* Consistent height for thumbnails */
   background-color: var(--color-bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden; /* Crucial for mosaic */
+  position: relative; /* For absolute positioning inside if needed */
 }
 
-.album-thumbnail-image {
+.album-thumbnail-placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 0.6;
+}
+
+.album-thumbnail-image-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.album-thumbnail-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.25s ease-in-out;
 }
 
-.album-card:hover .album-thumbnail-image {
+.album-item-card:hover .album-thumbnail-img {
   transform: scale(1.05);
 }
 
-.album-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+.album-thumbnail-mosaic {
   width: 100%;
-  color: var(--color-text-secondary);
-  opacity: 0.5;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 2px; /* Small gap for mosaic effect */
 }
 
-.album-info {
-  padding: 1.2rem;
+.album-mosaic-item {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
-.album-name {
-  font-size: 1.1rem;
+.album-mosaic-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.album-card-info-section {
+  padding: 1rem; /* Consistent padding */
+}
+
+.album-card-title {
+  font-size: 1.05rem; /* Slightly smaller if needed */
   font-weight: 600;
-  margin: 0 0 0.5rem 0;
   color: var(--color-text-primary);
+  margin: 0 0 0.35rem 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.album-meta {
-  font-size: 0.9rem;
-  color: var(--primary-color);
-  margin: 0 0 0.3rem 0;
+.album-card-meta {
+  font-size: 0.85rem;
+  color: var(--lumia-primary, #9c6ade);
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
 }
 
-.album-owner {
+.album-card-owner-info {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   margin: 0;
-}
-
-.loading-indicator {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-}
-
-.loading-spinner {
-  border: 3px solid rgba(156, 106, 222, 0.1);
-  border-radius: 50%;
-  border-top: 3px solid #9c6ade;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  text-align: center;
-  background-color: var(--color-bg-tertiary);
-  border-radius: 10px;
-  color: var(--color-text-secondary);
-}
-
-.empty-state svg {
-  margin-bottom: 1rem;
-  opacity: 0.6;
-  color: var(--color-text-secondary);
-}
-
-.empty-state p {
-  font-size: 1.1rem;
-  max-width: 300px;
-  margin: 0 auto;
 }
 </style> 

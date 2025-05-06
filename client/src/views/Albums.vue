@@ -189,7 +189,7 @@
 
     <!-- Create Album Modal -->
     <rename-modal 
-      v-if="showCreateAlbumModal"
+      :show="showCreateAlbumModal"
       title="Create New Album"
       label="Album Name"
       placeholder="Enter album name"
@@ -204,7 +204,7 @@
     
     <!-- Rename Album Modal -->
     <rename-modal 
-      v-if="showRenameAlbumModal"
+      :show="showRenameAlbumModal"
       title="Rename Album"
       label="Album Name"
       placeholder="Enter album name"
@@ -219,7 +219,7 @@
     
     <!-- Delete Confirmation Modal -->
     <confirmation-dialog
-      v-if="showDeleteConfirmation"
+      :show="showDeleteConfirmation"
       message="Are you sure you want to delete this album? This action cannot be undone."
       @confirm="deleteAlbum"
       @cancel="showDeleteConfirmation = false"
@@ -227,8 +227,8 @@
     
     <!-- Thumbnail Selector Modal -->
     <thumbnail-selector-modal
-      v-if="showSetThumbnailModal && selectedAlbum"
-      :album-id="selectedAlbum._id"
+      :show="showSetThumbnailModal && selectedAlbum"
+      :album-id="selectedAlbum ? selectedAlbum._id : ''"
       @close="showSetThumbnailModal = false"
       @thumbnail-updated="refreshAlbumThumbnail"
     />

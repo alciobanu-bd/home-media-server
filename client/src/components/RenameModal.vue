@@ -1,36 +1,51 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('cancel')">
-    <div class="modal-content">
-      <h2>{{ title }}</h2>
-      <form @submit.prevent="submit">
-        <div class="form-group">
-          <label :for="inputId">{{ label }}</label>
-          <input
-            :id="inputId"
-            v-model="inputValue"
-            type="text"
-            :placeholder="placeholder"
-            required
-            class="form-control"
-            autofocus
-          />
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="$emit('cancel')">Cancel</button>
-          <button type="submit" class="submit-btn" :disabled="!inputValue.trim() || isProcessing">
-            <span v-if="isProcessing">{{ processingText }}</span>
-            <span v-else>{{ submitText }}</span>
-          </button>
-        </div>
-      </form>
+  <BaseModal
+    :show="show"
+    :title="title"
+    :primary-disabled="!inputValue.trim() || isProcessing"
+    :loading="isProcessing"
+    @close="$emit('cancel')"
+    @primary-action="submit"
+  >
+    <template #primary-text>{{ submitText }}</template>
+    <template #loading-text>{{ processingText }}</template>
+    <template #icon-path>
+      <path d="M17 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2H7"></path>
+      <path d="M10 11L12 13L18 7"></path>
+      <path d="M15 3v4h4"></path>
+      <path d="M12 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9"></path>
+    </template>
+    
+    <div class="form-group">
+      <label :for="inputId">{{ label }}</label>
+      <div class="input-wrapper">
+        <input
+          :id="inputId"
+          v-model="inputValue"
+          type="text"
+          :placeholder="placeholder"
+          required
+          class="form-control"
+          autofocus
+        />
+      </div>
     </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script>
+import BaseModal from './ui/BaseModal.vue';
+
 export default {
   name: 'RenameModal',
+  components: {
+    BaseModal
+  },
   props: {
+    show: {
+      type: Boolean,
+      default: false
+    },
     title: {
       type: String,
       default: 'Rename'
@@ -70,19 +85,18 @@ export default {
       inputValue: this.initialValue
     };
   },
-  created() {
-    // Listen for ESC key to close the modal
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  beforeUnmount() {
-    document.removeEventListener('keydown', this.handleKeydown);
+  watch: {
+    initialValue(newValue) {
+      this.inputValue = newValue;
+    },
+    show(newValue) {
+      if (newValue) {
+        // Reset the input value when modal is shown
+        this.inputValue = this.initialValue;
+      }
+    }
   },
   methods: {
-    handleKeydown(event) {
-      if (event.key === 'Escape') {
-        this.$emit('cancel');
-      }
-    },
     submit() {
       if (!this.inputValue.trim()) return;
       this.$emit('submit', this.inputValue.trim());
@@ -92,42 +106,6 @@ export default {
 </script>
 
 <style scoped>
-/* Modal styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(3px);
-}
-
-.modal-content {
-  background-color: var(--color-card-background);
-  border-radius: 12px;
-  padding: 24px;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-  border: 1px solid var(--color-border);
-}
-
-.modal-content h2 {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  background-clip: text;
-}
-
 .form-group {
   margin-bottom: 20px;
   width: 100%;
@@ -139,6 +117,10 @@ export default {
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text-secondary);
+}
+
+.input-wrapper {
+  position: relative;
 }
 
 .form-control {
@@ -159,82 +141,18 @@ export default {
   box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 24px;
-  width: 100%;
+/* Dark mode overrides */
+[data-theme="dark"] .form-group label {
+  color: var(--color-text-light);
 }
 
-.cancel-btn, .submit-btn {
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex: 1;
-  text-align: center;
-  min-width: calc(50% - 6px); /* Half of container minus half of gap */
-  box-sizing: border-box;
+[data-theme="dark"] .form-control {
+  background-color: var(--color-bg-secondary);
+  border-color: rgba(156, 106, 222, 0.3);
+  color: var(--color-text-primary);
 }
 
-.cancel-btn {
-  background-color: transparent;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-  transition: all 0.3s ease;
-}
-
-.cancel-btn:hover {
-  background-color: rgba(156, 106, 222, 0.1);
-  transform: translateY(-2px);
-  border-color: #9c6ade;
-  color: #9c6ade;
-}
-
-.submit-btn {
-  background: var(--lumia-gradient);
-  color: white;
-  border: none;
-  font-weight: 600;
-  box-shadow: var(--lumia-shadow);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.submit-btn:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1;
-}
-
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
-}
-
-.submit-btn:hover:before {
-  opacity: 1;
-}
-
-.submit-btn span {
-  position: relative;
-  z-index: 2;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+[data-theme="dark"] .form-control:focus {
+  box-shadow: 0 0 0 3px rgba(156, 106, 222, 0.3);
 }
 </style> 

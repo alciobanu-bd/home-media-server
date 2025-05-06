@@ -167,7 +167,7 @@
 
     <!-- Edit Album Modal -->
     <rename-modal 
-      v-if="showEditModal"
+      :show="showEditModal"
       title="Rename Album"
       label="Album Name"
       placeholder="Enter album name"
@@ -182,7 +182,7 @@
 
     <!-- Delete Confirmation Modal -->
     <confirmation-dialog
-      v-if="showDeleteConfirmation"
+      :show="showDeleteConfirmation"
       message="Are you sure you want to delete this album? This action cannot be undone."
       @confirm="deleteAlbum"
       @cancel="showDeleteConfirmation = false"
@@ -190,7 +190,7 @@
 
     <!-- Upload Modal -->
     <upload-modal
-      v-if="showUploadModal"
+      :show="showUploadModal"
       :album-id="$route.params.id"
       :album-name="album?.name"
       @close="showUploadModal = false"
@@ -199,12 +199,20 @@
     
     <!-- Share to Circle Modal -->
     <circle-selector-modal
-      v-if="showShareModal"
+      :show="showShareModal"
       :album-id="$route.params.id"
       :album-name="album?.name"
       :shared-circle-ids="album?.circleIds || []"
       @close="showShareModal = false"
-      @shared="handleAlbumShared"
+      @saved="handleAlbumShared"
+    />
+
+    <!-- Thumbnail Selector Modal -->
+    <thumbnail-selector-modal
+      :show="showThumbnailSelector"
+      :album-id="$route.params.id"
+      @close="showThumbnailSelector = false"
+      @thumbnail-updated="handleThumbnailUpdated"
     />
   </div>
 </template>
@@ -252,7 +260,8 @@ export default {
       inSelectionMode: false,
       selectedItems: [],
       baseUrl: process.env.BASE_URL || '/',
-      groupByDate: loadViewPreference()
+      groupByDate: loadViewPreference(),
+      showThumbnailSelector: false
     };
   },
   created() {
@@ -436,9 +445,6 @@ export default {
     },
     handleAlbumShared(data) {
       // Update the local album object with the new circleIds
-      if (!this.album.circleIds) {
-        this.album.circleIds = [];
-      }
       this.album.circleIds = data.circleIds;
       
       // Show a success message
@@ -480,6 +486,13 @@ export default {
           this.selectedItems.push(item._id);
         }
       });
+    },
+    handleThumbnailUpdated(data) {
+      // Update the local album object with the new thumbnail
+      this.album.thumbnailId = data.thumbnailId;
+      
+      // Refresh the album data to get the updated thumbnail URL
+      this.fetchAlbum();
     }
   },
   computed: {

@@ -1,44 +1,37 @@
 <template>
-  <div class="circle-header">
+  <div class="circle-header-component">
     <div class="title-section">
-      <h1>
-        {{ name }}
-        <button v-if="isAdmin" class="edit-circle-btn" @click="$emit('edit')" title="Edit Circle Name & Description">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+      <div class="title-line">
+        <h1>{{ name }}</h1>
+        <button v-if="isAdmin" class="btn-icon-only edit-circle-btn" @click="$emit('edit')" title="Edit Circle Name & Description">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
-          <span class="edit-label">Edit Circle</span>
         </button>
-      </h1>
-      <div class="description-container">
-        <div class="description-text">
-          <p v-if="description" class="description">
-            {{ description }}
-          </p>
-          <p v-else class="no-description">
-            No description provided
-          </p>
-        </div>
       </div>
+      <p v-if="description" class="description-text">
+        {{ description }}
+      </p>
+      <p v-else class="no-description-text">
+        No description provided for this circle.
+      </p>
     </div>
     
-    <!-- Circle content actions -->
     <div class="circle-actions">
-      <button class="action-button upload-button" @click="$emit('upload')">
+      <button class="btn btn-primary upload-button" @click="$emit('upload')">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="17 8 12 3 7 8"></polyline>
           <line x1="12" y1="3" x2="12" y2="15"></line>
         </svg>
-        Upload
+        Upload Media
       </button>
-      <button class="action-button share-button" @click="$emit('share-album')">
+      <button class="btn btn-secondary share-button" @click="$emit('share-album')">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="18" cy="5" r="3"></circle>
-          <circle cx="6" cy="12" r="3"></circle>
-          <circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
         </svg>
         Share Album
       </button>
@@ -69,153 +62,156 @@ export default {
 </script>
 
 <style scoped>
-.circle-header {
+.circle-header-component {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
+  align-items: flex-start; /* Align items to the top */
+  padding: 1.5rem; /* Add padding for a card-like feel if desired, or rely on parent */
+  background-color: var(--color-bg-secondary); /* Light background */
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light);
+  margin-bottom: 1.5rem; /* Space below header */
 }
 
 .title-section {
-  flex: 1;
-  padding-right: 100px;
+  flex: 1; /* Allow title section to take available space */
+}
+
+.title-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* Space between title and edit button */
+  margin-bottom: 0.5rem;
 }
 
 .title-section h1 {
-  margin: 0 0 0.5rem 0;
-  font-size: 2rem;
-  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
+  font-size: 2rem; /* Larger title */
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--lumia-purple, #9c6ade), var(--lumia-green, #1dd1a1));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  font-family: 'Poppins', sans-serif;
+  margin: 0; /* Reset margin */
+  line-height: 1.2;
 }
 
-.description-container {
-  display: flex;
-  width: 100%;
-  margin-top: 0.5rem;
-}
-
-.description-text {
-  width: 100%;
-}
-
-.description, .no-description {
-  position: relative;
-  margin: 0;
-  color: var(--color-text-secondary);
+.description-text, .no-description-text {
   font-size: 1rem;
-  display: inline;
-}
-
-.no-description {
-  font-style: italic;
-  opacity: 0.7;
   color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 700px; /* Prevent description from being too wide */
 }
 
-.edit-circle-btn {
+.no-description-text {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.btn-icon-only {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  padding: 6px;
+  border-radius: 50%;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(156, 106, 222, 0.1);
-  border: 1px solid rgba(156, 106, 222, 0.3);
-  border-radius: 30px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  vertical-align: middle;
-  margin-left: 8px;
-  gap: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.edit-circle-btn:hover {
-  background-color: rgba(156, 106, 222, 0.2);
-  border-color: #9c6ade;
-  color: #9c6ade;
-  transform: translateY(-1px);
+.btn-icon-only:hover {
+  background-color: var(--color-hover);
+  color: var(--lumia-primary, #9c6ade);
 }
 
 .edit-circle-btn svg {
-  color: #9c6ade;
+  /* SVG inherits color from button */
 }
 
-.edit-label {
-  font-weight: 500;
-  font-size: 0.75rem;
-  color: inherit;
-  font-family: inherit;
-}
-
-/* Circle actions */
 .circle-actions {
   display: flex;
-  gap: 1rem;
-  align-items: center;
+  gap: 0.75rem; /* Consistent gap for action buttons */
+  align-items: center; /* Align buttons nicely */
+  flex-shrink: 0; /* Prevent shrinking if title is long */
+  margin-left: 1.5rem; /* Space between title section and actions */
 }
 
-.action-button {
+/* Standardized button styles (should match global .btn styles if possible) */
+.btn {
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  gap: 8px;
+  text-decoration: none;
 }
 
-.upload-button {
-  background: linear-gradient(45deg, #9c6ade, #1dd1a1);
+.btn-primary {
+  background: var(--lumia-gradient, linear-gradient(45deg, #9c6ade, #1dd1a1));
   color: white;
   border: none;
-  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.25);
+  box-shadow: var(--lumia-shadow-sm, 0 2px 8px rgba(156, 106, 222, 0.2));
 }
 
-.upload-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--lumia-shadow-hover, 0 4px 12px rgba(156, 106, 222, 0.3));
 }
 
-.share-button {
-  background: transparent;
+.btn-secondary {
+  background-color: var(--color-bg-tertiary);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
 }
 
-.share-button:hover {
-  background: rgba(156, 106, 222, 0.1);
-  border-color: #9c6ade;
-  color: #9c6ade;
-  transform: translateY(-2px);
+.btn-secondary:hover {
+  background-color: var(--color-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.upload-button svg,
+.share-button svg {
+  margin-right: 6px; /* Keep if gap on .btn is not enough or for specific icon spacing */
 }
 
 /* Responsive adjustments */
-@media (max-width: 992px) {
-  .circle-header {
+@media (max-width: 768px) {
+  .circle-header-component {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
+    padding: 1rem;
   }
-  
-  .title-section {
-    padding-right: 0;
-    width: 100%;
+
+  .title-section h1 {
+    font-size: 1.75rem;
   }
-  
+
   .circle-actions {
     width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    gap: 0.8rem;
+    justify-content: flex-start; /* Align buttons to start on mobile */
+    margin-left: 0;
+  }
+
+  .btn {
+    flex-grow: 1; /* Make buttons take equal space if needed, or adjust individually */
+    font-size: 0.85rem;
+    padding: 0.5rem 0.8rem;
+  }
+  .btn-icon-only {
+    padding: 4px;
+  }
+  .btn-icon-only svg {
+    width:18px;
+    height:18px;
   }
 }
 </style> 

@@ -48,24 +48,27 @@
       <div v-if="loading" class="loading-spinner">Loading more items...</div>
     </div>
 
-    <upload-modal v-if="showUploadModal" @close="closeUploadModal" />
+    <upload-modal 
+      :show="showUploadModal" 
+      @close="closeUploadModal" 
+    />
     
     <confirmation-dialog 
-      v-if="showDeleteConfirmation" 
+      :show="showDeleteConfirmation" 
       :message="deleteConfirmMessage"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
     />
     
     <album-selector-modal
-      v-if="showAlbumSelector"
+      :show="showAlbumSelector"
       :mediaIds="selectedItems"
       @close="closeAlbumSelector"
       @saved="handleAddToAlbumSuccess"
     />
     
     <circle-selector-modal
-      v-if="showCircleSelector"
+      :show="showCircleSelector"
       :mediaIds="selectedItems"
       @close="closeCircleSelector"
       @saved="handleShareToCirclesSuccess"

@@ -23,8 +23,12 @@
       </div>
       
       <div v-else-if="error" class="error-container">
-        <div class="error-icon">
-          <i class="fas fa-exclamation-circle"></i>
+        <div class="error-icon-container">
+           <svg class="error-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
         </div>
         <h3>Error Loading Circle</h3>
         <p>{{ error }}</p>
@@ -225,27 +229,6 @@ export default {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
       };
     },
-    fileTypeFormatted() {
-      return (mimetype) => {
-        if (!mimetype) return 'File';
-        
-        if (mimetype.startsWith('image/')) {
-          return 'Image';
-        } else if (mimetype.startsWith('video/')) {
-          return 'Video';
-        } else if (mimetype.startsWith('audio/')) {
-          return 'Audio';
-        } else if (mimetype.includes('pdf')) {
-          return 'PDF';
-        } else if (mimetype.includes('document') || mimetype.includes('word')) {
-          return 'Document';
-        } else if (mimetype.includes('spreadsheet') || mimetype.includes('excel')) {
-          return 'Spreadsheet';
-        } else {
-          return 'File';
-        }
-      };
-    }
   },
   async mounted() {
     // Load the circle data, timeline and shared albums
@@ -629,17 +612,21 @@ export default {
 /* Page-level layout */
 .page-layout {
   display: flex;
-  gap: 2rem;
-  max-width: 1600px;
+  gap: 2rem; /* Main gap between sidebar and content */
+  max-width: var(--page-max-width, 1600px); /* Use a global variable if possible */
   margin: 0 auto;
-  padding: 2rem;
+  padding: 24px; /* Consistent page padding */
+  background-color: var(--color-background);
+  min-height: calc(100vh - var(--header-height)); /* Full height minus header */
+  box-sizing: border-box;
 }
 
-/* Main container styles */
+/* Main content container styles */
 .circle-view-container {
-  flex: 1;
-  min-width: 0; /* Prevent flex items from overflowing */
-  max-width: 1100px;
+  flex: 1; /* Takes remaining space */
+  min-width: 0; /* Prevents flex item overflow */
+  display: flex;
+  flex-direction: column;
 }
 
 .loading-container, .error-container {
@@ -647,120 +634,148 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
+  min-height: 400px; /* Ensure it takes up some space */
   text-align: center;
+  padding: 2rem;
+  background-color: var(--color-bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light);
 }
 
 .loading-spinner {
-  border: 3px solid rgba(156, 106, 222, 0.1);
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--color-border-light, rgba(156, 106, 222, 0.25));
   border-radius: 50%;
-  border-top: 3px solid #9c6ade;
-  width: 40px;
-  height: 40px;
+  border-top-color: var(--lumia-primary, #9c6ade);
   animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
-.error-icon {
-  font-size: 4rem;
-  color: #e74c3c;
-  margin-bottom: 1rem;
+.loading-container p {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+}
+
+.error-icon-container {
+  margin-bottom: 1.5rem;
+}
+
+.error-icon-svg {
+  width: 64px;
+  height: 64px;
+  color: var(--color-error, #ef4444);
 }
 
 .error-container h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
 }
 
 .error-container p {
-  margin: 0 0 1.5rem 0;
-  color: var(--text-color-muted);
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
 }
 
-/* Content area */
+/* Styling for the main content area once loaded */
+.circle-details {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
 .circle-content {
-  background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-primary); /* Or var(--color-card-background) if you prefer cards for content sections */
+  /* border: 1px solid var(--color-border); remove for a cleaner look, header has border */
   border-radius: 10px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 0; /* Let tabs and content handle their own padding */
+  /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); Optional, can make it feel heavier */
+  margin-top: 1.5rem; /* Space between header and content area */
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .welcome-message {
   text-align: center;
-  padding: 2rem;
+  padding: 3rem 2rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg-secondary);
+  border-radius: 8px;
+  margin: 1rem; /* Add some margin if inside a padded .circle-content */
 }
 
 .welcome-message h3 {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
   margin-bottom: 1rem;
-  background: linear-gradient(90deg, #9c6ade, #1dd1a1);
+  background: linear-gradient(90deg, var(--lumia-purple, #9c6ade), var(--lumia-green, #1dd1a1));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  font-family: 'Poppins', sans-serif;
 }
 
 .welcome-message p {
   color: var(--color-text-secondary);
   font-size: 1.1rem;
   line-height: 1.6;
+  max-width: 500px;
+  margin-bottom: 0.5rem;
 }
 
-/* Basic button styles that might be needed across components */
+.tab-content {
+  padding: 1.5rem; /* Add padding around the tab content itself */
+  flex-grow: 1;
+}
+
+/* Button styles (re-iterate for local scope if not globally available or for overrides) */
 .secondary-btn {
-  background: transparent;
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
   padding: 0.75rem 1.5rem;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease;
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  text-decoration: none; /* For router-link like buttons */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .secondary-btn:hover {
-  background: rgba(156, 106, 222, 0.1);
-  border-color: #9c6ade;
-  color: #9c6ade;
+  background-color: var(--color-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
-/* Responsive adjustments for main layout */
-@media (min-width: 1800px) {
-  .page-layout {
-    max-width: 1800px;
-  }
-  
-  .circle-view-container {
-    max-width: 1300px;
-  }
-}
-
-@media (max-width: 1200px) {
-  .members-sidebar {
-    flex-basis: 340px;
-  }
-}
-
+/* Responsive adjustments */
 @media (max-width: 992px) {
   .page-layout {
-    flex-direction: column-reverse;
-    padding: 1rem;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 16px;
   }
-  
-  .members-sidebar {
-    flex-basis: auto;
-    position: static;
-    max-height: none;
-    width: 100%;
-  }
-  
+
   .circle-view-container {
-    max-width: 100%;
+    max-width: 100%; /* Full width on smaller screens */
   }
 }
+
+/* Ensure Font Awesome is removed or replaced if previously used directly in this component's style */
+/* Example: If there was a .fa-icon style, remove or update it */
+
 </style> 

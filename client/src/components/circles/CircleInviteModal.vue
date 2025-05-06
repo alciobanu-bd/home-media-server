@@ -1,44 +1,50 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Invite to {{ circleName }}</h2>
-      </div>
-      
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="invite-email">Email Address <span class="required">*</span></label>
-          <input 
-            id="invite-email" 
-            v-model="email" 
-            type="email" 
-            placeholder="Enter email address to invite"
-            :class="{ 'error': error }"
-          >
-          <p v-if="error" class="error-text">{{ error }}</p>
-        </div>
-      </div>
-      
-      <div class="modal-footer">
-        <button class="secondary-btn" @click="$emit('close')">Cancel</button>
-        <button 
-          class="primary-btn" 
-          @click="sendInvitation"
-          :disabled="inviting || !email"
+  <BaseModal 
+    :show="show"
+    :title="`Invite to ${circleName}`"
+    :subtitle="'Add new members to this circle'"
+    :loading="sending"
+    :primary-disabled="sending || !email"
+    @close="$emit('close')"
+    @primary-action="sendInvitation"
+  >
+    <template #icon-path>
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+      <polyline points="22,6 12,13 2,6"></polyline>
+    </template>
+    
+    <template #primary-text>Send Invitation</template>
+    <template #loading-text>Sending...</template>
+    
+    <div class="form-group">
+      <label for="invite-email">Email Address <span class="required">*</span></label>
+      <div class="input-wrapper">
+        <svg class="input-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+          <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+        <input 
+          id="invite-email" 
+          v-model="email" 
+          type="email" 
+          placeholder="Enter email address to invite"
+          :class="{ 'error': error }"
         >
-          <span v-if="inviting">Sending...</span>
-          <span v-else>Send Invitation</span>
-        </button>
       </div>
+      <p v-if="error" class="error-text">{{ error }}</p>
     </div>
-  </div>
+  </BaseModal>
 </template>
 
 <script>
 import circlesService from '../../services/circlesService';
+import BaseModal from '../ui/BaseModal.vue';
 
 export default {
   name: 'CircleInviteModal',
+  components: {
+    BaseModal
+  },
   props: {
     show: {
       type: Boolean,
@@ -60,7 +66,7 @@ export default {
     return {
       email: '',
       error: '',
-      inviting: false
+      sending: false
     };
   },
   
@@ -72,7 +78,7 @@ export default {
       }
       
       this.error = '';
-      this.inviting = true;
+      this.sending = true;
       
       try {
         await circlesService.inviteUser(this.circleId, this.email);
@@ -93,7 +99,7 @@ export default {
           this.error = 'Failed to send invitation. Please try again.';
         }
       } finally {
-        this.inviting = false;
+        this.sending = false;
       }
     }
   },
@@ -110,43 +116,6 @@ export default {
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background-color: var(--color-bg-primary);
-  border-radius: 10px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-}
-
-.modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: var(--color-text-primary);
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -156,79 +125,78 @@ export default {
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: var(--color-text-primary);
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-size: 1rem;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(156, 106, 222, 0.2);
-}
-
-.form-group input.error {
-  border-color: var(--error-color);
-}
-
-.error-text {
-  color: var(--error-color);
   font-size: 0.9rem;
-  margin-top: 0.5rem;
 }
 
 .required {
-  color: var(--error-color);
+  color: var(--color-error, #ef4444);
+  margin-left: 2px;
 }
 
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--color-border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
+.input-wrapper {
+  position: relative;
 }
 
-.secondary-btn {
-  background-color: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-primary);
-  padding: 0.75rem 1.25rem;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.secondary-btn:hover {
-  background-color: var(--color-bg-tertiary);
-}
-
-.primary-btn {
-  background-color: var(--primary-color);
-  border: none;
-  color: white;
-  padding: 0.75rem 1.25rem;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.primary-btn:hover {
-  background-color: var(--primary-color-dark);
-}
-
-.primary-btn:disabled {
-  background-color: var(--color-disabled);
-  cursor: not-allowed;
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
   opacity: 0.7;
+}
+
+.form-group input[type="email"] {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  padding-left: 2.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-group input[type="email"]:focus {
+  outline: none;
+  border-color: var(--lumia-primary, #9c6ade);
+  box-shadow: 0 0 0 3px rgba(156, 106, 222, 0.25);
+}
+
+.form-group input[type="email"].error {
+  border-color: var(--color-error, #ef4444);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.error-text {
+  color: var(--color-error, #ef4444);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+/* Dark mode specific overrides */
+[data-theme="dark"] .form-group label {
+  color: var(--color-text-light, #f0f0f0);
+}
+
+[data-theme="dark"] .form-group input[type="email"] {
+  background-color: var(--color-bg-primary-dark, #2d3748);
+  border-color: var(--color-border-dark, #4a5568);
+  color: var(--color-text-primary-dark, #e2e8f0);
+}
+
+[data-theme="dark"] .form-group input[type="email"]:focus {
+  border-color: var(--lumia-primary-dark, #a881e3);
+  box-shadow: 0 0 0 3px rgba(168, 129, 227, 0.3);
+}
+
+[data-theme="dark"] .form-group input[type="email"].error {
+  border-color: var(--color-error-dark, #f56565);
+}
+
+[data-theme="dark"] .input-icon {
+  color: var(--color-text-secondary-dark, #a0aec0);
 }
 </style> 
