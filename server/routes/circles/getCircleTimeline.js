@@ -5,6 +5,9 @@ const { verifyToken } = require('../auth/authMiddleware');
 /**
  * Route handler for getting a circle's timeline
  * GET /api/circles/:id/timeline
+ * 
+ * Query parameters:
+ * - timestamp: timestamp (ms since epoch) to get items older than this time (for pagination)
  */
 const getCircleTimelineHandler = async (request, reply) => {
     // Check if user is authenticated
@@ -15,20 +18,9 @@ const getCircleTimelineHandler = async (request, reply) => {
         });
     }
 
-    // Helper function to determine album timestamp
-    function getAlbumTimestamp(album) {
-        if (album.updatedAt) {
-            return album.updatedAt.getTime();
-        } else if (album.createdAt) {
-            return album.createdAt.getTime();
-        } else {
-            return new Date().getTime();
-        }
-    }
-
     const userId = request.user._id;
     const { id: circleId } = request.params;
-    const { limit = 20, page = 1 } = request.query;
+    const { timestamp } = request.query;
     
     // Validate circleId format
     if (!ObjectId.isValid(circleId)) {
@@ -72,55 +64,132 @@ const getCircleTimelineHandler = async (request, reply) => {
             };
         });
 
-        // Get files directly shared with the circle
         const objectIdCircleId = new ObjectId(String(circleId));
         
-        // Simple, clear query to find files shared with this circle
-        const sharedFiles = await filesCollection.find({
-            // Simply check if the circle ID is in the circleIds array
-            circleIds: objectIdCircleId
-        }).sort({ uploadedAt: -1 }).toArray();
+        // Build query filters based on timestamp
+        let fileQuery = { circleIds: objectIdCircleId };
+        let albumQuery = { circleIds: objectIdCircleId };
         
-        console.log(`Found ${sharedFiles.length} files shared with circle ${circleId}`);
-
-        // Get albums shared with the circle
-        const sharedAlbums = await albumsCollection.find({
-            // Simply check if the circle ID is in the circleIds array
-            circleIds: objectIdCircleId
-        }).sort({ updatedAt: -1 }).toArray();
+        if (timestamp) {
+            const timestampDate = new Date(parseInt(timestamp));
+            fileQuery.uploadedAt = { $lt: timestampDate };
+            albumQuery.updatedAt = { $lt: timestampDate };
+        }
         
-        console.log(`Found ${sharedAlbums.length} albums shared with circle ${circleId}`);
-
-        // For each album, get the latest 4 files to preview
+        // Query files and albums with separate limits
+        const sharedFiles = await filesCollection.find(fileQuery)
+            .sort({ uploadedAt: -1 })
+            .limit(50)
+            .toArray();
+        
+        const sharedAlbums = await albumsCollection.find(albumQuery)
+            .sort({ updatedAt: -1 })
+            .limit(10)
+            .toArray();
+        
+        console.log(`Found ${sharedFiles.length} files and ${sharedAlbums.length} albums shared with circle ${circleId}`);
+        
+        // Find the oldest timestamp between the two result sets
+        let oldestFileTimestamp = null;
+        let oldestAlbumTimestamp = null;
+        
+        if (sharedFiles.length > 0) {
+            // Last file is the oldest due to sort order
+            oldestFileTimestamp = sharedFiles[sharedFiles.length - 1].uploadedAt;
+        }
+        
+        if (sharedAlbums.length > 0) {
+            // Last album is the oldest due to sort order
+            oldestAlbumTimestamp = sharedAlbums[sharedAlbums.length - 1].updatedAt;
+        }
+        
+        // Determine the cutoff timestamp (the newer of the two oldest timestamps)
+        let cutoffTimestamp = null;
+        
+        if (oldestFileTimestamp && oldestAlbumTimestamp) {
+            // Take the newer timestamp (the max of the two oldest)
+            cutoffTimestamp = oldestFileTimestamp > oldestAlbumTimestamp ? 
+                oldestFileTimestamp : oldestAlbumTimestamp;
+        } else {
+            // If one is null, take the other
+            cutoffTimestamp = oldestFileTimestamp || oldestAlbumTimestamp;
+        }
+        
+        // Process albums and get preview files
+        const processedAlbums = [];
         for (const album of sharedAlbums) {
-            // Get files that reference this album
+            // Skip if older than cutoff timestamp
+            if (cutoffTimestamp && album.updatedAt < cutoffTimestamp) {
+                continue;
+            }
+            
+            // Get files that reference this album for preview
             const albumFiles = await filesCollection.find({
                 userId: album.userId,
-                albums: album._id  // Files reference albums in their 'albums' array
+                albums: album._id
             }).sort({ uploadedAt: -1 }).limit(4).toArray();
             
-            album.previewFiles = albumFiles.map(file => ({
-                id: file._id.toString(),
-                thumbnailId: file._id.toString(),
-                originalName: file.originalName,
-                mimetype: file.mimetype,
-                size: file.size,
-                createdAt: file.createdAt,
-                uploadedAt: file.uploadedAt
-            }));
-        }
-
-        // Create timeline items
-        const timelineItems = [];
-
-        // Add shared files to timeline
-        sharedFiles.forEach(file => {
-            // Skip if file doesn't have necessary properties
-            if (!file || !file._id || !file.userId) {
-                console.log('Skipping invalid file:', file);
-                return;
+            // Get file count for this album
+            const fileCount = await filesCollection.countDocuments({
+                userId: album.userId,
+                albums: album._id
+            });
+            
+            // Make sure we have a valid owner
+            const albumUserId = album.userId.toString();
+            const owner = userMap[albumUserId] || { 
+                id: albumUserId,
+                name: 'Unknown User',
+                picture: null
+            };
+            
+            // Get album timestamp
+            let albumTimestamp;
+            if (album.updatedAt) {
+                albumTimestamp = album.updatedAt.getTime();
+            } else if (album.createdAt) {
+                albumTimestamp = album.createdAt.getTime();
+            } else {
+                albumTimestamp = new Date().getTime();
             }
-
+            
+            processedAlbums.push({
+                type: 'album',
+                id: album._id.toString(),
+                ownerId: albumUserId,
+                owner: owner,
+                item: {
+                    id: album._id.toString(),
+                    name: album.name || 'Unnamed album',
+                    description: album.description || '',
+                    fileCount: fileCount,
+                    thumbnailId: album.thumbnailId || 
+                               (albumFiles.length > 0 ? albumFiles[0]._id.toString() : null),
+                    previewFiles: albumFiles.map(file => ({
+                        id: file._id.toString(),
+                        thumbnailId: file._id.toString(),
+                        originalName: file.originalName,
+                        mimetype: file.mimetype,
+                        size: file.size,
+                        createdAt: file.createdAt,
+                        uploadedAt: file.uploadedAt
+                    }))
+                },
+                createdAt: album.createdAt || new Date(),
+                updatedAt: album.updatedAt || album.createdAt || new Date(),
+                timestamp: albumTimestamp
+            });
+        }
+        
+        // Process files
+        const processedFiles = [];
+        for (const file of sharedFiles) {
+            // Skip if older than cutoff timestamp or doesn't have necessary properties
+            if ((cutoffTimestamp && file.uploadedAt < cutoffTimestamp) || 
+                !file || !file._id || !file.userId) {
+                continue;
+            }
+            
             // Make sure we have a valid owner
             const fileUserId = file.userId.toString();
             const owner = userMap[fileUserId] || { 
@@ -128,8 +197,18 @@ const getCircleTimelineHandler = async (request, reply) => {
                 name: 'Unknown User',
                 picture: null
             };
-
-            timelineItems.push({
+            
+            // Get file timestamp
+            let fileTimestamp;
+            if (file.uploadedAt) {
+                fileTimestamp = file.uploadedAt.getTime();
+            } else if (file.createdAt) {
+                fileTimestamp = file.createdAt.getTime();
+            } else {
+                fileTimestamp = new Date().getTime();
+            }
+            
+            processedFiles.push({
                 type: 'file',
                 id: file._id.toString(),
                 ownerId: fileUserId,
@@ -142,57 +221,19 @@ const getCircleTimelineHandler = async (request, reply) => {
                     size: file.size || 0
                 },
                 createdAt: file.uploadedAt || file.createdAt || new Date(),
-                timestamp: file.uploadedAt?.getTime() || file.createdAt?.getTime() || new Date().getTime()
-            });
-        });
-
-        // Add shared albums to timeline
-        for (const album of sharedAlbums) {
-            // Skip if album doesn't have necessary properties
-            if (!album || !album._id || !album.userId) {
-                console.log('Skipping invalid album:', album);
-                continue;
-            }
-
-            // Make sure we have a valid owner
-            const albumUserId = album.userId.toString();
-            const owner = userMap[albumUserId] || { 
-                id: albumUserId,
-                name: 'Unknown User',
-                picture: null
-            };
-
-            // Get the file count for this album
-            const fileCount = await filesCollection.countDocuments({
-                userId: album.userId,
-                albums: album._id
-            });
-
-            timelineItems.push({
-                type: 'album',
-                id: album._id.toString(),
-                ownerId: albumUserId,
-                owner: owner,
-                item: {
-                    id: album._id.toString(),
-                    name: album.name || 'Unnamed album',
-                    description: album.description || '',
-                    fileCount: fileCount,
-                    thumbnailId: album.thumbnailId || (album.previewFiles && album.previewFiles.length > 0 ? album.previewFiles[0].id : null),
-                    previewFiles: album.previewFiles || []
-                },
-                createdAt: album.createdAt || new Date(),
-                updatedAt: album.updatedAt || album.createdAt || new Date(),
-                timestamp: getAlbumTimestamp(album)
+                timestamp: fileTimestamp
             });
         }
-
+        
+        // Merge albums and files
+        const timelineItems = [...processedAlbums, ...processedFiles];
+        
         // Sort timeline items by timestamp (newest first)
         timelineItems.sort((a, b) => b.timestamp - a.timestamp);
         
-        console.log(`Total timeline items before grouping: ${timelineItems.length}`);
-
-        // Group consecutive items by owner
+        console.log(`Timeline items after merging and filtering: ${timelineItems.length}`);
+        
+        // Group consecutive items by owner and type
         const groupedTimeline = [];
         let currentGroup = null;
 
@@ -220,17 +261,16 @@ const getCircleTimelineHandler = async (request, reply) => {
         });
         
         console.log(`Grouped timeline items: ${groupedTimeline.length}`);
-
-        // Apply pagination
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-        const paginatedTimeline = groupedTimeline.slice(skip, skip + parseInt(limit));
-
+        
+        // Determine the timestamp of the last (oldest) item for next page loading
+        let nextPageTimestamp = null;
+        if (timelineItems.length > 0) {
+            nextPageTimestamp = timelineItems[timelineItems.length - 1].timestamp;
+        }
+        
         return {
-            timeline: paginatedTimeline,
-            totalItems: groupedTimeline.length,
-            page: parseInt(page),
-            limit: parseInt(limit),
-            totalPages: Math.ceil(groupedTimeline.length / parseInt(limit))
+            timeline: groupedTimeline,
+            nextPageTimestamp: nextPageTimestamp
         };
     } catch (err) {
         console.error('Error getting circle timeline:', err);

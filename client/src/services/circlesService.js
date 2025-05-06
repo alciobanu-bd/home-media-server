@@ -172,16 +172,31 @@ const circlesService = {
   },
 
   /**
-   * Get all files shared with a circle
+   * Get all files and albums shared with a circle
    * @param {string} id Circle ID
-   * @returns {Promise} Promise object with shared files
+   * @returns {Promise} Promise object with shared files and albums data
    */
   getCircleSharedFiles: async (id) => {
     try {
       const response = await api.get(`/circles/${id}/files`);
-      return response.data.files;
+      return response.data || { files: [], albums: [] };
     } catch (error) {
-      console.error('Error fetching shared files:', error);
+      console.error('Error fetching shared content:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all albums shared with a circle
+   * @param {string} id Circle ID
+   * @returns {Promise} Promise object with shared albums data
+   */
+  getCircleSharedAlbums: async (id) => {
+    try {
+      const response = await api.get(`/circles/${id}/albums`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching shared albums:', error);
       throw error;
     }
   },
@@ -189,10 +204,11 @@ const circlesService = {
   /**
    * Get the timeline for a specific circle
    * @param {string} id Circle ID
-   * @param {Object} options Options for pagination (page, limit)
-   * @returns {Promise} Promise object with timeline data
+   * @param {Object} options Options for time-based pagination
+   * @param {number} options.timestamp - Timestamp to fetch items older than (for pagination)
+   * @returns {Promise} Promise object with timeline data and nextPageTimestamp
    */
-  getCircleTimeline: async (id, options = { page: 1, limit: 20 }) => {
+  getCircleTimeline: async (id, options = {}) => {
     try {
       const response = await api.get(`/circles/${id}/timeline`, { 
         params: options 
