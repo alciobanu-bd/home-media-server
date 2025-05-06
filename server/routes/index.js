@@ -37,6 +37,7 @@ const updateCircleRoute = require('./circles/updateCircle');
 const getUserInvitationsRoute = require('./circles/getUserInvitations');
 const declineInvitationRoute = require('./circles/declineInvitation');
 const getCircleSharedFilesRoute = require('./circles/getCircleSharedFiles');
+const getCircleTimelineRoute = require('./circles/getCircleTimeline');
 
 // Import dependencies
 const path = require('path');
@@ -92,6 +93,7 @@ module.exports = function(fastify, opts, done) {
     fastify.register(getUserInvitationsRoute, { prefix: '/api' });
     fastify.register(declineInvitationRoute, { prefix: '/api' });
     fastify.register(getCircleSharedFilesRoute, { prefix: '/api' });
+    fastify.register(getCircleTimelineRoute, { prefix: '/api' });
 
     // Root route for API health check
     fastify.get('/api', async (request, reply) => {

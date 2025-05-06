@@ -182,10 +182,128 @@
         </div>
         
         <div class="circle-content">
-          <div v-if="sharedAlbums.length === 0 && sharedFiles.length === 0" class="welcome-message">
+          <div v-if="sharedAlbums.length === 0 && sharedFiles.length === 0 && timeline.length === 0" class="welcome-message">
             <h3>Welcome to {{ circle.name }}</h3>
             <p>This is a private circle where you can connect and share with trusted members.</p>
             <p>No content has been shared with this circle yet.</p>
+          </div>
+          
+          <!-- Timeline Section -->
+          <div v-if="timeline.length > 0" class="timeline-container">
+            <h3 class="section-title">Recent Activity</h3>
+            
+            <div v-if="loadingTimeline" class="loading-indicator">
+              <div class="loading-spinner"></div>
+              <p>Loading timeline...</p>
+            </div>
+            
+            <div v-else class="timeline">
+              <div v-for="(activity, index) in timeline" :key="index" class="timeline-item">
+                <div class="timeline-header">
+                  <div class="user-avatar">
+                    <img v-if="activity.owner.picture" :src="activity.owner.picture" :alt="activity.owner.name">
+                    <div v-else class="default-avatar">
+                      {{ getInitials(activity.owner.name) }}
+                    </div>
+                  </div>
+                  
+                  <div class="activity-info">
+                    <div class="activity-title">
+                      <span class="username">{{ activity.owner.name }}</span>
+                      <span v-if="activity.type === 'file'">
+                        shared {{ activity.items.length > 1 ? `${activity.items.length} files` : 'a file' }}
+                      </span>
+                      <span v-else-if="activity.type === 'album'">
+                        added new media to {{ activity.items.length > 1 ? 'albums' : 'an album' }}
+                      </span>
+                    </div>
+                    <div class="activity-time">
+                      {{ formatTimeAgo(activity.createdAt) }}
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- File activity content -->
+                <div v-if="activity.type === 'file'" class="activity-content files-grid">
+                  <div 
+                    v-for="file in activity.items" 
+                    :key="file.id"
+                    class="file-card"
+                    @click="viewFile(file.id)"
+                  >
+                    <div class="file-thumbnail">
+                      <img 
+                        :src="`${apiBaseUrl}/thumbnails/${file.thumbnailId}.jpg`" 
+                        :alt="file.originalName" 
+                        class="file-thumbnail-image"
+                      />
+                    </div>
+                    
+                    <div class="file-info">
+                      <h4 class="file-name" :title="file.originalName">{{ file.originalName }}</h4>
+                      <p class="file-meta">{{ formattedFileSize(file.size) }} · {{ fileTypeFormatted(file.mimetype) }}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Album activity content -->
+                <div v-else-if="activity.type === 'album'" class="activity-content">
+                  <div 
+                    v-for="album in activity.items" 
+                    :key="album.id"
+                    class="album-activity"
+                  >
+                    <div class="album-header">
+                      <h4 class="album-name">{{ album.name }}</h4>
+                      <span class="album-count">{{ album.fileCount }} items</span>
+                      <button 
+                        class="view-album-btn"
+                        @click="viewAlbum(album.id)"
+                      >
+                        View Album
+                      </button>
+                    </div>
+                    
+                    <div class="album-previews" v-if="album.previewFiles && album.previewFiles.length > 0">
+                      <div 
+                        v-for="preview in album.previewFiles" 
+                        :key="preview.id"
+                        class="album-preview-thumbnail"
+                      >
+                        <img 
+                          :src="`${apiBaseUrl}/thumbnails/${preview.id}.jpg`" 
+                          :alt="preview.originalName"
+                        />
+                      </div>
+                    </div>
+                    <div v-else class="album-no-previews">
+                      <p>No items in this album yet</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Pagination controls -->
+              <div v-if="timelineData.totalPages > 1" class="pagination">
+                <button 
+                  class="pagination-btn"
+                  :disabled="timelineData.page === 1"
+                  @click="changePage(timelineData.page - 1)"
+                >
+                  Previous
+                </button>
+                <span class="page-info">
+                  Page {{ timelineData.page }} of {{ timelineData.totalPages }}
+                </span>
+                <button 
+                  class="pagination-btn"
+                  :disabled="timelineData.page === timelineData.totalPages"
+                  @click="changePage(timelineData.page + 1)"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
           
           <div v-if="sharedAlbums.length > 0" class="albums-container">
@@ -408,6 +526,16 @@ export default {
       sharedFiles: [],
       loadingFiles: false,
       
+      // Timeline related data
+      timeline: [],
+      loadingTimeline: false,
+      timelineData: {
+        page: 1,
+        limit: 10,
+        totalItems: 0,
+        totalPages: 0
+      },
+      
       // Invite modal
       showInviteModal: false,
       inviteEmail: '',
@@ -472,6 +600,7 @@ export default {
       await this.loadCircleDetails();
       await this.loadSharedAlbums();
       await this.loadSharedFiles();
+      await this.loadTimeline();
     } catch (error) {
       this.error = 'Failed to load circle details. The circle may not exist or you might not have permission to view it.';
       console.error('Error loading circle:', error);
@@ -785,6 +914,70 @@ export default {
       } else {
         // Remove event listener when modal is closed
         document.removeEventListener('keydown', this.handleEscKey);
+      }
+    },
+    async loadTimeline() {
+      try {
+        this.loadingTimeline = true;
+        
+        const response = await circlesService.getCircleTimeline(this.id, { 
+          page: this.timelineData.page,
+          limit: this.timelineData.limit
+        });
+        
+        this.timeline = response.timeline;
+        this.timelineData = {
+          page: response.page,
+          limit: response.limit,
+          totalItems: response.totalItems,
+          totalPages: response.totalPages
+        };
+      } catch (error) {
+        console.error('Error loading timeline:', error);
+      } finally {
+        this.loadingTimeline = false;
+      }
+    },
+    
+    changePage(page) {
+      this.timelineData.page = page;
+      this.loadTimeline();
+    },
+    
+    formatTimeAgo(dateString) {
+      try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) {
+          return 'just now';
+        }
+        
+        const diffInMinutes = Math.floor(diffInSeconds / 60);
+        if (diffInMinutes < 60) {
+          return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
+        }
+        
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) {
+          return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
+        }
+        
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays < 30) {
+          return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
+        }
+        
+        const diffInMonths = Math.floor(diffInDays / 30);
+        if (diffInMonths < 12) {
+          return `${diffInMonths} month${diffInMonths !== 1 ? 's' : ''} ago`;
+        }
+        
+        const diffInYears = Math.floor(diffInMonths / 12);
+        return `${diffInYears} year${diffInYears !== 1 ? 's' : ''} ago`;
+      } catch (error) {
+        return 'unknown time';
       }
     }
   },
@@ -1761,5 +1954,186 @@ input.error, textarea.error {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   margin: 0;
+}
+
+/* Timeline Component Styles */
+.timeline-container {
+  margin-bottom: 2rem;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.timeline-item {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-tertiary);
+}
+
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--primary-color);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.activity-info {
+  flex: 1;
+}
+
+.activity-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.username {
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-right: 0.25rem;
+}
+
+.activity-time {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.activity-content {
+  padding: 1.5rem;
+}
+
+.album-activity {
+  margin-bottom: 1.5rem;
+}
+
+.album-activity:last-child {
+  margin-bottom: 0;
+}
+
+.album-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.album-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  margin-right: 1rem;
+}
+
+.album-count {
+  font-size: 0.875rem;
+  color: var(--primary-color);
+  margin-right: auto;
+}
+
+.view-album-btn {
+  background: linear-gradient(45deg, #9c6ade, #1dd1a1);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-album-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(156, 106, 222, 0.25);
+}
+
+.album-previews {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.album-preview-thumbnail {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.album-preview-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.album-preview-thumbnail:hover img {
+  transform: scale(1.05);
+}
+
+.album-no-previews {
+  background-color: var(--color-bg-tertiary);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.pagination-btn {
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-btn:not(:disabled):hover {
+  background-color: var(--color-hover);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.page-info {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
 }
 </style> 

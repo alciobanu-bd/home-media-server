@@ -64,10 +64,10 @@ const shareFileHandler = async (request, reply) => {
         }
         
         // Verify that the user is a member of all the circles
-        const objectIdCircleIds = circleIds.map(id => new ObjectId(id));
+        const objectIdCircleIds = circleIds.map(id => new ObjectId(String(id)));
         const userCircles = await circlesCollection.find({
             _id: { $in: objectIdCircleIds },
-            memberIds: new ObjectId(userId)
+            memberIds: new ObjectId(String(userId))
         }).toArray();
         
         if (userCircles.length !== objectIdCircleIds.length) {
@@ -77,10 +77,10 @@ const shareFileHandler = async (request, reply) => {
             });
         }
         
-        // Update the file with the circle IDs
+        // Update the file with the circle IDs - store as ObjectIds, not strings
         await filesCollection.updateOne(
             { _id: new ObjectId(fileId) },
-            { $set: { circleIds: circleIds } }
+            { $set: { circleIds: objectIdCircleIds } }
         );
         
         return {

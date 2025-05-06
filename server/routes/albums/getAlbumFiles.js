@@ -32,17 +32,21 @@ const getAlbumFilesHandler = async (request, reply) => {
         const filesCollection = getCollection(db, 'files');
         const circlesCollection = getCollection(db, 'circles');
         
+        // Convert albumId to ObjectId once
+        const objectIdAlbumId = new ObjectId(String(albumId));
+        
         // First get circles the user is a member of
-        const userObjectId = new ObjectId(userId);
+        const userObjectId = new ObjectId(String(userId));
         const userCircles = await circlesCollection.find({
             memberIds: userObjectId
         }).toArray();
         
-        const userCircleIds = userCircles.map(circle => circle._id.toString());
+        // Convert user circle IDs to ObjectId format where needed
+        const userCircleIds = userCircles.map(circle => circle._id);
         
         // Find the album that either belongs to the user or is shared with a circle they're in
         const album = await albumsCollection.findOne({
-            _id: new ObjectId(albumId),
+            _id: objectIdAlbumId,
             $or: [
                 { userId: userId },
                 { circleIds: { $in: userCircleIds } }
@@ -58,18 +62,18 @@ const getAlbumFilesHandler = async (request, reply) => {
         
         // If album belongs to the user, get all files in it
         if (album.userId.toString() === userId.toString()) {
-            // Get all files in this album
+            // Get all files in this album - use ObjectId for albumId
             const files = await filesCollection.find({
                 userId: userId,
-                albums: albumId
+                albums: objectIdAlbumId
             }).sort({ createdAt: -1 }).toArray();
             
             return { files };
         } else {
-            // If accessing a shared album, get files from album owner
+            // If accessing a shared album, get files from album owner - use ObjectId for albumId
             const files = await filesCollection.find({
                 userId: album.userId,
-                albums: albumId
+                albums: objectIdAlbumId
             }).sort({ createdAt: -1 }).toArray();
             
             return { files };

@@ -467,7 +467,7 @@ export default {
 }
 
 .save-button:hover:not(:disabled) {
-  background-color: var(--lumia-purple-dark);
+  background-color: var(--lumia-purple-dark, #7549d4);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(145, 95, 255, 0.4);
 }

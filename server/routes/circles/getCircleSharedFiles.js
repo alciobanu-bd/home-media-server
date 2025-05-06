@@ -46,8 +46,8 @@ const getCircleSharedFilesHandler = async (request, reply) => {
         
         // Get all files shared with this circle
         const sharedFiles = await filesCollection.find({
-            circleIds: { $in: [circleId] }
-        }).toArray();
+            circleIds: new ObjectId(circleId)
+        }).sort({ uploadedAt: -1 }).toArray();
         
         return {
             success: true,

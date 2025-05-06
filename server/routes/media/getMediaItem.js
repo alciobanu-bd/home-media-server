@@ -32,15 +32,15 @@ const getMediaItemHandler = async (request, reply) => {
         }
     
         // Check permissions: either the file belongs to the user OR
-        // the file is in an album that's shared with a circle the user is in
+        // the file is in an album that's shared with a circle the user is in OR
+        // the file is directly shared with a circle the user is in
         let hasAccess = false;
 
         // Direct ownership check
         if (file.userId && file.userId.toString() === userId.toString()) {
             hasAccess = true;
         } 
-        // Circle sharing check
-        else if (file.albums && file.albums.length > 0) {
+        else {
             // Get circles the user is a member of
             const circlesCollection = getCollection(db, 'circles');
             const userObjectId = new ObjectId(userId);
@@ -48,19 +48,40 @@ const getMediaItemHandler = async (request, reply) => {
                 memberIds: userObjectId
             }).toArray();
             
-            const userCircleIds = userCircles.map(circle => circle._id.toString());
+            // Use ObjectIds consistently instead of converting to strings
+            const userCircleObjectIds = userCircles.map(circle => circle._id);
             
-            // Check if any of the file's albums are shared with user's circles
-            const albumsCollection = getCollection(db, 'albums');
-            const sharedAlbums = await albumsCollection.find({
-                _id: { $in: file.albums.map(albumId => {
-                    return ObjectId.isValid(albumId) ? new ObjectId(albumId) : null;
-                }).filter(id => id !== null) },
-                circleIds: { $in: userCircleIds }
-            }).toArray();
+            // Check if the file is directly shared with any of the user's circles
+            if (file.circleIds && file.circleIds.length > 0) {
+                // Check if any of the user's circle IDs directly matches any of the file's circle IDs
+                // This approach works with MongoDB's BSON type comparison
+                const hasSharedCircle = file.circleIds.some(fileCircleId => 
+                    userCircleObjectIds.some(userCircleId => 
+                        userCircleId.equals(fileCircleId)
+                    )
+                );
+                
+                if (hasSharedCircle) {
+                    console.log(`User ${userId} has access to file ${fileId} through direct circle sharing`);
+                    hasAccess = true;
+                }
+            }
             
-            if (sharedAlbums.length > 0) {
-                hasAccess = true;
+            // If still no access, check album-based sharing
+            if (!hasAccess && file.albums && file.albums.length > 0) {
+                // Check if any of the file's albums are shared with user's circles
+                const albumsCollection = getCollection(db, 'albums');
+                const sharedAlbums = await albumsCollection.find({
+                    _id: { $in: file.albums.map(albumId => {
+                        return ObjectId.isValid(albumId) ? new ObjectId(albumId) : null;
+                    }).filter(id => id !== null) },
+                    circleIds: { $in: userCircleObjectIds }
+                }).toArray();
+                
+                if (sharedAlbums.length > 0) {
+                    console.log(`User ${userId} has access to file ${fileId} through album sharing`);
+                    hasAccess = true;
+                }
             }
         }
         

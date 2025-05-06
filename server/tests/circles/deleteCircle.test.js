@@ -30,7 +30,7 @@ const mockAlbum = {
     _id: new ObjectId(),
     name: 'Test Album',
     userId: mockUser._id.toString(),
-    circleIds: [mockCircle._id.toString()]
+    circleIds: [mockCircle._id]
 };
 
 tap.test('DELETE /api/circles/:id - Circle deletion with album cleanup', async (t) => {
@@ -72,7 +72,7 @@ tap.test('DELETE /api/circles/:id - Circle deletion with album cleanup', async (
     
         // Verify the album no longer references the circle
         const updatedAlbum = await albumsCollection.findOne({ _id: mockAlbum._id });
-        t.equal(updatedAlbum.circleIds.includes(mockCircle._id.toString()), false, 'Album should not reference the deleted circle');
+        t.equal(updatedAlbum.circleIds.some(id => id.equals(mockCircle._id)), false, 'Album should not reference the deleted circle');
         t.equal(updatedAlbum.circleIds.length, 0, 'CircleIds array should be empty');
     
     } catch (error) {

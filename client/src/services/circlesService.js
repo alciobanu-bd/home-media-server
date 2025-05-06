@@ -184,6 +184,24 @@ const circlesService = {
       console.error('Error fetching shared files:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get the timeline for a specific circle
+   * @param {string} id Circle ID
+   * @param {Object} options Options for pagination (page, limit)
+   * @returns {Promise} Promise object with timeline data
+   */
+  getCircleTimeline: async (id, options = { page: 1, limit: 20 }) => {
+    try {
+      const response = await api.get(`/circles/${id}/timeline`, { 
+        params: options 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching circle timeline:', error);
+      throw error;
+    }
   }
 };
 

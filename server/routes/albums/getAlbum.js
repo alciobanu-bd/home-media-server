@@ -31,8 +31,11 @@ const getAlbumHandler = async (request, reply) => {
         const albumsCollection = getCollection(db, 'albums');
         const filesCollection = getCollection(db, 'files');
         
+        // Convert albumId to ObjectId once
+        const objectIdAlbumId = new ObjectId(String(albumId));
+        
         // Find the album that either belongs to the user or is shared with a circle they're in
-        const userObjectId = new ObjectId(userId);
+        const userObjectId = new ObjectId(String(userId));
         const circlesCollection = getCollection(db, 'circles');
         
         // First get circles the user is a member of
@@ -40,14 +43,15 @@ const getAlbumHandler = async (request, reply) => {
             memberIds: userObjectId
         }).toArray();
         
-        const userCircleIds = userCircles.map(circle => circle._id.toString());
+        // We need circle IDs in the format they're stored in the album document
+        const userCircleObjectIds = userCircles.map(circle => circle._id);
         
         // Find the album that either belongs to the user or is shared with one of their circles
         const album = await albumsCollection.findOne({
-            _id: new ObjectId(albumId),
+            _id: objectIdAlbumId,
             $or: [
                 { userId: userId },
-                { circleIds: { $in: userCircleIds } }
+                { circleIds: { $in: userCircleObjectIds } }
             ]
         });
         
@@ -58,10 +62,10 @@ const getAlbumHandler = async (request, reply) => {
             });
         }
         
-        // Get the file count for this album
+        // Get the file count for this album - use ObjectId for albumId
         const fileCount = await filesCollection.countDocuments({
             userId: userId,
-            albums: albumId
+            albums: objectIdAlbumId
         });
         
         // Return the album with file count but without the files array

@@ -40,9 +40,13 @@ const removeMediaFromAlbumHandler = async (request, reply) => {
         const albumsCollection = getCollection(db, 'albums');
         const filesCollection = getCollection(db, 'files');
         
+        // Convert IDs to ObjectId
+        const objectIdAlbumId = new ObjectId(String(albumId));
+        const objectIdMediaId = new ObjectId(String(mediaId));
+        
         // First check if the album exists and belongs to this user
         const album = await albumsCollection.findOne({
-            _id: new ObjectId(albumId),
+            _id: objectIdAlbumId,
             userId: userId
         });
         
@@ -56,12 +60,12 @@ const removeMediaFromAlbumHandler = async (request, reply) => {
         // Remove the album ID from the media item's albums array
         const result = await filesCollection.updateOne(
             {
-                _id: new ObjectId(mediaId),
+                _id: objectIdMediaId,
                 userId: userId,
-                albums: albumId
+                albums: objectIdAlbumId
             },
             {
-                $pull: { albums: albumId }
+                $pull: { albums: objectIdAlbumId }
             }
         );
         
@@ -74,16 +78,15 @@ const removeMediaFromAlbumHandler = async (request, reply) => {
         
         // Check if the removed media was used as the album thumbnail
         let thumbnailChanged = false;
-        const mediaObjectId = new ObjectId(mediaId);
         
         // Compare ObjectIds properly
-        if (album.thumbnailId && album.thumbnailId.equals(mediaObjectId)) {
+        if (album.thumbnailId && album.thumbnailId.equals(objectIdMediaId)) {
             // Need to select a new thumbnail
             // Get all files in this album after removing the specified file
             const remainingFiles = await filesCollection
                 .find({ 
                     userId: userId,
-                    albums: albumId
+                    albums: objectIdAlbumId
                 })
                 .sort({ _id: 1 }) // Sort by _id in ascending order (oldest first)
                 .limit(1)
@@ -95,7 +98,7 @@ const removeMediaFromAlbumHandler = async (request, reply) => {
                 
                 // Update the album with the new thumbnail
                 await albumsCollection.updateOne(
-                    { _id: new ObjectId(albumId) },
+                    { _id: objectIdAlbumId },
                     { 
                         $set: { 
                             thumbnailId: newThumbnailId,
@@ -107,7 +110,7 @@ const removeMediaFromAlbumHandler = async (request, reply) => {
             } else {
                 // No files left in this album, remove thumbnail
                 await albumsCollection.updateOne(
-                    { _id: new ObjectId(albumId) },
+                    { _id: objectIdAlbumId },
                     { 
                         $unset: { thumbnailId: '' },
                         $set: { updatedAt: new Date() }
@@ -120,7 +123,7 @@ const removeMediaFromAlbumHandler = async (request, reply) => {
         if (!thumbnailChanged) {
             // Just update the timestamp if thumbnail didn't change
             await albumsCollection.updateOne(
-                { _id: new ObjectId(albumId) },
+                { _id: objectIdAlbumId },
                 { $set: { updatedAt: new Date() } }
             );
         }

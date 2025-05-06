@@ -1,5 +1,6 @@
 const { getDb, getCollection } = require('../utils/db');
 const { verifyToken } = require('../auth/authMiddleware');
+const { ObjectId } = require('mongodb');
 
 /**
  * Route handler for listing all albums belonging to a user
@@ -31,7 +32,7 @@ const listAlbumsHandler = async (request, reply) => {
         const albumsWithCount = await Promise.all(albums.map(async (album) => {
             const fileCount = await filesCollection.countDocuments({
                 userId: userId,
-                albums: album._id.toString()
+                albums: album._id
             });
             
             // Convert ObjectId to string for the frontend if it exists

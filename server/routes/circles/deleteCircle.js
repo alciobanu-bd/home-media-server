@@ -51,7 +51,7 @@ const deleteCircle = async (request, reply) => {
         
         // Find all albums that reference this circle
         const affectedAlbums = await albumsCollection.find({ 
-            circleIds: id 
+            circleIds: circleId 
         }).toArray();
         
         // Begin a session for the transaction
@@ -62,8 +62,8 @@ const deleteCircle = async (request, reply) => {
                 // Remove the circle ID from all albums that reference it
                 if (affectedAlbums.length > 0) {
                     await albumsCollection.updateMany(
-                        { circleIds: id },
-                        { $pull: { circleIds: id } },
+                        { circleIds: circleId },
+                        { $pull: { circleIds: circleId } },
                         { session }
                     );
                     

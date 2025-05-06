@@ -31,9 +31,12 @@ const deleteAlbumHandler = async (request, reply) => {
         const albumsCollection = getCollection(db, 'albums');
         const filesCollection = getCollection(db, 'files');
         
+        // Convert albumId to ObjectId once
+        const objectIdAlbumId = new ObjectId(String(albumId));
+        
         // First check if the album exists and belongs to this user
         const album = await albumsCollection.findOne({
-            _id: new ObjectId(albumId),
+            _id: objectIdAlbumId,
             userId: userId
         });
         
@@ -46,13 +49,13 @@ const deleteAlbumHandler = async (request, reply) => {
         
         // Remove album reference from all files that were in this album
         await filesCollection.updateMany(
-            { albums: albumId },
-            { $pull: { albums: albumId } }
+            { albums: objectIdAlbumId },
+            { $pull: { albums: objectIdAlbumId } }
         );
         
         // Delete the album
         const result = await albumsCollection.deleteOne({
-            _id: new ObjectId(albumId),
+            _id: objectIdAlbumId,
             userId: userId
         });
         

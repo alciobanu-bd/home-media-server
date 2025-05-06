@@ -46,8 +46,9 @@ const getCircleSharedAlbumsHandler = async (request, reply) => {
         }
         
         // Find all albums that have this circleId in their circleIds array
+        const objectIdCircleId = new ObjectId(String(circleId));
         const albums = await albumsCollection.find({
-            circleIds: circleId
+            circleIds: objectIdCircleId
         }).toArray();
         
         // Add file count to each album
@@ -62,13 +63,13 @@ const getCircleSharedAlbumsHandler = async (request, reply) => {
                 // If album belongs to current user, count their files
                 fileCount = await filesCollection.countDocuments({
                     userId: userId,
-                    albums: album._id.toString()
+                    albums: album._id
                 });
             } else {
                 // If album belongs to another user, count their files
                 fileCount = await filesCollection.countDocuments({
                     userId: album.userId,
-                    albums: album._id.toString()
+                    albums: album._id
                 });
             }
             

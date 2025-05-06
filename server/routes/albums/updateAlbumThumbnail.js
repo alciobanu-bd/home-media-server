@@ -41,11 +41,15 @@ const updateAlbumThumbnailHandler = async (request, reply) => {
         const albumsCollection = getCollection(db, 'albums');
         const filesCollection = getCollection(db, 'files');
         
+        // Convert albumId to ObjectId once
+        const objectIdAlbumId = new ObjectId(String(albumId));
+        const objectIdThumbnailId = new ObjectId(String(thumbnailId));
+        
         // First check if the thumbnail file exists and belongs to this user and album
         const thumbnailFile = await filesCollection.findOne({
-            _id: new ObjectId(thumbnailId),
+            _id: objectIdThumbnailId,
             userId: userId,
-            albums: albumId
+            albums: objectIdAlbumId
         });
         
         if (!thumbnailFile) {

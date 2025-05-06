@@ -79,13 +79,14 @@ const addMediaToAlbumHandler = async (request, reply) => {
         }
         
         // Add the album ID to each media item's albums array (if not already there)
+        const objectIdAlbumId = new ObjectId(albumId);
         await filesCollection.updateMany(
             {
                 _id: { $in: objectIdMediaIds },
-                albums: { $ne: albumId }
+                albums: { $ne: objectIdAlbumId }
             },
             {
-                $push: { albums: albumId }
+                $push: { albums: objectIdAlbumId }
             }
         );
         
@@ -95,7 +96,7 @@ const addMediaToAlbumHandler = async (request, reply) => {
             const allAlbumFiles = await filesCollection
                 .find({ 
                     userId: userId,
-                    albums: albumId
+                    albums: objectIdAlbumId
                 })
                 .sort({ _id: 1 }) // Sort by _id in ascending order (oldest first based on ObjectId)
                 .limit(1) // Get just the oldest file
@@ -133,7 +134,7 @@ const addMediaToAlbumHandler = async (request, reply) => {
         const files = await filesCollection
             .find({ 
                 userId: userId,
-                albums: albumId
+                albums: objectIdAlbumId
             })
             .toArray();
         
