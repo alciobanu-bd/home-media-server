@@ -1,21 +1,6 @@
 <template>
   <div class="page-layout">
-    <!-- Left sidebar for members and invitations -->
-    <CircleMembers
-      v-if="!loading && !error"
-      :members="circle.members"
-      :invitations="circle.invitations"
-      :isAdmin="circle.isAdmin"
-      :currentUserId="currentUserId"
-      @invite="showInviteModal = true"
-      @delete-circle="confirmDelete"
-      @make-admin="makeAdmin"
-      @remove-member="confirmRemoveMember"
-      @leave-circle="confirmLeave"
-      @cancel-invitation="cancelInvitation"
-    />
-    
-    <!-- Main content -->
+    <!-- Main content - removing the sidebar -->
     <div class="circle-view-container">
       <div v-if="loading" class="loading-container">
         <div class="loading-spinner"></div>
@@ -48,51 +33,79 @@
         />
         
         <div class="circle-content">
-          <div v-if="sharedAlbums.length === 0 && sharedFiles.length === 0 && timeline.length === 0" class="welcome-message">
+          <div v-if="sharedAlbums.length === 0 && sharedFiles.length === 0 && timeline.length === 0 && circle.members.length <= 1" class="welcome-message">
             <h3>Welcome to {{ circle.name }}</h3>
             <p>This is a private circle where you can connect and share with trusted members.</p>
             <p>No content has been shared with this circle yet.</p>
           </div>
           
           <div v-else>
-            <CircleTabs v-model="activeTab" />
+            <CircleTabs 
+              v-model="activeTab" 
+              :timelineCount="timeline.length"
+              :albumsCount="sharedAlbums.length"
+              :filesCount="sharedFiles.length"
+              :membersCount="circle.members.length"
+            />
             
             <div class="tab-content">
-              <!-- Timeline Tab -->
-              <CircleTimeline
-                v-if="activeTab === 'timeline'"
-                :timeline="timeline"
-                :loading="loadingTimeline"
-                :loadingMore="loadingMore" 
-                :nextPageTimestamp="nextPageTimestamp"
-                :circleId="circleId"
-                :apiBaseUrl="apiBaseUrl"
-                @load-more="loadMoreTimelineItems"
-                @view-album="viewAlbum"
-                @view-file="viewFile"
-              />
-              
-              <!-- Albums Tab -->
-              <CircleAlbums
-                v-if="activeTab === 'albums'"
-                :albums="sharedAlbums"
-                :loading="loadingAlbums"
-                :circleId="circleId"
-                :ownerMap="ownerMap"
-                :apiBaseUrl="apiBaseUrl"
-                @view-album="viewAlbum"
-              />
-              
-              <!-- Files Tab -->
-              <CircleFiles
-                v-if="activeTab === 'files'"
-                :files="sharedFiles"
-                :loading="loadingFiles"
-                :circleId="circleId"
-                :ownerMap="ownerMap"
-                :apiBaseUrl="apiBaseUrl"
-                @view-file="viewFile"
-              />
+              <transition name="fade-slide" mode="out-in">
+                <!-- Timeline Tab -->
+                <CircleTimeline
+                  v-if="activeTab === 'timeline'"
+                  :timeline="timeline"
+                  :loading="loadingTimeline"
+                  :loadingMore="loadingMore" 
+                  :nextPageTimestamp="nextPageTimestamp"
+                  :circleId="circleId"
+                  :apiBaseUrl="apiBaseUrl"
+                  @load-more="loadMoreTimelineItems"
+                  @view-album="viewAlbum"
+                  @view-file="viewFile"
+                  key="timeline"
+                />
+                
+                <!-- Albums Tab -->
+                <CircleAlbums
+                  v-else-if="activeTab === 'albums'"
+                  :albums="sharedAlbums"
+                  :loading="loadingAlbums"
+                  :circleId="circleId"
+                  :ownerMap="ownerMap"
+                  :apiBaseUrl="apiBaseUrl"
+                  @view-album="viewAlbum"
+                  key="albums"
+                />
+                
+                <!-- Files Tab -->
+                <CircleFiles
+                  v-else-if="activeTab === 'files'"
+                  :files="sharedFiles"
+                  :loading="loadingFiles"
+                  :circleId="circleId"
+                  :ownerMap="ownerMap"
+                  :apiBaseUrl="apiBaseUrl"
+                  @view-file="viewFile"
+                  key="files"
+                />
+                
+                <!-- Members Tab -->
+                <CircleMembersTab
+                  v-else-if="activeTab === 'members'"
+                  :members="circle.members"
+                  :invitations="circle.invitations"
+                  :isAdmin="circle.isAdmin"
+                  :currentUserId="currentUserId"
+                  :loading="loading"
+                  @invite="showInviteModal = true"
+                  @delete-circle="confirmDelete"
+                  @make-admin="makeAdmin"
+                  @remove-member="confirmRemoveMember"
+                  @leave-circle="confirmLeave"
+                  @cancel-invitation="cancelInvitation"
+                  key="members"
+                />
+              </transition>
             </div>
           </div>
         </div>
@@ -135,12 +148,12 @@ import circlesService from '../services/circlesService';
 import { format } from 'date-fns';
 
 // Import components
-import CircleMembers from '../components/circles/CircleMembers.vue';
 import CircleHeader from '../components/circles/CircleHeader.vue';
 import CircleTabs from '../components/circles/CircleTabs.vue';
 import CircleTimeline from '../components/circles/CircleTimeline.vue';
 import CircleAlbums from '../components/circles/CircleAlbums.vue';
 import CircleFiles from '../components/circles/CircleFiles.vue';
+import CircleMembersTab from '../components/circles/CircleMembersTab.vue';
 import CircleInviteModal from '../components/circles/CircleInviteModal.vue';
 import CircleEditModal from '../components/circles/CircleEditModal.vue';
 import CircleConfirmModal from '../components/circles/CircleConfirmModal.vue';
@@ -148,12 +161,12 @@ import CircleConfirmModal from '../components/circles/CircleConfirmModal.vue';
 export default {
   name: 'CircleView',
   components: {
-    CircleMembers,
     CircleHeader,
     CircleTabs,
     CircleTimeline,
     CircleAlbums,
     CircleFiles,
+    CircleMembersTab,
     CircleInviteModal,
     CircleEditModal,
     CircleConfirmModal
@@ -332,19 +345,41 @@ export default {
       try {
         this.loadingMore = true;
         
-        // Use the nextPageTimestamp to get older items
         const options = {
           timestamp: this.nextPageTimestamp
         };
         
         const response = await circlesService.getCircleTimeline(this.circleId, options);
+        const newTimelineItems = response.timeline || [];
         
-        // Add the new items to the timeline
-        this.timeline = [...this.timeline, ...(response.timeline || [])];
+        if (newTimelineItems.length > 0 && this.timeline.length > 0) {
+          const lastExistingActivity = this.timeline[this.timeline.length - 1];
+          const firstNewActivity = newTimelineItems[0];
+          
+          // Check if merge conditions are met (same user, same type)
+          // We might add a time threshold later if needed, but user/type is a good start.
+          if (
+            lastExistingActivity && firstNewActivity &&
+            lastExistingActivity.owner?.id === firstNewActivity.owner?.id &&
+            lastExistingActivity.type === firstNewActivity.type
+          ) {
+            // Merge items from the first new activity into the last existing one
+            lastExistingActivity.items.push(...firstNewActivity.items);
+            // Optional: Update timestamp? For now, keep the original start time.
+            // lastExistingActivity.createdAt = firstNewActivity.createdAt; 
+            
+            // Add the rest of the new items (excluding the merged one)
+            this.timeline = [...this.timeline, ...newTimelineItems.slice(1)];
+          } else {
+            // No merge, just append all new items
+            this.timeline = [...this.timeline, ...newTimelineItems];
+          }
+        } else {
+          // If either current timeline or new items are empty, just append
+          this.timeline = [...this.timeline, ...newTimelineItems];
+        }
         
-        // Update the nextPageTimestamp for the next pagination
         this.nextPageTimestamp = response.nextPageTimestamp;
-        
         this.loadingMore = false;
       } catch (error) {
         console.error('Error loading more timeline items:', error);
@@ -586,6 +621,8 @@ export default {
       if (newTab === 'albums' && this.sharedAlbums.length === 0 && !this.loadingAlbums) {
         this.loadSharedAlbums();
       }
+      
+      // Members tab is already loaded when the circle data is loaded
     }
   },
   beforeUnmount() {
@@ -612,7 +649,6 @@ export default {
 /* Page-level layout */
 .page-layout {
   display: flex;
-  gap: 2rem; /* Main gap between sidebar and content */
   max-width: var(--page-max-width, 1600px); /* Use a global variable if possible */
   margin: 0 auto;
   padding: 24px; /* Consistent page padding */
@@ -623,7 +659,7 @@ export default {
 
 /* Main content container styles */
 .circle-view-container {
-  flex: 1; /* Takes remaining space */
+  flex: 1; /* Takes full space */
   min-width: 0; /* Prevents flex item overflow */
   display: flex;
   flex-direction: column;
@@ -701,6 +737,8 @@ export default {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Prevent content from exceeding container */
+  width: 100%; /* Ensure full width */
 }
 
 .welcome-message {
@@ -738,6 +776,9 @@ export default {
 .tab-content {
   padding: 1.5rem; /* Add padding around the tab content itself */
   flex-grow: 1;
+  width: 100%;
+  box-sizing: border-box; /* Include padding in width calculation */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Button styles (re-iterate for local scope if not globally available or for overrides) */
@@ -775,7 +816,35 @@ export default {
   }
 }
 
-/* Ensure Font Awesome is removed or replaced if previously used directly in this component's style */
-/* Example: If there was a .fa-icon style, remove or update it */
+@media (max-width: 768px) {
+  .tab-content {
+    padding: 1rem;
+  }
+}
 
+@media (max-width: 480px) {
+  .tab-content {
+    padding: 0.75rem;
+  }
+  
+  .page-layout {
+    padding: 12px;
+  }
+}
+
+/* CSS additions */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
 </style> 
