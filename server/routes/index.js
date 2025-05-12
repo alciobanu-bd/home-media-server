@@ -10,8 +10,9 @@ const uploadFileRoute = require('./files/uploadFile');
 const deleteFileRoute = require('./files/deleteFile');
 const shareFileRoute = require('./files/shareFile');
 const authRoutes = require('./auth');
-// Add user quota route
+// Add user routes
 const userQuotaRoute = require('./auth/userQuota');
+const getUserSubscriptionRoute = require('./subscriptions/getUserSubscription');
 // Add album routes
 const createAlbumRoute = require('./albums/createAlbum');
 const listAlbumsRoute = require('./albums/listAlbums');
@@ -64,8 +65,9 @@ module.exports = function(fastify, opts, done) {
     // Register auth routes with /api prefix
     fastify.register(authRoutes, { prefix: '/api' });
     
-    // Register user quota route with /api prefix
+    // Register user related routes with /api prefix
     fastify.register(userQuotaRoute, { prefix: '/api' });
+    fastify.register(getUserSubscriptionRoute, { prefix: '/api' });
     
     // Register album routes with /api prefix
     fastify.register(createAlbumRoute, { prefix: '/api' });

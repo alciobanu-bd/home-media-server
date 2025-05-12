@@ -74,33 +74,146 @@ const generateThumbnail = async (filePath, fileType, fileId) => {
     }
 };
 
-// Calculate MD5 hash of a file
+// Calculate MD5 hash
 const calculateMD5 = async (filePath) => {
     try {
         const buffer = await fs.readFile(filePath);
-        const wordArray = CryptoJS.lib.WordArray.create(buffer);
-        const hash = CryptoJS.MD5(wordArray).toString();
-        return hash;
+        return CryptoJS.MD5(CryptoJS.lib.WordArray.create(buffer)).toString();
     } catch (err) {
         console.error('Error calculating MD5:', err);
-        throw err;
+        return null;
     }
 };
 
-// Check if a file with the same MD5 hash already exists for the same user
+// Check for duplicate files
 const findDuplicateFile = async (md5Hash, userId) => {
+    if (!md5Hash) return null;
+  
     try {
         const db = getDb();
         const filesCollection = getCollection(db, 'files');
-        // Only consider a file a duplicate if both MD5 hash and userId match
-        const duplicateFile = await filesCollection.findOne({ 
+        
+        // Look for files with the same hash that belong to this user
+        const file = await filesCollection.findOne({
             md5Hash: md5Hash,
-            userId: userId 
+            userId: userId
         });
-        return duplicateFile;
+    
+        return file;
     } catch (err) {
         console.error('Error checking for duplicates:', err);
         return null;
+    }
+};
+
+/**
+ * Process media file according to subscription tier quality settings
+ * @param {string} sourcePath - Path to the source file
+ * @param {string} destPath - Path where the processed file should be saved
+ * @param {string} fileType - MIME type of the file
+ * @param {Object} qualitySettings - Quality settings from the subscription tier
+ * @returns {Promise<boolean>} - Whether processing was successful
+ */
+const processMediaForStorage = async (sourcePath, destPath, fileType, qualitySettings) => {
+    try {
+        // If it's an image file
+        if (fileType.startsWith('image/')) {
+            // Extract metadata to get dimensions
+            const metadata = await extractMetadata(sourcePath, fileType);
+            const { width, height } = metadata.dimensions || { width: null, height: null };
+            
+            // Process image according to subscription tier limits
+            if (qualitySettings.maxResolution === null || 
+               (width === null || height === null || 
+               (width <= qualitySettings.maxResolution && height <= qualitySettings.maxResolution))) {
+                // No processing needed, just copy the file
+                if (qualitySettings.compressionLevel === 'none') {
+                    await fs.copy(sourcePath, destPath);
+                    console.log('Image copied without processing');
+                    return true;
+                }
+            }
+            
+            // Initialize sharp with the source image and preserve metadata
+            let sharpInstance = sharp(sourcePath)
+                .rotate()
+                .withMetadata(); // Preserve EXIF metadata
+            
+            // Resize if needed
+            if (qualitySettings.maxResolution !== null && 
+                (width > qualitySettings.maxResolution || height > qualitySettings.maxResolution)) {
+                sharpInstance = sharpInstance.resize(qualitySettings.maxResolution, qualitySettings.maxResolution, {
+                    fit: 'inside',
+                    withoutEnlargement: true
+                });
+                console.log(`Resizing image to max dimension ${qualitySettings.maxResolution}px`);
+            }
+            
+            // Apply compression based on tier settings
+            let quality = 80; // Default quality
+            if (qualitySettings.compressionLevel === 'high') {
+                quality = 75;
+            } else if (qualitySettings.compressionLevel === 'medium') {
+                quality = 85;
+            } else if (qualitySettings.compressionLevel === 'low') {
+                quality = 95;
+            }
+            
+            // Set output format based on input
+            if (fileType === 'image/jpeg' || fileType === 'image/jpg') {
+                await sharpInstance.jpeg({ quality }).toFile(destPath);
+            } else if (fileType === 'image/png') {
+                await sharpInstance.png({ quality }).toFile(destPath);
+            } else if (fileType === 'image/webp') {
+                await sharpInstance.webp({ quality }).toFile(destPath);
+            } else {
+                // For other formats, convert to jpeg
+                await sharpInstance.jpeg({ quality }).toFile(destPath);
+            }
+            
+            console.log(`Image processed with quality ${quality}`);
+            return true;
+        } 
+        // If it's a video file
+        else if (fileType.startsWith('video/')) {
+            // For this implementation, we'll just copy the video file
+            // In a real-world implementation, you would use ffmpeg to transcode the video
+            // according to the tier settings (resolution, framerate)
+            await fs.copy(sourcePath, destPath);
+            console.log('Video copied without processing - would normally use ffmpeg for proper transcoding');
+            
+            // Note: In a real implementation, you would do something like:
+            // - Check if video needs processing based on tier settings
+            // - Use ffmpeg to transcode with appropriate settings:
+            //   - Resolution: qualitySettings.maxResolution
+            //   - Framerate: qualitySettings.maxFPS
+            //   - Maintain original framerate: qualitySettings.maintainOriginalFramerate
+            
+            return true;
+        } 
+        // For other file types, just copy the file
+        else {
+            await fs.copy(sourcePath, destPath);
+            return true;
+        }
+    } catch (err) {
+        console.error('Error processing media file:', err);
+        // If processing fails, just copy the original file
+        try {
+            await fs.copy(sourcePath, destPath);
+            console.log('Fell back to copying original file due to processing error');
+            return true;
+        } catch (copyErr) {
+            console.error('Error copying original file as fallback:', copyErr);
+            return false;
+        }
+    } finally {
+        // Clean up the temp file
+        try {
+            await fs.remove(sourcePath);
+        } catch (err) {
+            console.error('Error removing temp file:', err);
+        }
     }
 };
 
@@ -110,5 +223,6 @@ module.exports = {
     extractMetadata,
     generateThumbnail,
     calculateMD5,
-    findDuplicateFile
+    findDuplicateFile,
+    processMediaForStorage
 }; 

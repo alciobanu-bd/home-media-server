@@ -16,7 +16,7 @@
     
     <div class="profile-section">
       <div class="profile-picture-container">
-        <img :src="user.picture" alt="Profile Picture" class="profile-picture" />
+        <img :src="userObj.picture" alt="Profile Picture" class="profile-picture" />
         <div class="profile-picture-overlay">
           <button class="change-picture-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -29,14 +29,40 @@
         </div>
       </div>
       <div class="user-info">
-        <div class="user-name">{{ user.name }}</div>
-        <div class="user-email">{{ user.email }}</div>
+        <div class="user-name">{{ userObj.name }}</div>
+        <div class="user-email">{{ userObj.email }}</div>
       </div>
     </div>
     
     <div class="storage-section">
       <h3>Storage</h3>
       <StorageQuota title="Your Storage Usage" />
+    </div>
+    
+    <div class="subscription-section">
+      <h3>Subscription Plan</h3>
+      <div class="subscription-info">
+        <div class="subscription-tier">
+          <div class="tier-badge">{{ subscriptionInfo ? subscriptionInfo.name : 'Loading...' }}</div>
+        </div>
+        <div class="subscription-description">
+          {{ subscriptionInfo ? subscriptionInfo.description : 'Loading subscription details...' }}
+        </div>
+        <div class="subscription-details">
+          <div class="detail-item">
+            <span class="detail-label">Storage:</span>
+            <span class="detail-value">{{ subscriptionInfo ? formatStorageSize(subscriptionInfo.storageLimit) : '-' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Photo Quality:</span>
+            <span class="detail-value">{{ getPhotoQualityDescription() }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Video Quality:</span>
+            <span class="detail-value">{{ getVideoQualityDescription() }}</span>
+          </div>
+        </div>
+      </div>
     </div>
     
     <div class="settings-section">
@@ -54,10 +80,10 @@
 </template>
 
 <script>
-import { reactive, computed } from 'vue';
-import authStore from '../store/authStore';
+import { ref, onMounted } from 'vue';
 import StorageQuota from './StorageQuota.vue';
 import BaseModal from './ui/BaseModal.vue';
+import api from '../services/api';
 
 export default {
   name: 'AccountSettingsModal',
@@ -69,34 +95,86 @@ export default {
     show: {
       type: Boolean,
       default: false
+    },
+    userObj: {
+      type: Object,
+      default: () => ({})
     }
   },
-  emits: ['close', 'save'],
+  emits: ['close'],
   setup(props, { emit }) {
-    const user = computed(() => authStore.state.user);
-    
-    // Create a copy of user data to avoid direct mutations
-    const userData = reactive({
-      picture: user.value?.picture || '',
-      theme: user.value?.preferences?.theme || 'system'
+    const userData = ref({
+      name: props.userObj?.name || '',
+      email: props.userObj?.email || '',
+      picture: props.userObj?.picture || '',
+      theme: props.userObj?.preferences?.theme || 'system'
     });
+    
+    const subscriptionInfo = ref(null);
     
     const close = () => {
       emit('close');
     };
     
     const saveSettings = () => {
-      // Here you would normally save the settings to your backend
-      // For now, just emit an event with the updated data
-      emit('save', { ...userData });
+      // Implement settings save logic later
       close();
     };
     
+    const fetchSubscriptionInfo = async () => {
+      try {
+        const response = await api.get('/user/subscription');
+        subscriptionInfo.value = response.data;
+      } catch (error) {
+        console.error('Error fetching subscription info:', error);
+      }
+    };
+    
+    const formatStorageSize = (bytes) => {
+      if (!bytes) return '';
+      
+      const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      
+      return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + units[i];
+    };
+    
+    const getPhotoQualityDescription = () => {
+      if (!subscriptionInfo.value || !subscriptionInfo.value.mediaQuality) return '';
+      
+      const photoSettings = subscriptionInfo.value.mediaQuality.photo;
+      
+      if (!photoSettings.maxResolution) {
+        return 'Original resolution preserved';
+      } else {
+        return `Up to ${photoSettings.maxResolution}p resolution`;
+      }
+    };
+    
+    const getVideoQualityDescription = () => {
+      if (!subscriptionInfo.value || !subscriptionInfo.value.mediaQuality) return '';
+      
+      const videoSettings = subscriptionInfo.value.mediaQuality.video;
+      
+      if (!videoSettings.maxResolution) {
+        return 'Original quality preserved';
+      } else {
+        return `Up to ${videoSettings.maxResolution}p${videoSettings.maxFPS ? `, ${videoSettings.maxFPS}fps` : ''}`;
+      }
+    };
+    
+    onMounted(() => {
+      fetchSubscriptionInfo();
+    });
+    
     return {
-      user,
       userData,
+      subscriptionInfo,
       close,
-      saveSettings
+      saveSettings,
+      formatStorageSize,
+      getPhotoQualityDescription,
+      getVideoQualityDescription
     };
   }
 };
@@ -237,5 +315,60 @@ h3 {
 [data-theme="dark"] .form-group label {
   color: var(--color-text-light);
   opacity: 0.8;
+}
+
+.subscription-section {
+  margin-top: 20px;
+}
+
+.subscription-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--color-text-primary);
+}
+
+.subscription-info {
+  background-color: var(--color-bg-secondary, #f8fafc);
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.tier-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-white);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.subscription-description {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 15px;
+}
+
+.subscription-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.detail-label {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.detail-value {
+  color: var(--color-text-primary);
 }
 </style> 

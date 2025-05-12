@@ -72,8 +72,8 @@
     
     <AccountSettingsModal 
       :show="showAccountSettingsModal" 
+      :userObj="authStore.state.user"
       @close="closeAccountSettings"
-      @save="handleSettingsSave"
     />
   </div>
   <div class="login-button" v-else>

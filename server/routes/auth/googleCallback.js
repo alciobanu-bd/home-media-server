@@ -1,6 +1,7 @@
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const { getDb, getCollection } = require('../utils/db');
+const { getDefaultTier } = require('../utils/subscriptionTiers');
 
 /**
  * Google OAuth2 callback handler
@@ -68,7 +69,8 @@ const googleCallbackHandler = async (request, reply) => {
                 email: userInfo.email,
                 picture: userInfo.picture,
                 createdAt: new Date(),
-                lastLogin: new Date()
+                lastLogin: new Date(),
+                subscriptionTier: getDefaultTier()
             };
       
             await usersCollection.insertOne(user);

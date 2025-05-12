@@ -1,0 +1,31 @@
+# Subscription Tiers
+
+## "Lumia Lite"
+**Your first step into organized memories**
+
+### Storage
+- 2GB total storage
+
+### Media Quality
+- Photos: Compressed to 1080p resolution (maintains original aspect ratio)
+- Videos: Compressed to 720p resolution, maximum 30fps
+
+## "Lumia Glow"
+**Enhanced clarity for your growing collection**
+
+### Storage
+- 20GB total storage
+
+### Media Quality
+- Photos: Original resolution up to 12MP, larger photos optimized
+- Videos: Compressed to 1080p resolution, original framerate preserved
+
+## "Lumia Aurora"
+**Brilliant, uncompromised family memories**
+
+### Storage
+- 100GB total storage
+
+### Media Quality
+- Photos: Original resolution preserved, larger photos optimized
+- Videos: Original resolution preserved, original framerate preserved

@@ -336,12 +336,34 @@ export default {
       this.showDeleteConfirmation = false;
       this.itemToDelete = null;
     },
-    handleUploadCompleted() {
+    handleUploadCompleted(event) {
+      console.log('Upload completed event received:', event?.detail);
+      
       // Refresh the gallery
       this.media = [];
       this.lastId = null;
       this.hasMore = true;
       this.fetchMedia();
+      
+      // Close the upload modal if it's still open
+      this.showUploadModal = false;
+      
+      // Show a success notification if we have details
+      if (event?.detail) {
+        const { count, success, duplicates, failed } = event.detail;
+        let message = `Upload complete: ${success || count} file(s) uploaded successfully.`;
+        if (duplicates && duplicates > 0) {
+          message += ` ${duplicates} duplicate(s) detected.`;
+        }
+        if (failed && failed > 0) {
+          message += ` ${failed} failed.`;
+        }
+        
+        // Display a notification (use your preferred notification system)
+        console.log('Upload notification:', message);
+        // Example: You could add a toast notification system
+        // this.$toast.success(message);
+      }
     },
     addToAlbum() {
       console.log('Gallery - addToAlbum called', this.selectedItems.length);

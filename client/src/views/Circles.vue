@@ -2,7 +2,7 @@
   <div class="circles-container">
     <div class="circles-header">
       <div>
-        <h1>Your Trusted Circles</h1>
+      <h1>Your Trusted Circles</h1>
         <p class="circles-description">Create and manage shared spaces for your friends, family, or teams.</p>
       </div>
       <button class="create-album-btn" @click="showCreateModal = true">
@@ -53,7 +53,7 @@
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
           </svg>
-           <span v-if="circle.isAdmin" class="admin-badge">
+          <span v-if="circle.isAdmin" class="admin-badge">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
               <path d="M12 2L9.16 8.65L2 9.24L7.29 14.1L5.82 21L12 17.31L18.18 21L16.71 14.1L22 9.24L14.84 8.65L12 2Z"></path>            
             </svg>
@@ -166,35 +166,35 @@
       <template #primary-text>Create Circle</template>
       <template #loading-text>Creating...</template>
       
-      <div class="form-group">
-        <label for="circle-name">Circle Name <span class="required">*</span></label>
-        <input 
-          id="circle-name" 
-          v-model="newCircle.name" 
-          type="text" 
-          placeholder="Enter a name for your Circle"
-          :class="{ 'error': validationErrors.name }"
-        >
-        <p v-if="validationErrors.name" class="error-text">{{ validationErrors.name }}</p>
-      </div>
-      
-      <div class="form-group">
-        <label for="circle-description">Description (Optional) <span class="max-chars">(Max 150 characters)</span></label>
-        <textarea 
-          id="circle-description" 
-          v-model="newCircle.description" 
-          rows="3" 
-          placeholder="Describe the purpose of this Circle"
-          :class="{ 'error': validationErrors.description }"
-          @input="validateDescription"
-        ></textarea>
-        <div class="form-feedback">
-          <p v-if="validationErrors.description" class="error-text">{{ validationErrors.description }}</p>
-          <p class="char-counter" :class="{ 'warning': newCircle.description.length > 130, 'error': newCircle.description.length > 150 }">
-            {{ newCircle.description.length }}/150
-          </p>
-        </div>
-      </div>
+          <div class="form-group">
+            <label for="circle-name">Circle Name <span class="required">*</span></label>
+            <input 
+              id="circle-name" 
+              v-model="newCircle.name" 
+              type="text" 
+              placeholder="Enter a name for your Circle"
+              :class="{ 'error': validationErrors.name }"
+            >
+            <p v-if="validationErrors.name" class="error-text">{{ validationErrors.name }}</p>
+          </div>
+          
+          <div class="form-group">
+            <label for="circle-description">Description (Optional) <span class="max-chars">(Max 150 characters)</span></label>
+            <textarea 
+              id="circle-description" 
+              v-model="newCircle.description" 
+              rows="3" 
+              placeholder="Describe the purpose of this Circle"
+              :class="{ 'error': validationErrors.description }"
+              @input="validateDescription"
+            ></textarea>
+            <div class="form-feedback">
+              <p v-if="validationErrors.description" class="error-text">{{ validationErrors.description }}</p>
+              <p class="char-counter" :class="{ 'warning': newCircle.description.length > 130, 'error': newCircle.description.length > 150 }">
+                {{ newCircle.description.length }}/150
+              </p>
+            </div>
+          </div>
     </BaseModal>
 
     <!-- Decline Invitation Confirmation Modal -->
@@ -958,7 +958,7 @@ textarea.error {
     color: var(--color-text-light);
     border-color: rgba(156, 106, 222, 0.4);
   }
-
+  
   .btn-secondary:hover {
     background-color: rgba(156, 106, 222, 0.2);
     border-color: rgba(156, 106, 222, 0.5);
@@ -997,7 +997,7 @@ textarea.error {
   }
   .invitation-actions .btn:first-child {
     margin-top: 0;
-  }
+}
 }
 
 </style> 

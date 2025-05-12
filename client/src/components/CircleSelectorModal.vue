@@ -24,45 +24,45 @@
         Share {{ mediaIds.length }} selected item(s) with your trusted circles
       </template>
     </p>
-    
+        
     <div v-if="loading" class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>Loading your circles...</p>
-    </div>
-    
+          <div class="loading-spinner"></div>
+          <p>Loading your circles...</p>
+        </div>
+        
     <div v-else-if="error" class="error-container">
       <p class="error-message">{{ error }}</p>
       <button @click="fetchCircles" class="retry-button">Try Again</button>
-    </div>
-    
+        </div>
+        
     <div v-else-if="circles.length === 0" class="no-circles-message">
-      <p>You don't have any circles yet.</p>
+          <p>You don't have any circles yet.</p>
       <button @click="goToCircles" class="secondary-button">Create a Circle</button>
-    </div>
-    
-    <div v-else class="circles-list">
-      <div 
-        v-for="circle in circles" 
+        </div>
+        
+        <div v-else class="circles-list">
+          <div 
+            v-for="circle in circles" 
         :key="circle._id" 
-        class="circle-item"
+            class="circle-item"
         :class="{ 'selected': selectedCircles.includes(circle._id) }"
         @click="toggleCircle(circle._id)"
-      >
+          >
         <div class="circle-icon">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="9"></circle>
             <circle cx="12" cy="10" r="3"></circle>
             <path d="M6.5 18.2c1.2-1.5 3.3-2.5 5.5-2.5s4.3 1 5.5 2.5"></path>
           </svg>
-        </div>
-        
-        <div class="circle-details">
-          <div class="circle-name">{{ circle.name }}</div>
+            </div>
+            
+            <div class="circle-details">
+              <div class="circle-name">{{ circle.name }}</div>
           <div class="circle-members">{{ circle.memberCount || 0 }} member{{ circle.memberCount !== 1 ? 's' : '' }}</div>
+          </div>
         </div>
       </div>
-    </div>
-    
+      
     <div v-if="selectedCircles.length > 0" class="selection-info">
       Selected {{ selectedCircles.length }} circle{{ selectedCircles.length !== 1 ? 's' : '' }}
     </div>
@@ -199,7 +199,7 @@ export default {
       if (this.selectedCircles.length === 0) return;
       
       this.saving = true;
-      
+        
       try {
         if (this.albumId) {
           const response = await api.put(`/albums/${this.albumId}/share`, {
@@ -211,7 +211,7 @@ export default {
             circleIds: this.selectedCircles,
             success: response.data.success
           });
-          this.$emit('shared', {
+        this.$emit('shared', {
             circleIds: this.selectedCircles,
             result: response.data
           });

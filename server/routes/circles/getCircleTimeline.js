@@ -67,8 +67,8 @@ const getCircleTimelineHandler = async (request, reply) => {
         const objectIdCircleId = new ObjectId(String(circleId));
         
         // Build query filters based on timestamp
-        let fileQuery = { circleIds: objectIdCircleId };
-        let albumQuery = { circleIds: objectIdCircleId };
+        const fileQuery = { circleIds: objectIdCircleId };
+        const albumQuery = { circleIds: objectIdCircleId };
         
         if (timestamp) {
             const timestampDate = new Date(parseInt(timestamp));

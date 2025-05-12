@@ -1,5 +1,12 @@
 const { getDb, getCollection } = require('../utils/db');
 const { verifyToken } = require('./authMiddleware');
+const { 
+    getTierConfig, 
+    getDefaultTier, 
+    getStorageLimit,
+    formatStorageSize,
+    getFormattedStorageLimit 
+} = require('../utils/subscriptionTiers');
 
 /**
  * Get user's storage quota and usage information
@@ -17,6 +24,14 @@ const getUserQuota = async (request, reply) => {
     try {
         const db = getDb();
         const userId = request.user._id;
+        
+        // Get the user's subscription tier (default to 'lite' if not set)
+        const userTier = request.user.subscriptionTier || getDefaultTier();
+        const tierConfig = getTierConfig(userTier);
+
+        // Get the storage limit for this tier
+        const storageLimit = getStorageLimit(userTier);
+        const formattedStorageLimit = getFormattedStorageLimit(userTier);
 
         // Get the files collection
         const filesCollection = getCollection(db, 'files');
@@ -40,7 +55,12 @@ const getUserQuota = async (request, reply) => {
             return {
                 totalSize: 0,
                 totalSizeFormatted: '0 B',
-                totalFiles: 0
+                totalFiles: 0,
+                subscriptionTier: userTier,
+                tierName: tierConfig.name,
+                storageLimit: storageLimit,
+                storageLimitFormatted: formattedStorageLimit,
+                usagePercentage: 0
             };
         }
 
@@ -48,11 +68,19 @@ const getUserQuota = async (request, reply) => {
         
         // Format the size in a human-readable format
         const formattedSize = formatFileSize(totalSize);
+        
+        // Calculate usage percentage
+        const usagePercentage = Math.min(100, Math.round((totalSize / storageLimit) * 100));
 
         return {
             totalSize,
             totalSizeFormatted: formattedSize,
-            totalFiles
+            totalFiles,
+            subscriptionTier: userTier,
+            tierName: tierConfig.name,
+            storageLimit: storageLimit,
+            storageLimitFormatted: formattedStorageLimit,
+            usagePercentage
         };
     } catch (err) {
         console.error('Error getting user quota:', err);

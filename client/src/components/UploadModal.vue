@@ -94,7 +94,9 @@ export default {
   computed: {
     uploadButtonText() {
       if (this.uploading) {
-        return `Uploading ${this.completedFilesCount}/${this.totalFilesCount} (${this.uploadProgress}%)`;
+        // Format the progress percentage to make sure it's never NaN or undefined
+        const progressPercent = isNaN(this.uploadProgress) ? 0 : this.uploadProgress;
+        return `Uploading ${this.completedFilesCount}/${this.totalFilesCount} (${progressPercent}%)`;
       }
       return `Upload ${this.selectedFiles.length > 0 ? `(${this.selectedFiles.length})` : ''}`;
     }
@@ -104,6 +106,17 @@ export default {
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.handleEscKey);
+  },
+  watch: {
+    // Watch the upload progress to ensure it's displayed correctly
+    uploadProgress(newValue) {
+      // Ensure we have a valid progress value to display
+      if (isNaN(newValue) || newValue < 0) {
+        this.uploadProgress = 0;
+      } else if (newValue > 100) {
+        this.uploadProgress = 100;
+      }
+    }
   },
   methods: {
     closeModal() {
@@ -172,14 +185,22 @@ export default {
           const formData = new FormData();
           formData.append('file', file);
           
-          const response = await api.post('/upload', formData, {
-            onUploadProgress: (progressEvent) => {
-              // Calculate overall progress as a combination of completed files and current file
-              const currentFileProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              this.uploadProgress = Math.round(
-                ((this.completedFilesCount * 100) + currentFileProgress) / this.totalFilesCount
-              );
-            }
+          // Wrap in a new Promise to ensure progress update is visible
+          const response = await new Promise((resolve, reject) => {
+            api.post('/upload', formData, {
+              onUploadProgress: (progressEvent) => {
+                if (progressEvent.lengthComputable) {
+                  // Calculate overall progress as a combination of completed files and current file
+                  const currentFileProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                  this.uploadProgress = Math.round(
+                    ((this.completedFilesCount * 100) + currentFileProgress) / this.totalFilesCount
+                  );
+                  console.log(`Upload progress: ${this.uploadProgress}%`);
+                }
+              }
+            })
+            .then(response => resolve(response))
+            .catch(error => reject(error));
           });
           
           this.completedFilesCount++;
@@ -240,11 +261,28 @@ export default {
       this.selectedFiles = [];
       this.uploadProgress = 0;
       
+      // Create the upload complete event for the gallery to refresh
+      const uploadCompleteEvent = new CustomEvent('upload-completed', {
+        detail: {
+          count: this.totalFilesCount,
+          duplicates: totalDupes,
+          success: totalSuccess,
+          failed: totalFailed
+        }
+      });
+      window.dispatchEvent(uploadCompleteEvent);
+      
+      // Emit the uploaded event with detailed information
       this.$emit('uploaded', {
         success: successfulUploads,
         duplicates: duplicateFiles,
         message
       });
+      
+      // Close the modal after a short delay to ensure events are processed
+      setTimeout(() => {
+        this.closeModal();
+      }, 500);
     }
   }
 };

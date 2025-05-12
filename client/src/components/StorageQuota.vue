@@ -1,12 +1,16 @@
 <template>
   <div class="quota-info" v-if="quotaInfo" :class="{ 'no-border': !showBorder, 'compact': isCompact }">
     <div class="quota-header">{{ title || 'Storage Usage' }}</div>
+    <div class="quota-tier" v-if="!isCompact">
+      <span class="tier-badge">{{ quotaInfo.tierName }}</span>
+    </div>
     <div class="quota-progress">
       <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: quotaPercentage + '%' }"></div>
+        <div class="progress-fill" :style="{ width: quotaInfo.usagePercentage + '%' }"></div>
       </div>
       <div class="quota-text">
-        {{ quotaInfo.totalSizeFormatted }} used ({{ quotaInfo.totalFiles }} files)
+        <span>{{ quotaInfo.totalSizeFormatted }} of {{ quotaInfo.storageLimitFormatted }}</span>
+        <span v-if="!isCompact">{{ quotaInfo.totalFiles }} files</span>
       </div>
     </div>
   </div>
@@ -34,15 +38,11 @@ export default {
   },
   setup() {
     const quotaInfo = ref(null);
-    const quotaPercentage = ref(30); // Default to 30% until we set a quota limit
     
     const fetchQuotaInfo = async () => {
       try {
         const response = await api.get('/user/quota');
         quotaInfo.value = response.data;
-        
-        // TODO: Update this calculation if implementing a quota limit
-        quotaPercentage.value = Math.min(30, Math.max(5, Math.log10(quotaInfo.value.totalSize) * 3));
       } catch (error) {
         console.error('Error fetching user quota:', error);
       }
@@ -53,8 +53,7 @@ export default {
     });
     
     return {
-      quotaInfo,
-      quotaPercentage
+      quotaInfo
     };
   }
 };
@@ -88,6 +87,20 @@ export default {
   margin-bottom: 6px;
 }
 
+.quota-tier {
+  margin-bottom: 10px;
+}
+
+.tier-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-white);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: 12px;
+}
+
 .quota-progress {
   display: flex;
   flex-direction: column;
@@ -116,12 +129,23 @@ export default {
   transition: width 0.5s ease;
 }
 
+.progress-fill[style*="width: 90"] {
+  background-color: var(--color-warning, #f59e0b);
+}
+
+.progress-fill[style*="width: 100"] {
+  background-color: var(--color-danger, #ef4444);
+}
+
 .quota-text {
   font-size: 12px;
   color: var(--color-text-secondary);
+  display: flex;
+  justify-content: space-between;
 }
 
 .compact .quota-text {
   font-size: 11px;
+  justify-content: flex-start;
 }
 </style> 
