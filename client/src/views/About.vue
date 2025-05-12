@@ -60,12 +60,27 @@
       </section>
       
       <section class="about-section">
+        <h2>Resource-Efficient Design</h2>
+        <p>Lumia is designed to operate with limited resources while providing the best possible experience. We implement smart compression and resource allocation to ensure reliability and performance, even on modest server infrastructure.</p>
+        <div class="resource-notice">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+          </svg>
+          <div>
+            <h3>Limited Resources Project</h3>
+            <p>Our subscription tiers are carefully designed to balance quality with resource constraints. Higher-tier subscriptions receive less compression and more storage allocation.</p>
+            <router-link to="/status" class="status-link">View Project Status</router-link>
+          </div>
+        </div>
+      </section>
+      
+      <section class="about-section">
         <h2>Get Started</h2>
         <p>Ready to take control of your media sharing experience? Explore Lumia's features and start sharing with your trusted circles today.</p>
         <div class="cta-buttons">
           <router-link to="/gallery" class="cta-button primary">Browse Your Media</router-link>
           <router-link to="/circles" class="cta-button secondary">Manage Trusted Circles</router-link>
-          <router-link to="/albums" class="cta-button accent">Explore Albums</router-link>
+          <router-link to="/status" class="cta-button special">Project Status</router-link>
         </div>
       </section>
     </div>
@@ -217,9 +232,49 @@ export default {
 
 .cta-buttons {
   display: flex;
-  gap: 16px;
-  margin-top: 30px;
   flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.resource-notice {
+  background-color: var(--color-bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  border-left: 4px solid var(--color-primary);
+}
+
+.resource-notice svg {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  stroke: var(--color-primary);
+}
+
+.resource-notice h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+  color: var(--color-text-primary);
+}
+
+.resource-notice p {
+  margin: 0 0 10px 0;
+}
+
+.status-link {
+  display: inline-block;
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.status-link:hover {
+  text-decoration: underline;
 }
 
 .cta-button {
@@ -263,6 +318,19 @@ export default {
 }
 
 .cta-button.accent:hover {
+  background-color: var(--color-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: var(--color-primary-light);
+}
+
+.cta-button.special {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.cta-button.special:hover {
   background-color: var(--color-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);

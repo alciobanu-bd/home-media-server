@@ -7,6 +7,7 @@ import AlbumView from '../views/AlbumView.vue';
 import About from '../views/About.vue';
 import Circles from '../views/Circles.vue';
 import CircleView from '../views/CircleView.vue';
+import ProjectStatus from '../views/ProjectStatus.vue';
 import authStore from '../store/authStore';
 
 const routes = [
@@ -60,6 +61,12 @@ const routes = [
     name: 'About',
     component: About,
     // About page can be viewed by anyone
+  },
+  {
+    path: '/status',
+    name: 'ProjectStatus',
+    component: ProjectStatus,
+    // Status page can be viewed by anyone
   },
   {
     path: '/login',

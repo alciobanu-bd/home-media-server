@@ -44,9 +44,35 @@
       <div class="subscription-info">
         <div class="subscription-tier">
           <div class="tier-badge">{{ subscriptionInfo ? subscriptionInfo.name : 'Loading...' }}</div>
+          <div v-if="subscriptionInfo" class="resource-efficiency">
+            <div class="efficiency-label">Resource Efficiency:</div>
+            <div class="efficiency-badges">
+              <span 
+                v-for="i in 5" 
+                :key="i" 
+                class="efficiency-badge"
+                :class="{ 
+                  'active': getResourceEfficiencyLevel() >= i,
+                  'high': subscriptionInfo.tier === 'lite',
+                  'medium': subscriptionInfo.tier === 'glow',
+                  'low': subscriptionInfo.tier === 'aurora'
+                }"
+              ></span>
+            </div>
+            <span class="efficiency-text">{{ getResourceEfficiencyText() }}</span>
+          </div>
         </div>
         <div class="subscription-description">
           {{ subscriptionInfo ? subscriptionInfo.description : 'Loading subscription details...' }}
+        </div>
+        <div class="resource-notice">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          Lumia is a limited resources project. Higher compression helps conserve storage and processing power.
+          <router-link to="/status" class="status-link">View Project Status</router-link>
         </div>
         <div class="subscription-details">
           <div class="detail-item">
@@ -56,6 +82,23 @@
           <div class="detail-item">
             <span class="detail-label">Photo Quality:</span>
             <span class="detail-value">{{ getPhotoQualityDescription() }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Compression Level:</span>
+            <span class="detail-value">{{ getCompressionDescription() }}</span>
+            <div class="compression-meter">
+              <div class="meter-bar">
+                <div 
+                  class="meter-fill" 
+                  :style="{ width: getCompressionPercent() + '%', background: getCompressionColor() }"
+                ></div>
+              </div>
+              <div class="meter-labels">
+                <span>High Compression</span>
+                <span>No Compression</span>
+              </div>
+              <div class="meter-hint">Higher compression helps conserve limited server resources</div>
+            </div>
           </div>
           <div class="detail-item">
             <span class="detail-label">Video Quality:</span>
@@ -163,6 +206,84 @@ export default {
       }
     };
     
+    const getCompressionDescription = () => {
+      if (!subscriptionInfo.value || !subscriptionInfo.value.mediaQuality) return '';
+      
+      const photoSettings = subscriptionInfo.value.mediaQuality.photo;
+      
+      if (!photoSettings.compressionLevel) {
+        return 'No compression';
+      } else if (photoSettings.compressionLevel === 100) {
+        return 'No compression (100%)';
+      } else if (photoSettings.compressionLevel >= 90) {
+        return 'Minimal compression';
+      } else if (photoSettings.compressionLevel >= 80) {
+        return 'Light compression';
+      } else if (photoSettings.compressionLevel >= 70) {
+        return 'Moderate compression';
+      } else {
+        return 'High compression';
+      }
+    };
+    
+    const getCompressionPercent = () => {
+      if (!subscriptionInfo.value || !subscriptionInfo.value.mediaQuality) return 0;
+      
+      const photoSettings = subscriptionInfo.value.mediaQuality.photo;
+      
+      if (!photoSettings.compressionLevel) {
+        return 100;
+      } else {
+        return photoSettings.compressionLevel;
+      }
+    };
+    
+    const getCompressionColor = () => {
+      if (!subscriptionInfo.value || !subscriptionInfo.value.mediaQuality) return '';
+      
+      const photoSettings = subscriptionInfo.value.mediaQuality.photo;
+      
+      if (!photoSettings.compressionLevel) {
+        return 'var(--color-success)';
+      } else {
+        // Generate color from green (100) to red (0)
+        const hue = (photoSettings.compressionLevel * 1.2); // 0-120 range (red to green)
+        return `hsl(${hue}, 70%, 45%)`;
+      }
+    };
+    
+    const getResourceEfficiencyLevel = () => {
+      if (!subscriptionInfo.value) return 0;
+      
+      // Based on tier, return efficiency level
+      switch (subscriptionInfo.value.tier) {
+        case 'lite':
+          return 5; // Highest efficiency (most compression)
+        case 'glow':
+          return 3; // Medium efficiency
+        case 'aurora':
+          return 1; // Lowest efficiency (no compression)
+        default:
+          return 0;
+      }
+    };
+    
+    const getResourceEfficiencyText = () => {
+      if (!subscriptionInfo.value) return '';
+      
+      // Based on tier, return efficiency text
+      switch (subscriptionInfo.value.tier) {
+        case 'lite':
+          return 'Optimized for resource efficiency';
+        case 'glow':
+          return 'Balanced resource usage';
+        case 'aurora':
+          return 'Premium resource allocation';
+        default:
+          return '';
+      }
+    };
+    
     onMounted(() => {
       fetchSubscriptionInfo();
     });
@@ -174,7 +295,12 @@ export default {
       saveSettings,
       formatStorageSize,
       getPhotoQualityDescription,
-      getVideoQualityDescription
+      getVideoQualityDescription,
+      getCompressionDescription,
+      getCompressionPercent,
+      getCompressionColor,
+      getResourceEfficiencyLevel,
+      getResourceEfficiencyText
     };
   }
 };
@@ -345,6 +471,24 @@ h3 {
   margin-bottom: 10px;
 }
 
+.resource-notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(var(--color-primary-rgb), 0.1);
+  border-radius: 6px;
+  padding: 10px;
+  margin: 15px 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  border-left: 3px solid var(--color-primary);
+}
+
+.resource-notice svg {
+  flex-shrink: 0;
+  stroke: var(--color-primary);
+}
+
 .subscription-description {
   font-size: 14px;
   color: var(--color-text-secondary);
@@ -354,21 +498,122 @@ h3 {
 .subscription-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .detail-item {
   display: flex;
-  justify-content: space-between;
-  font-size: 14px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .detail-label {
-  color: var(--color-text-secondary);
+  font-size: 13px;
   font-weight: 500;
+  color: var(--color-text-primary);
 }
 
 .detail-value {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.compression-meter {
+  margin-top: 8px;
+}
+
+.meter-bar {
+  height: 8px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.meter-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.meter-hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  text-align: center;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .resource-notice {
+  background-color: rgba(156, 106, 222, 0.15);
+  border-left-color: rgba(156, 106, 222, 0.8);
+}
+
+[data-theme="dark"] .resource-notice svg {
+  stroke: rgba(156, 106, 222, 0.9);
+}
+
+.resource-efficiency {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.efficiency-label {
+  font-size: 13px;
+  font-weight: 500;
   color: var(--color-text-primary);
+}
+
+.efficiency-badges {
+  display: flex;
+  gap: 4px;
+}
+
+.efficiency-badge {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.efficiency-badge.active.high {
+  background-color: #4caf50; /* Green for high efficiency */
+}
+
+.efficiency-badge.active.medium {
+  background-color: #ff9800; /* Orange for medium efficiency */
+}
+
+.efficiency-badge.active.low {
+  background-color: #f44336; /* Red for low efficiency */
+}
+
+.efficiency-text {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.status-link {
+  display: block;
+  margin-top: 8px;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.status-link:hover {
+  text-decoration: underline;
 }
 </style> 

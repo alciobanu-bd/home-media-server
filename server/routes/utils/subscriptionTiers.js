@@ -1,6 +1,10 @@
 /**
  * Subscription tiers utility module
  * Defines subscription tiers and provides helper functions for tier-based operations
+ * 
+ * NOTE: Lumia is a limited resources project. Subscription tiers are designed
+ * to balance user needs with available server resources. Higher compression levels
+ * (lower values) conserve storage space and processing power.
  */
 
 // Define subscription tiers
@@ -14,13 +18,13 @@ const SUBSCRIPTION_TIERS = {
 const TIER_CONFIG = {
     [SUBSCRIPTION_TIERS.LITE]: {
         name: 'Lumia Lite',
-        description: 'Your first step into organized memories',
+        description: 'Essential storage with optimized compression for resource efficiency',
         storageLimit: 2 * 1024 * 1024 * 1024, // 2GB in bytes
         mediaQuality: {
             photo: {
                 maxResolution: 1080, // max height/width in pixels
                 maintainAspectRatio: true,
-                compressionLevel: 'medium' // low, medium, high
+                compressionLevel: 85 // 0-100 where 100 means no compression
             },
             video: {
                 maxResolution: 720, // 720p
@@ -31,13 +35,13 @@ const TIER_CONFIG = {
     },
     [SUBSCRIPTION_TIERS.GLOW]: {
         name: 'Lumia Glow',
-        description: 'Enhanced clarity for your growing collection',
+        description: 'Balanced quality and resource usage for growing collections',
         storageLimit: 20 * 1024 * 1024 * 1024, // 20GB in bytes
         mediaQuality: {
             photo: {
-                maxResolution: 4000, // Up to 12MP (approx 4000x3000)
+                maxResolution: 2160, // 4K
                 maintainAspectRatio: true,
-                compressionLevel: 'low' // low, medium, high
+                compressionLevel: 85 // 0-100 where 100 means no compression
             },
             video: {
                 maxResolution: 1080, // 1080p
@@ -48,13 +52,13 @@ const TIER_CONFIG = {
     },
     [SUBSCRIPTION_TIERS.AURORA]: {
         name: 'Lumia Aurora',
-        description: 'Brilliant, uncompromised family memories',
+        description: 'Premium quality with dedicated server resources for preservation',
         storageLimit: 100 * 1024 * 1024 * 1024, // 100GB in bytes
         mediaQuality: {
             photo: {
                 maxResolution: null, // No limit, preserve original
                 maintainAspectRatio: true,
-                compressionLevel: 'none' // no compression
+                compressionLevel: 100 // no compression
             },
             video: {
                 maxResolution: null, // No limit, preserve original

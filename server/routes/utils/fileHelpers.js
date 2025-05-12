@@ -113,6 +113,10 @@ const findDuplicateFile = async (md5Hash, userId) => {
  * @param {string} fileType - MIME type of the file
  * @param {Object} qualitySettings - Quality settings from the subscription tier
  * @returns {Promise<boolean>} - Whether processing was successful
+ * 
+ * NOTE: As Lumia is a limited resources project, compression levels are optimized
+ * to balance quality with server storage and processing constraints. Higher compression
+ * (lower values) reduces storage requirements and speeds up file delivery.
  */
 const processMediaForStorage = async (sourcePath, destPath, fileType, qualitySettings) => {
     try {
@@ -126,8 +130,8 @@ const processMediaForStorage = async (sourcePath, destPath, fileType, qualitySet
             if (qualitySettings.maxResolution === null || 
                (width === null || height === null || 
                (width <= qualitySettings.maxResolution && height <= qualitySettings.maxResolution))) {
-                // No processing needed, just copy the file
-                if (qualitySettings.compressionLevel === 'none') {
+                // No processing needed, just copy the file if we're not compressing
+                if (qualitySettings.compressionLevel === 100) {
                     await fs.copy(sourcePath, destPath);
                     console.log('Image copied without processing');
                     return true;
@@ -137,7 +141,7 @@ const processMediaForStorage = async (sourcePath, destPath, fileType, qualitySet
             // Initialize sharp with the source image and preserve metadata
             let sharpInstance = sharp(sourcePath)
                 .rotate()
-                .withMetadata(); // Preserve EXIF metadata
+                .withMetadata();
             
             // Resize if needed
             if (qualitySettings.maxResolution !== null && 
@@ -149,15 +153,9 @@ const processMediaForStorage = async (sourcePath, destPath, fileType, qualitySet
                 console.log(`Resizing image to max dimension ${qualitySettings.maxResolution}px`);
             }
             
-            // Apply compression based on tier settings
-            let quality = 80; // Default quality
-            if (qualitySettings.compressionLevel === 'high') {
-                quality = 75;
-            } else if (qualitySettings.compressionLevel === 'medium') {
-                quality = 85;
-            } else if (qualitySettings.compressionLevel === 'low') {
-                quality = 95;
-            }
+            // Use the compressionLevel directly as the quality setting
+            // Ensure it's a valid value between 1-100
+            const quality = Math.min(Math.max(qualitySettings.compressionLevel, 1), 100);
             
             // Set output format based on input
             if (fileType === 'image/jpeg' || fileType === 'image/jpg') {
