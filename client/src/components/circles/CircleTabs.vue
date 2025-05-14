@@ -4,7 +4,7 @@
       <button 
         class="tab-link" 
         :class="{ 'active': modelValue === 'timeline' }"
-        @click="$emit('update:modelValue', 'timeline')"
+        @click="changeTab('timeline')"
       >
         <div class="tab-icon">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -18,7 +18,7 @@
       <button 
         class="tab-link" 
         :class="{ 'active': modelValue === 'albums' }"
-        @click="$emit('update:modelValue', 'albums')"
+        @click="changeTab('albums')"
       >
         <div class="tab-icon">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -34,7 +34,7 @@
       <button 
         class="tab-link" 
         :class="{ 'active': modelValue === 'files' }"
-        @click="$emit('update:modelValue', 'files')"
+        @click="changeTab('files')"
       >
         <div class="tab-icon">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -49,7 +49,7 @@
       <button 
         class="tab-link" 
         :class="{ 'active': modelValue === 'members' }"
-        @click="$emit('update:modelValue', 'members')"
+        @click="changeTab('members')"
       >
         <div class="tab-icon">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -128,6 +128,32 @@ export default {
           this.indicatorWidth = activeTab.offsetWidth;
         }
       });
+    },
+    
+    changeTab(tabName) {
+      // Emit event for v-model binding in parent component
+      this.$emit('update:modelValue', tabName);
+      
+      // Update URL query parameter to persist the tab selection
+      this.updateQueryParam(tabName);
+    },
+    
+    updateQueryParam(tabName) {
+      // Get current query parameters
+      const query = {...this.$route.query};
+      
+      // Update the tab parameter
+      query.tab = tabName;
+      
+      // Replace the current history entry with the new URL to avoid adding to browser history stack
+      this.$router.replace({ 
+        path: this.$route.path,
+        query: query
+      }).catch(err => {
+        if (err.name !== 'NavigationDuplicated') {
+          throw err;
+        }
+      });
     }
   },
   
@@ -152,9 +178,7 @@ export default {
 .circle-tabs-component {
   width: 100%;
   background-color: var(--color-bg-primary); /* Match parent background */
-  position: sticky;
-  top: 0; /* Adjust if there's a global sticky header */
-  z-index: 100; /* Ensure tabs stay on top of content below */
+  z-index: 10; 
   border-bottom: 1px solid var(--color-border-light);
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   overflow: hidden; /* For the sliding indicator */

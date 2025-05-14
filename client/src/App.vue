@@ -606,6 +606,7 @@ body {
 .router-view-container {
   background-color: var(--color-background);
   min-height: calc(100vh - var(--header-height));
+  overflow: visible; /* Allow content to scroll properly */
 }
 
 @media (max-width: 768px) {

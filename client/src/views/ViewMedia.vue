@@ -69,17 +69,71 @@
       
       <div v-show="showMetadata" class="metadata-panel" :class="{ 'visible': showMetadata }">
         <h3>Metadata</h3>
-        <div v-if="isImage && metadata && metadata.exif" class="metadata-group">
-          <div v-if="metadata.dimensions" class="metadata-item">
+        
+        <!-- File Basic Info -->
+        <div class="metadata-group">
+          <h4>File Information</h4>
+          <div v-if="media" class="metadata-item">
+            <span class="metadata-label">Filename:</span>
+            <span class="metadata-value">{{ media.originalName }}</span>
+          </div>
+          <div v-if="media" class="metadata-item">
+            <span class="metadata-label">Type:</span>
+            <span class="metadata-value">{{ media.type }}</span>
+          </div>
+          <div v-if="media" class="metadata-item">
+            <span class="metadata-label">Size:</span>
+            <span class="metadata-value">{{ formatFileSize(media.size) }}</span>
+          </div>
+          <div v-if="metadata && metadata.dimensions" class="metadata-item">
             <span class="metadata-label">Dimensions:</span>
             <span class="metadata-value">{{ metadata.dimensions.width }}x{{ metadata.dimensions.height }}</span>
           </div>
-          <div v-if="metadata.exif.Make" class="metadata-item">
+        </div>
+        
+        <!-- Creation and Upload Times -->
+        <div class="metadata-group">
+          <h4>Dates</h4>
+          <div v-if="metadata && metadata.exif && metadata.exif.DateTimeOriginal" class="metadata-item">
+            <span class="metadata-label">Captured:</span>
+            <span class="metadata-value">{{ formatDate(new Date(metadata.exif.DateTimeOriginal * 1000), true) }}</span>
+          </div>
+          <div v-if="media" class="metadata-item">
+            <span class="metadata-label">Created:</span>
+            <span class="metadata-value">{{ formatDate(media.createdAt, true) }}</span>
+          </div>
+          <div v-if="media" class="metadata-item">
+            <span class="metadata-label">Uploaded:</span>
+            <span class="metadata-value">{{ formatDate(media.uploadedAt, true) }}</span>
+          </div>
+        </div>
+        
+        <!-- Camera Information (for images with EXIF data) -->
+        <div v-if="isImage && metadata && metadata.exif" class="metadata-group">
+          <h4>Camera Information</h4>
+          <div v-if="metadata.exif.Make || metadata.exif.Model" class="metadata-item">
             <span class="metadata-label">Camera:</span>
             <span class="metadata-value">{{ metadata.exif.Make }} {{ metadata.exif.Model }}</span>
           </div>
+          <div v-if="metadata.exif.LensMake || metadata.exif.LensModel" class="metadata-item">
+            <span class="metadata-label">Lens:</span>
+            <span class="metadata-value">{{ metadata.exif.LensMake || '' }} {{ metadata.exif.LensModel || '' }}</span>
+          </div>
+          <div v-if="metadata.exif.FocalLength" class="metadata-item">
+            <span class="metadata-label">Focal Length:</span>
+            <span class="metadata-value">{{ metadata.exif.FocalLength }}mm</span>
+          </div>
+          <div v-if="metadata.exif.FocalLengthIn35mmFormat" class="metadata-item">
+            <span class="metadata-label">35mm Equivalent:</span>
+            <span class="metadata-value">{{ metadata.exif.FocalLengthIn35mmFormat }}mm</span>
+          </div>
+        </div>
+        
+        <!-- Exposure Information (for images with EXIF data) -->
+        <div v-if="isImage && metadata && metadata.exif" class="metadata-group">
+          <h4>Exposure Information</h4>
           <div v-if="metadata.exif.ExposureTime" class="metadata-item">
-            <span class="metadata-label">Exposure:</span>
+            <span class="metadata-label">Shutter Speed:</span>
             <span class="metadata-value">{{ formatExposure(metadata.exif.ExposureTime) }}</span>
           </div>
           <div v-if="metadata.exif.FNumber" class="metadata-item">
@@ -90,33 +144,78 @@
             <span class="metadata-label">ISO:</span>
             <span class="metadata-value">{{ metadata.exif.ISO }}</span>
           </div>
-          <div v-if="metadata.exif.FocalLength" class="metadata-item">
-            <span class="metadata-label">Focal Length:</span>
-            <span class="metadata-value">{{ metadata.exif.FocalLength }}mm</span>
+          <div v-if="metadata.exif.ExposureProgram" class="metadata-item">
+            <span class="metadata-label">Exposure Program:</span>
+            <span class="metadata-value">{{ formatExposureProgram(metadata.exif.ExposureProgram) }}</span>
+          </div>
+          <div v-if="metadata.exif.ExposureMode" class="metadata-item">
+            <span class="metadata-label">Exposure Mode:</span>
+            <span class="metadata-value">{{ formatExposureMode(metadata.exif.ExposureMode) }}</span>
+          </div>
+          <div v-if="metadata.exif.ExposureBiasValue !== undefined" class="metadata-item">
+            <span class="metadata-label">Exposure Bias:</span>
+            <span class="metadata-value">{{ formatExposureBias(metadata.exif.ExposureBiasValue) }}</span>
+          </div>
+          <div v-if="metadata.exif.MeteringMode" class="metadata-item">
+            <span class="metadata-label">Metering Mode:</span>
+            <span class="metadata-value">{{ formatMeteringMode(metadata.exif.MeteringMode) }}</span>
+          </div>
+          <div v-if="metadata.exif.Flash !== undefined" class="metadata-item">
+            <span class="metadata-label">Flash:</span>
+            <span class="metadata-value">{{ formatFlashMode(metadata.exif.Flash) }}</span>
+          </div>
+          <div v-if="metadata.exif.WhiteBalance" class="metadata-item">
+            <span class="metadata-label">White Balance:</span>
+            <span class="metadata-value">{{ formatWhiteBalance(metadata.exif.WhiteBalance) }}</span>
           </div>
         </div>
         
-        <!-- Add geolocation map -->
+        <!-- Location Information -->
         <div v-if="hasGeoLocationData && metadata" class="metadata-group">
           <h4>Location</h4>
           <geo-location-map :gps-data="metadata.exif"></geo-location-map>
         </div>
         
-        <div v-if="!isImage || (metadata && !metadata.exif)" class="metadata-item">
-          <span class="metadata-label">Type:</span>
-          <span class="metadata-value">{{ media ? media.type : '' }}</span>
-        </div>
-        <div v-if="media" class="metadata-item">
-          <span class="metadata-label">Size:</span>
-          <span class="metadata-value">{{ formatFileSize(media.size) }}</span>
-        </div>
-        <div v-if="media" class="metadata-item">
-          <span class="metadata-label">Created:</span>
-          <span class="metadata-value">{{ formatDate(media.createdAt, true) }}</span>
-        </div>
-        <div v-if="media" class="metadata-item">
-          <span class="metadata-label">Uploaded:</span>
-          <span class="metadata-value">{{ formatDate(media.uploadedAt, true) }}</span>
+        <!-- Advanced EXIF Data (for the tech-savvy) -->
+        <div v-if="isImage && metadata && metadata.exif && hasAdvancedExif" class="metadata-group">
+          <h4 class="collapsible" @click="toggleAdvancedExif">
+            Advanced Data
+            <span class="toggle-icon">{{ showAdvancedExif ? '−' : '+' }}</span>
+          </h4>
+          <div v-show="showAdvancedExif" class="advanced-metadata">
+            <div v-if="metadata.exif.Software" class="metadata-item">
+              <span class="metadata-label">Software:</span>
+              <span class="metadata-value">{{ metadata.exif.Software }}</span>
+            </div>
+            <div v-if="metadata.exif.ColorSpace" class="metadata-item">
+              <span class="metadata-label">Color Space:</span>
+              <span class="metadata-value">{{ formatColorSpace(metadata.exif.ColorSpace) }}</span>
+            </div>
+            <div v-if="metadata.exif.Orientation" class="metadata-item">
+              <span class="metadata-label">Orientation:</span>
+              <span class="metadata-value">{{ metadata.exif.Orientation }}</span>
+            </div>
+            <div v-if="metadata.exif.XResolution" class="metadata-item">
+              <span class="metadata-label">X Resolution:</span>
+              <span class="metadata-value">{{ metadata.exif.XResolution }} dpi</span>
+            </div>
+            <div v-if="metadata.exif.YResolution" class="metadata-item">
+              <span class="metadata-label">Y Resolution:</span>
+              <span class="metadata-value">{{ metadata.exif.YResolution }} dpi</span>
+            </div>
+            <div v-if="metadata.exif.SceneCaptureType" class="metadata-item">
+              <span class="metadata-label">Scene Type:</span>
+              <span class="metadata-value">{{ formatSceneType(metadata.exif.SceneCaptureType) }}</span>
+            </div>
+            <div v-if="metadata.exif.SubjectDistance" class="metadata-item">
+              <span class="metadata-label">Subject Distance:</span>
+              <span class="metadata-value">{{ metadata.exif.SubjectDistance }} m</span>
+            </div>
+            <div v-if="metadata.exif.DigitalZoomRatio && metadata.exif.DigitalZoomRatio > 1" class="metadata-item">
+              <span class="metadata-label">Digital Zoom:</span>
+              <span class="metadata-value">{{ metadata.exif.DigitalZoomRatio }}x</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -165,7 +264,10 @@ export default {
       nextItem: null,
       baseUrl: process.env.BASE_URL || '/',
       albumId: null,
-      albumItems: []
+      albumItems: [],
+      showAdvancedExif: false,
+      circleId: null,
+      circleActiveTab: null
     };
   },
   computed: {
@@ -195,6 +297,9 @@ export default {
     },
     hasNext() {
       return this.nextItem !== null;
+    },
+    hasAdvancedExif() {
+      return this.isImage && this.metadata && this.metadata.exif;
     }
   },
   watch: {
@@ -226,6 +331,14 @@ export default {
     if (albumParam) {
       this.albumId = albumParam;
       console.log('Album ID from query param:', this.albumId);
+    }
+    
+    // Check if we're coming from a circle view
+    const circleParam = urlParams.get('circle');
+    if (circleParam) {
+      this.circleId = circleParam;
+      this.circleActiveTab = urlParams.get('tab') || 'files'; // Default to files tab
+      console.log('Circle ID from query param:', this.circleId, 'Tab:', this.circleActiveTab);
     }
     
     this.$nextTick(() => {
@@ -278,8 +391,11 @@ export default {
           // Continue without metadata
         }
 
+        // If we have a circle ID, get only items from that circle
+        if (this.circleId) {
+          await this.fetchCircleFiles();
         // If we have an album ID, get only items from that album
-        if (this.albumId) {
+        } else if (this.albumId) {
           await this.fetchAlbumItems();
         } else {
           // Otherwise use the original behavior - fetch from global media list
@@ -290,6 +406,41 @@ export default {
         this.$router.push('/gallery');
       } finally {
         this.loading = false;
+      }
+    },
+
+    async fetchCircleFiles() {
+      try {
+        console.log('Fetching files for circle:', this.circleId);
+        const response = await api.get(`/circles/${this.circleId}/files`);
+        const circleFiles = response.data.files || [];
+        
+        if (circleFiles.length > 0) {
+          // Find the index of the current item in the circle's files
+          const currentIndex = circleFiles.findIndex(item => item._id === this.id);
+          
+          if (currentIndex !== -1) {
+            console.log(`Current item is at index ${currentIndex} of ${circleFiles.length} items in circle`);
+            
+            // Set previous item if available
+            if (currentIndex > 0) {
+              this.previousItem = circleFiles[currentIndex - 1];
+              console.log('Previous item in circle:', this.previousItem.originalName);
+            }
+            
+            // Set next item if available
+            if (currentIndex < circleFiles.length - 1) {
+              this.nextItem = circleFiles[currentIndex + 1];
+              console.log('Next item in circle:', this.nextItem.originalName);
+            }
+          } else {
+            console.warn('Current item not found in circle files array');
+          }
+        } else {
+          console.warn('Circle has no files');
+        }
+      } catch (error) {
+        console.error('Error fetching circle files:', error);
       }
     },
 
@@ -401,7 +552,13 @@ export default {
       this.loading = false;
     },
     closeViewer() {
-      if (this.albumId) {
+      if (this.circleId) {
+        // If we're viewing from a circle, go back to that circle with the active tab
+        this.$router.push({ 
+          path: `/circles/${this.circleId}`, 
+          query: { tab: this.circleActiveTab }
+        });
+      } else if (this.albumId) {
         // If we're viewing from an album, go back to that album
         this.$router.push({ name: 'AlbumView', params: { id: this.albumId } });
       } else {
@@ -429,6 +586,340 @@ export default {
         return `1/${Math.round(1/exposure)}`;
       }
       return `${exposure}s`;
+    },
+    formatExposureProgram(program) {
+      const programs = {
+        0: 'Not defined',
+        1: 'Manual',
+        2: 'Program AE',
+        3: 'Aperture-priority AE',
+        4: 'Shutter speed-priority AE',
+        5: 'Creative (Slow speed)',
+        6: 'Action (High speed)',
+        7: 'Portrait',
+        8: 'Landscape',
+        9: 'Bulb'
+      };
+      return programs[program] || 'Unknown';
+    },
+    formatExposureMode(mode) {
+      const modes = {
+        0: 'Auto',
+        1: 'Manual',
+        2: 'Auto bracket',
+        3: 'Sequence'
+      };
+      return modes[mode] || 'Unknown';
+    },
+    formatExposureBias(bias) {
+      if (bias === undefined) return '';
+      return `${bias} EV`;
+    },
+    formatMeteringMode(mode) {
+      const modes = {
+        0: 'Unknown',
+        1: 'Average',
+        2: 'Center-weighted average',
+        3: 'Spot',
+        4: 'Multi-spot',
+        5: 'Multi-segment',
+        6: 'Partial',
+        7: 'Other'
+      };
+      return modes[mode] || 'Unknown';
+    },
+    formatFlashMode(mode) {
+      const modes = {
+        0: 'No flash',
+        1: 'Fired',
+        2: 'Hand held, no flash',
+        3: 'Fired, compulsory flash',
+        4: 'Fired, compulsory flash, return light not detected',
+        5: 'Fired, return light detected',
+        7: 'Fired, return light not detected',
+        8: 'No flash function',
+        9: 'Fired, red-eye reduction',
+        13: 'Fired, red-eye reduction',
+        16: 'Fired, first curtain',
+        20: 'Fired, second curtain',
+        24: 'Fired, second curtain',
+        25: 'Fired, first curtain',
+        29: 'Fired, first curtain',
+        31: 'Fired, second curtain',
+        32: 'Fired, second curtain',
+        33: 'Fired, first curtain',
+        35: 'Fired, second curtain',
+        36: 'Fired, first curtain',
+        37: 'Fired, second curtain',
+        38: 'Fired, first curtain',
+        39: 'Fired, second curtain',
+        40: 'Fired, first curtain',
+        41: 'Fired, second curtain',
+        42: 'Fired, first curtain',
+        43: 'Fired, second curtain',
+        44: 'Fired, first curtain',
+        45: 'Fired, second curtain',
+        48: 'Fired, first curtain',
+        49: 'Fired, second curtain',
+        50: 'Fired, first curtain',
+        51: 'Fired, second curtain',
+        52: 'Fired, first curtain',
+        53: 'Fired, second curtain',
+        54: 'Fired, first curtain',
+        55: 'Fired, second curtain',
+        56: 'Fired, first curtain',
+        57: 'Fired, second curtain',
+        58: 'Fired, first curtain',
+        59: 'Fired, second curtain',
+        60: 'Fired, first curtain',
+        61: 'Fired, second curtain',
+        62: 'Fired, first curtain',
+        63: 'Fired, second curtain',
+        64: 'Fired, first curtain',
+        65: 'Fired, second curtain',
+        66: 'Fired, first curtain',
+        67: 'Fired, second curtain',
+        68: 'Fired, first curtain',
+        69: 'Fired, second curtain',
+        70: 'Fired, first curtain',
+        71: 'Fired, second curtain',
+        72: 'Fired, first curtain',
+        73: 'Fired, second curtain',
+        74: 'Fired, first curtain',
+        75: 'Fired, second curtain',
+        76: 'Fired, first curtain',
+        77: 'Fired, second curtain',
+        78: 'Fired, first curtain',
+        79: 'Fired, second curtain',
+        80: 'Fired, first curtain',
+        81: 'Fired, second curtain',
+        82: 'Fired, first curtain',
+        83: 'Fired, second curtain',
+        84: 'Fired, first curtain',
+        85: 'Fired, second curtain',
+        86: 'Fired, first curtain',
+        87: 'Fired, second curtain',
+        88: 'Fired, first curtain',
+        89: 'Fired, second curtain',
+        90: 'Fired, first curtain',
+        91: 'Fired, second curtain',
+        92: 'Fired, first curtain',
+        93: 'Fired, second curtain',
+        94: 'Fired, first curtain',
+        95: 'Fired, second curtain',
+        96: 'Fired, first curtain',
+        97: 'Fired, second curtain',
+        98: 'Fired, first curtain',
+        99: 'Fired, second curtain',
+        100: 'Fired, first curtain',
+        101: 'Fired, second curtain',
+        102: 'Fired, first curtain',
+        103: 'Fired, second curtain',
+        104: 'Fired, first curtain',
+        105: 'Fired, second curtain',
+        106: 'Fired, first curtain',
+        107: 'Fired, second curtain',
+        108: 'Fired, first curtain',
+        109: 'Fired, second curtain',
+        110: 'Fired, first curtain',
+        111: 'Fired, second curtain',
+        112: 'Fired, first curtain',
+        113: 'Fired, second curtain',
+        114: 'Fired, first curtain',
+        115: 'Fired, second curtain',
+        116: 'Fired, first curtain',
+        117: 'Fired, second curtain',
+        118: 'Fired, first curtain',
+        119: 'Fired, second curtain',
+        120: 'Fired, first curtain',
+        121: 'Fired, second curtain',
+        122: 'Fired, first curtain',
+        123: 'Fired, second curtain',
+        124: 'Fired, first curtain',
+        125: 'Fired, second curtain',
+        126: 'Fired, first curtain',
+        127: 'Fired, second curtain',
+        128: 'Fired, first curtain',
+        129: 'Fired, second curtain',
+        130: 'Fired, first curtain',
+        131: 'Fired, second curtain',
+        132: 'Fired, first curtain',
+        133: 'Fired, second curtain',
+        134: 'Fired, first curtain',
+        135: 'Fired, second curtain',
+        136: 'Fired, first curtain',
+        137: 'Fired, second curtain',
+        138: 'Fired, first curtain',
+        139: 'Fired, second curtain',
+        140: 'Fired, first curtain',
+        141: 'Fired, second curtain',
+        142: 'Fired, first curtain',
+        143: 'Fired, second curtain',
+        144: 'Fired, first curtain',
+        145: 'Fired, second curtain',
+        146: 'Fired, first curtain',
+        147: 'Fired, second curtain',
+        148: 'Fired, first curtain',
+        149: 'Fired, second curtain',
+        150: 'Fired, first curtain',
+        151: 'Fired, second curtain',
+        152: 'Fired, first curtain',
+        153: 'Fired, second curtain',
+        154: 'Fired, first curtain',
+        155: 'Fired, second curtain',
+        156: 'Fired, first curtain',
+        157: 'Fired, second curtain',
+        158: 'Fired, first curtain',
+        159: 'Fired, second curtain',
+        160: 'Fired, first curtain',
+        161: 'Fired, second curtain',
+        162: 'Fired, first curtain',
+        163: 'Fired, second curtain',
+        164: 'Fired, first curtain',
+        165: 'Fired, second curtain',
+        166: 'Fired, first curtain',
+        167: 'Fired, second curtain',
+        168: 'Fired, first curtain',
+        169: 'Fired, second curtain',
+        170: 'Fired, first curtain',
+        171: 'Fired, second curtain',
+        172: 'Fired, first curtain',
+        173: 'Fired, second curtain',
+        174: 'Fired, first curtain',
+        175: 'Fired, second curtain',
+        176: 'Fired, first curtain',
+        177: 'Fired, second curtain',
+        178: 'Fired, first curtain',
+        179: 'Fired, second curtain',
+        180: 'Fired, first curtain',
+        181: 'Fired, second curtain',
+        182: 'Fired, first curtain',
+        183: 'Fired, second curtain',
+        184: 'Fired, first curtain',
+        185: 'Fired, second curtain',
+        186: 'Fired, first curtain',
+        187: 'Fired, second curtain',
+        188: 'Fired, first curtain',
+        189: 'Fired, second curtain',
+        190: 'Fired, first curtain',
+        191: 'Fired, second curtain',
+        192: 'Fired, first curtain',
+        193: 'Fired, second curtain',
+        194: 'Fired, first curtain',
+        195: 'Fired, second curtain',
+        196: 'Fired, first curtain',
+        197: 'Fired, second curtain',
+        198: 'Fired, first curtain',
+        199: 'Fired, second curtain',
+        200: 'Fired, first curtain',
+        201: 'Fired, second curtain',
+        202: 'Fired, first curtain',
+        203: 'Fired, second curtain',
+        204: 'Fired, first curtain',
+        205: 'Fired, second curtain',
+        206: 'Fired, first curtain',
+        207: 'Fired, second curtain',
+        208: 'Fired, first curtain',
+        209: 'Fired, second curtain',
+        210: 'Fired, first curtain',
+        211: 'Fired, second curtain',
+        212: 'Fired, first curtain',
+        213: 'Fired, second curtain',
+        214: 'Fired, first curtain',
+        215: 'Fired, second curtain',
+        216: 'Fired, first curtain',
+        217: 'Fired, second curtain',
+        218: 'Fired, first curtain',
+        219: 'Fired, second curtain',
+        220: 'Fired, first curtain',
+        221: 'Fired, second curtain',
+        222: 'Fired, first curtain',
+        223: 'Fired, second curtain',
+        224: 'Fired, first curtain',
+        225: 'Fired, second curtain',
+        226: 'Fired, first curtain',
+        227: 'Fired, second curtain',
+        228: 'Fired, first curtain',
+        229: 'Fired, second curtain',
+        230: 'Fired, first curtain',
+        231: 'Fired, second curtain',
+        232: 'Fired, first curtain',
+        233: 'Fired, second curtain',
+        234: 'Fired, first curtain',
+        235: 'Fired, second curtain',
+        236: 'Fired, first curtain',
+        237: 'Fired, second curtain',
+        238: 'Fired, first curtain',
+        239: 'Fired, second curtain',
+        240: 'Fired, first curtain',
+        241: 'Fired, second curtain',
+        242: 'Fired, first curtain',
+        243: 'Fired, second curtain',
+        244: 'Fired, first curtain',
+        245: 'Fired, second curtain',
+        246: 'Fired, first curtain',
+        247: 'Fired, second curtain',
+        248: 'Fired, first curtain',
+        249: 'Fired, second curtain',
+        250: 'Fired, first curtain',
+        251: 'Fired, second curtain',
+        252: 'Fired, first curtain',
+        253: 'Fired, second curtain',
+        254: 'Fired, first curtain',
+        255: 'Fired, second curtain'
+      };
+      return modes[mode] || 'Unknown';
+    },
+    formatWhiteBalance(balance) {
+      const balances = {
+        0: 'Auto',
+        1: 'Manual',
+        2: 'Sunny',
+        3: 'Shady',
+        4: 'Cloudy',
+        5: 'Tungsten',
+        6: 'Fluorescent',
+        7: 'Flash',
+        8: 'Fine weather',
+        9: 'Cloudy weather',
+        10: 'Shady weather',
+        11: 'Manual (Daylight)',
+        12: 'Manual (Fluorescent)',
+        13: 'Manual (Tungsten)',
+        14: 'Manual (Flash)',
+        15: 'Manual (Underwater)'
+      };
+      return balances[balance] || 'Unknown';
+    },
+    formatColorSpace(space) {
+      const spaces = {
+        0: 'sRGB',
+        1: 'Adobe RGB',
+        2: 'Wide Gamut RGB',
+        3: 'Adobe Wide Gamut RGB',
+        4: 'ProPhoto RGB',
+        5: 'Wide Gamut RGB',
+        6: 'ProPhoto RGB',
+        7: 'ProPhoto RGB',
+        8: 'sRGB',
+        9: 'Adobe RGB',
+        10: 'Wide Gamut RGB',
+        11: 'Adobe Wide Gamut RGB',
+        12: 'ProPhoto RGB',
+        13: 'Wide Gamut RGB',
+        14: 'ProPhoto RGB',
+        15: 'ProPhoto RGB'
+      };
+      return spaces[space] || 'Unknown';
+    },
+    formatSceneType(type) {
+      const types = {
+        0: 'Standard',
+        1: 'Landscape',
+        2: 'Portrait',
+        3: 'Night scene'
+      };
+      return types[type] || 'Unknown';
     },
     toggleMetadata() {
       this.showMetadata = !this.showMetadata;
@@ -577,22 +1068,52 @@ export default {
     navigateToPrevious() {
       console.log('Navigating to previous item:', this.previousItem?._id);
       if (this.previousItem) {
-        // Include album ID in the URL if we're in album context
+        // Build the URL with appropriate context parameters
         let url = `/view/${this.previousItem._id}`;
+        let params = [];
+        
+        // Include album ID if we're in album context
         if (this.albumId) {
-          url += `?album=${this.albumId}`;
+          params.push(`album=${this.albumId}`);
         }
+        
+        // Include circle ID and tab if we're in circle context
+        if (this.circleId) {
+          params.push(`circle=${this.circleId}`);
+          params.push(`tab=${this.circleActiveTab || 'files'}`);
+        }
+        
+        // Add query parameters if we have any
+        if (params.length > 0) {
+          url += `?${params.join('&')}`;
+        }
+        
         window.location.href = url;
       }
     },
     navigateToNext() {
       console.log('Navigating to next item:', this.nextItem?._id);
       if (this.nextItem) {
-        // Include album ID in the URL if we're in album context
+        // Build the URL with appropriate context parameters
         let url = `/view/${this.nextItem._id}`;
+        let params = [];
+        
+        // Include album ID if we're in album context
         if (this.albumId) {
-          url += `?album=${this.albumId}`;
+          params.push(`album=${this.albumId}`);
         }
+        
+        // Include circle ID and tab if we're in circle context
+        if (this.circleId) {
+          params.push(`circle=${this.circleId}`);
+          params.push(`tab=${this.circleActiveTab || 'files'}`);
+        }
+        
+        // Add query parameters if we have any
+        if (params.length > 0) {
+          url += `?${params.join('&')}`;
+        }
+        
         window.location.href = url;
       }
     },
@@ -745,6 +1266,9 @@ export default {
       
       // Apply constraints while panning for smoother experience
       this.constrainBounds();
+    },
+    toggleAdvancedExif() {
+      this.showAdvancedExif = !this.showAdvancedExif;
     }
   }
 };

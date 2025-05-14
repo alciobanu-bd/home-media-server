@@ -581,7 +581,7 @@ export default {
       this.$router.push(`/albums/${albumId}`);
     },
     viewFile(fileId) {
-      this.$router.push(`/view/${fileId}`);
+      this.$router.push(`/view/${fileId}?circle=${this.circleId}&tab=files`);
     },
     handleCircleUpdated(updatedData) {
       // Update the circle with the new data from the edit modal
@@ -623,6 +623,17 @@ export default {
       }
       
       // Members tab is already loaded when the circle data is loaded
+    },
+    // Watch for changes in the route query to update the active tab
+    '$route.query': {
+      handler(newQuery) {
+        const tabParam = newQuery.tab;
+        if (tabParam && ['timeline', 'albums', 'files', 'members'].includes(tabParam)) {
+          this.activeTab = tabParam;
+          console.log('Updated active tab from route query:', tabParam);
+        }
+      },
+      immediate: true
     }
   },
   beforeUnmount() {
@@ -640,6 +651,14 @@ export default {
     if (!this.circleId) {
       this.error = 'No circle ID provided';
       console.error('Circle ID not found in props or route params');
+    }
+    
+    // Check for tab parameter in the URL query to set the active tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['timeline', 'albums', 'files', 'members'].includes(tabParam)) {
+      this.activeTab = tabParam;
+      console.log('Setting active tab from query parameter:', tabParam);
     }
   },
 };
@@ -663,6 +682,9 @@ export default {
   min-width: 0; /* Prevents flex item overflow */
   display: flex;
   flex-direction: column;
+  /* Ensure the container can grow as needed */
+  height: auto;
+  overflow: visible;
 }
 
 .loading-container, .error-container {
@@ -725,6 +747,9 @@ export default {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  /* Ensure content can expand as needed */
+  height: auto;
+  overflow: visible;
 }
 
 .circle-content {
@@ -737,8 +762,10 @@ export default {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Prevent content from exceeding container */
   width: 100%; /* Ensure full width */
+  position: relative; /* Establish positioning context for children */
+  min-height: 400px; /* Ensure a minimum height for content */
+  /* Remove max-height constraints to allow content to extend */
 }
 
 .welcome-message {
@@ -778,6 +805,7 @@ export default {
   flex-grow: 1;
   width: 100%;
   box-sizing: border-box; /* Include padding in width calculation */
+  overflow-y: auto; /* Allow vertical scrolling within the tab content */
   overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
