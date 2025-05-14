@@ -6,6 +6,18 @@
         <h1>Your Media Gallery</h1>
         <p class="gallery-description">Browse all the photos and videos you've uploaded to Lumia</p>
       </div>
+      
+      <!-- Add Upload Button -->
+      <button 
+        @click="openUploadModal" 
+        class="gallery-upload-btn" 
+        title="Upload Media"
+      >
+        <span class="btn-content">
+          <img :src="baseUrl + 'img/upload-icon-white.svg'" alt="Upload" class="upload-icon" width="20" height="20" />
+          <span class="btn-text">Upload Media</span>
+        </span>
+      </button>
     </div>
 
     <div v-if="loading && !media.length" class="loading">

@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Top controls - always visible -->
-    <div v-if="showControls" class="gallery-controls top-controls">
+    <div v-if="showControls && !isGalleryPage" class="gallery-controls top-controls">
       <button 
         @click="uploadMedia" 
         class="action-btn upload-btn" 
@@ -93,6 +93,7 @@ export default {
   setup() {
     const route = useRoute();
     const showControls = computed(() => (route.path === '/' || route.path === '/gallery') && galleryControlsStore.state.galleryInstance);
+    const isGalleryPage = computed(() => route.path === '/' || route.path === '/gallery');
     const baseUrl = process.env.BASE_URL || '/';
 
     // Use computed properties to access store state
@@ -135,7 +136,8 @@ export default {
       deleteSelected,
       cancelSelection,
       addToAlbum,
-      shareToCircles
+      shareToCircles,
+      isGalleryPage
     };
   }
 };

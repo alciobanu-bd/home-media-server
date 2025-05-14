@@ -52,6 +52,88 @@ body.selection-active .gallery {
   padding-bottom: 15px;
 }
 
+.gallery-description {
+  margin-top: 8px;
+  color: var(--color-text-secondary);
+}
+
+/* Gallery Upload Button */
+.gallery-upload-btn {
+  background: var(--lumia-gradient);
+  color: white;
+  border: none;
+  min-width: 180px;
+  height: 40px;
+  border-radius: 8px;
+  box-shadow: var(--lumia-shadow);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  padding: 0 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-upload-btn .btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+.gallery-upload-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.gallery-upload-btn:hover:before {
+  opacity: 1;
+}
+
+.gallery-upload-btn .upload-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.gallery-upload-btn:hover .upload-icon {
+  transform: translateY(-2px);
+}
+
+.gallery-upload-btn .btn-text {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 14px;
+  color: white;
+  position: relative;
+  z-index: 2;
+}
+
+.gallery-upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(156, 106, 222, 0.35);
+}
+
+.gallery-upload-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(156, 106, 222, 0.2);
+}
+
 .title-container {
   display: flex;
   align-items: center;
@@ -210,6 +292,11 @@ body.selection-active .gallery {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
+  }
+  
+  .gallery-upload-btn {
+    width: 100%;
+    margin-top: 10px;
   }
   
   .actions {
