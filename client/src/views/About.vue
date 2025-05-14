@@ -1,8 +1,16 @@
 <template>
   <div class="about-container">
     <div class="about-header">
-      <h1>About Lumia</h1>
+      <h1>About Lumia <span class="beta-tag">BETA</span></h1>
       <p class="tagline">{{ currentTagline }}</p>
+      <div class="beta-warning">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <p><strong>Lumia is currently in beta development.</strong> Total media loss may occur at any time. Please keep backups of important media. <router-link to="/status" class="status-link">View Project Status</router-link></p>
+      </div>
     </div>
 
     <div class="about-content">
@@ -140,6 +148,47 @@ export default {
   background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #1dd1a1, #9c6ade, #ff9ff3);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.beta-tag {
+  font-size: 0.9rem;
+  background: var(--color-error);
+  color: white;
+  -webkit-text-fill-color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  vertical-align: middle;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.beta-warning {
+  margin: 20px auto;
+  max-width: 800px;
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.beta-warning svg {
+  flex-shrink: 0;
+  stroke: var(--color-error);
+  width: 24px;
+  height: 24px;
+}
+
+.beta-warning p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .tagline {

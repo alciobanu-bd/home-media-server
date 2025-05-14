@@ -10,22 +10,13 @@
       </div>
       <div class="viewer-actions">
         <theme-toggle />
-        <button class="toggle-metadata" @click="toggleMetadata">
+        <button class="toggle-metadata" :class="{ 'active': showMetadata }" @click="toggleMetadata">
           {{ showMetadata ? 'Hide Metadata' : 'Show Metadata' }}
         </button>
       </div>
     </div>
     
-    <div class="viewer-content">
-      <div 
-        v-if="hasPrevious" 
-        class="nav-area prev-area"
-      >
-        <button class="nav-button prev-button" @click="navigateToPrevious">
-          <img :src="baseUrl + 'img/arrow-left.svg'" alt="Previous" />
-        </button>
-      </div>
-      
+    <div class="viewer-content" :class="{ 'with-metadata': showMetadata }">
       <div class="media-container" ref="mediaContainer" @contextmenu.prevent>
         <div v-if="loading" class="loading-spinner-container">
           <div class="loading-spinner"></div>
@@ -55,20 +46,30 @@
           ref="mediaElement"
         ></video>
         <div v-else class="unsupported">Unsupported media type</div>
+        
+        <!-- Move navigation arrows inside media container -->
+        <div 
+          v-if="hasPrevious" 
+          class="nav-area prev-area"
+        >
+          <button class="nav-button prev-button" @click="navigateToPrevious">
+            <img :src="baseUrl + 'img/arrow-left.svg'" alt="Previous" />
+          </button>
+        </div>
+        
+        <div 
+          v-if="hasNext" 
+          class="nav-area next-area"
+        >
+          <button class="nav-button next-button" @click="navigateToNext">
+            <img :src="baseUrl + 'img/arrow-right.svg'" alt="Next" />
+          </button>
+        </div>
       </div>
       
-      <div 
-        v-if="hasNext" 
-        class="nav-area next-area"
-      >
-        <button class="nav-button next-button" @click="navigateToNext">
-          <img :src="baseUrl + 'img/arrow-right.svg'" alt="Next" />
-        </button>
-      </div>
-      
-      <div v-if="showMetadata && metadata" class="metadata-panel">
+      <div v-show="showMetadata" class="metadata-panel" :class="{ 'visible': showMetadata }">
         <h3>Metadata</h3>
-        <div v-if="isImage && metadata.exif" class="metadata-group">
+        <div v-if="isImage && metadata && metadata.exif" class="metadata-group">
           <div v-if="metadata.dimensions" class="metadata-item">
             <span class="metadata-label">Dimensions:</span>
             <span class="metadata-value">{{ metadata.dimensions.width }}x{{ metadata.dimensions.height }}</span>
@@ -94,19 +95,26 @@
             <span class="metadata-value">{{ metadata.exif.FocalLength }}mm</span>
           </div>
         </div>
-        <div v-else class="metadata-item">
-          <span class="metadata-label">Type:</span>
-          <span class="metadata-value">{{ media.type }}</span>
+        
+        <!-- Add geolocation map -->
+        <div v-if="hasGeoLocationData && metadata" class="metadata-group">
+          <h4>Location</h4>
+          <geo-location-map :gps-data="metadata.exif"></geo-location-map>
         </div>
-        <div class="metadata-item">
+        
+        <div v-if="!isImage || (metadata && !metadata.exif)" class="metadata-item">
+          <span class="metadata-label">Type:</span>
+          <span class="metadata-value">{{ media ? media.type : '' }}</span>
+        </div>
+        <div v-if="media" class="metadata-item">
           <span class="metadata-label">Size:</span>
           <span class="metadata-value">{{ formatFileSize(media.size) }}</span>
         </div>
-        <div class="metadata-item">
+        <div v-if="media" class="metadata-item">
           <span class="metadata-label">Created:</span>
           <span class="metadata-value">{{ formatDate(media.createdAt, true) }}</span>
         </div>
-        <div class="metadata-item">
+        <div v-if="media" class="metadata-item">
           <span class="metadata-label">Uploaded:</span>
           <span class="metadata-value">{{ formatDate(media.uploadedAt, true) }}</span>
         </div>
@@ -118,23 +126,6 @@
       <button @click="resetZoom" class="zoom-button zoom-reset">Reset</button>
       <button @click="zoomOut" class="zoom-button zoom-out">−</button>
     </div>
-    
-    <div class="mobile-nav-buttons">
-      <button 
-        v-if="hasPrevious" 
-        @click="navigateToPrevious" 
-        class="mobile-nav-button prev"
-      >
-        Previous
-      </button>
-      <button 
-        v-if="hasNext" 
-        @click="navigateToNext" 
-        class="mobile-nav-button next"
-      >
-        Next
-      </button>
-    </div>
   </div>
 </template>
 
@@ -142,13 +133,15 @@
 import api from '../services/api';
 import { format } from 'date-fns';
 import ThemeToggle from '../components/ThemeToggle.vue';
+import GeoLocationMap from '../components/GeoLocationMap.vue';
 import '../styles/ViewMedia.css';
 import '../styles/theme.css';
 
 export default {
   name: 'ViewMedia',
   components: {
-    ThemeToggle
+    ThemeToggle,
+    GeoLocationMap
   },
   props: {
     id: {
@@ -161,7 +154,7 @@ export default {
       media: null,
       metadata: null,
       loading: true,
-      showMetadata: false,
+      showMetadata: this.getStoredMetadataSetting(),
       scale: 1,
       translateX: 0,
       translateY: 0,
@@ -185,6 +178,12 @@ export default {
     },
     isVideo() {
       return this.media && this.media.type && this.media.type.startsWith('video/');
+    },
+    hasGeoLocationData() {
+      return this.metadata && 
+             this.metadata.exif && 
+             ((this.metadata.exif.GPSLatitude && this.metadata.exif.GPSLongitude) || 
+              (this.metadata.exif.latitude && this.metadata.exif.longitude));
     },
     transformStyle() {
       return {
@@ -433,6 +432,23 @@ export default {
     },
     toggleMetadata() {
       this.showMetadata = !this.showMetadata;
+      this.storeMetadataSetting(this.showMetadata);
+    },
+    getStoredMetadataSetting() {
+      try {
+        const setting = localStorage.getItem('lumia_show_metadata');
+        return setting === 'true';
+      } catch (error) {
+        console.error('Error accessing localStorage:', error);
+        return false;
+      }
+    },
+    storeMetadataSetting(value) {
+      try {
+        localStorage.setItem('lumia_show_metadata', value.toString());
+      } catch (error) {
+        console.error('Error storing metadata setting:', error);
+      }
     },
     zoomIn() {
       this.scale = Math.min(8, this.scale + 1.0);

@@ -5,6 +5,21 @@ xr<template>
       <p class="project-subtitle">Resource Constraints & Development Overview</p>
     </div>
 
+    <div class="status-section beta-warning">
+      <div class="beta-badge">BETA</div>
+      <div class="warning-content">
+        <h2>Important: Beta Software</h2>
+        <p class="warning-text">Lumia is currently in <strong>beta stage development</strong>. During this phase:</p>
+        <ul class="warning-list">
+          <li><strong>Data loss may occur at any time</strong> - We recommend keeping backups of all important media</li>
+          <li>Features may change or be removed without prior notice</li>
+          <li>Performance and stability issues might be experienced</li>
+          <li>Limited resources environment may lead to temporary service disruptions</li>
+        </ul>
+        <p class="warning-note">By using Lumia, you acknowledge these risks and understand that total media loss is possible while we continue to improve the platform.</p>
+      </div>
+    </div>
+
     <div class="status-section resource-section">
       <h2>
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -229,6 +244,12 @@ xr<template>
           <h3>Processing Queue</h3>
           <p>Higher than normal</p>
         </div>
+        <div class="status-card beta-status-card">
+          <div class="status-indicator beta"></div>
+          <h3>Development Stage</h3>
+          <p>BETA</p>
+          <span class="beta-status-note">Data loss possible</span>
+        </div>
       </div>
     </div>
   </div>
@@ -275,6 +296,62 @@ export default {
   font-size: 1.2rem;
   color: var(--color-text-secondary);
   margin: 0;
+}
+
+.beta-warning {
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-left: 5px solid var(--color-error);
+  position: relative;
+  overflow: hidden;
+}
+
+.beta-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--color-error);
+  color: white;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.warning-content {
+  padding-right: 70px;
+}
+
+.warning-content h2 {
+  color: var(--color-error);
+  border-bottom-color: rgba(239, 68, 68, 0.3);
+}
+
+.warning-text {
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+
+.warning-list {
+  margin: 0 0 20px 0;
+  padding-left: 24px;
+}
+
+.warning-list li {
+  margin-bottom: 12px;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+}
+
+.warning-note {
+  font-style: italic;
+  font-weight: 500;
+  padding: 10px 16px;
+  background-color: rgba(239, 68, 68, 0.08);
+  border-radius: 6px;
+  margin-bottom: 0;
 }
 
 .status-section {
@@ -549,6 +626,30 @@ export default {
 
 .status-indicator.critical {
   background-color: var(--color-error);
+}
+
+.status-indicator.beta {
+  background-color: var(--color-error);
+  animation: pulse-error 2s infinite;
+}
+
+@keyframes pulse-error {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.beta-status-card {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.beta-status-note {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-error);
+  margin-top: 4px;
+  font-style: italic;
 }
 
 .status-card h3 {

@@ -21,6 +21,16 @@ const extractMetadata = async (filePath, fileType) => {
             const buffer = await fs.readFile(filePath);
             const parser = exifParser.create(buffer);
             const result = parser.parse();
+            
+            // Log GPS data if available for debugging
+            if (result.tags.GPSLatitude || result.tags.GPSLongitude) {
+                console.log('GPS data found in image:', {
+                    lat: result.tags.GPSLatitude,
+                    latRef: result.tags.GPSLatitudeRef,
+                    lng: result.tags.GPSLongitude,
+                    lngRef: result.tags.GPSLongitudeRef
+                });
+            }
       
             return {
                 exif: result.tags,

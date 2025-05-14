@@ -8,6 +8,7 @@
             <h1 class="brand-name">Lumia</h1>
             <p class="brand-tagline">{{ currentTagline }}</p>
           </div>
+          <div class="beta-indicator">BETA</div>
         </div>
         <nav class="main-nav">
           <router-link to="/gallery" class="nav-link">
@@ -565,6 +566,21 @@ body {
   color: var(--color-text-secondary);
   margin: 0;
   cursor: default; /* Default arrow cursor */
+}
+
+.beta-indicator {
+  background-color: var(--color-error);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 4px;
+  margin-left: 10px;
+  letter-spacing: 1px;
+  display: inline-block;
+  position: relative;
+  top: -12px;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
 }
 
 /* Dark mode enhancements for navigation */
