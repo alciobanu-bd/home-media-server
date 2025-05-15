@@ -273,7 +273,7 @@ export default {
   computed: {
     mediaUrl() {
       if (!this.media) return '';
-      return `http://localhost:3000/api/media/file/${this.media.filename}`;
+      return `/api/media/file/${this.media.filename}`;
     },
     isImage() {
       return this.media && this.media.type && this.media.type.startsWith('image/');

@@ -85,7 +85,7 @@ export default {
   },
   computed: {
     thumbnailUrl() {
-      return `http://localhost:3000/api/thumbnails/${this.item._id}.jpg`;
+      return `/api/thumbnails/${this.item._id}.jpg`;
     },
     isImage() {
       return this.item.type && this.item.type.startsWith('image/');

@@ -71,7 +71,7 @@ export default {
       processing: false,
       error: null,
       selectedFileId: null,
-      apiBaseUrl: 'http://localhost:3000/api'
+      apiBaseUrl: '/api'
     };
   },
   watch: {

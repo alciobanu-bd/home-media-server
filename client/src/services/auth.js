@@ -2,7 +2,7 @@
  * Authentication service for Google OAuth
  */
 
-const API_URL = process.env.VUE_APP_API_URL || 'http://localhost:3000/api';
+const API_URL = '/api';
 
 /**
  * Get the current authenticated user

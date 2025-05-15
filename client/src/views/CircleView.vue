@@ -207,7 +207,7 @@ export default {
       circleId: this.$route.params.id,
       
       // API base URL for thumbnails
-      apiBaseUrl: 'http://localhost:3000/api',
+      apiBaseUrl: '/api',
       
       // Loading state for albums
       loadingAlbums: false,

@@ -271,7 +271,7 @@ export default {
       thumbnailLoading: false,
       currentThumbnailId: null,
       baseUrl: process.env.BASE_URL || '/',
-      apiBaseUrl: 'http://localhost:3000/api',
+      apiBaseUrl: '/api',
       albumOwners: {}
     };
   },
